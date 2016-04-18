@@ -1,0 +1,29 @@
+Package: diffloop
+Type: Package
+Title: Differential DNA loop calling from ChIA-PET data
+Version: 0.99.1
+Date: 2016-04-12
+Authors@R: c( person("Caleb", "Lareau", email =
+        "caleblareau@g.harvard.edu", role = c("aut", "cre")),
+        person("Martin", "Aryee", email =
+        "aryee.martin@mgh.harvard.edu", role = "aut") )
+Maintainer: Caleb Lareau <caleblareau@g.harvard.edu>
+Author: Caleb Lareau [aut, cre], Martin Aryee [aut]
+Description: A suite of tools for subsetting, visualizing, annotating,
+        and statistically analyzing the results of one or more ChIA-PET
+        experiments.
+Imports: methods, GenomicRanges, foreach, plyr, dplyr, reshape2,
+        ggplot2, matrixStats, Sushi, edgeR, locfit, statmod, biomaRt,
+        GenomeInfoDb, S4Vectors, IRanges, grDevices, graphics, stats,
+        utils, Biobase, readr
+License: MIT + file LICENSE
+LazyData: TRUE
+Suggests: diffloopdata, knitr, rmarkdown, testthat
+VignetteBuilder: knitr
+RoxygenNote: 5.0.1
+Collate: 'diffloop.R' 'diffloop-class.R' 'data.R' 'core.R'
+        'pipeline_io.R' 'loopFunctions.R' 'sugar.R' 'union.R'
+        'annotation.R' 'assoc.R' 'colData.R' 'plotting.R'
+biocViews: Preprocessing, QualityControl, Visualization, DataImport,
+        DataRepresentation, GO
+NeedsCompilation: no

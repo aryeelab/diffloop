@@ -1,0 +1,214 @@
+---
+title: "diffloop: Identifying differential DNA loops from ChIA-PET data"
+author: "Caleb Lareau & Martin Aryee"
+date: "`r Sys.Date()`"
+output:
+  rmarkdown::html_vignette:
+    fig_caption: yes
+vignette: >
+  %\VignetteIndexEntry{diffloop: Identifying differential DNA loops from ChIA-PET data}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+library(diffloop)
+library(diffloopdata)
+library(ggplot2)
+library(GenomicRanges)
+```
+
+## Preprocessing
+The raw FASTQ read files were preprocessed with the `dnaloop`
+(https://github.com/aryeelab/dnaloop) package, a `PyPi` package that relies 
+on `samtools`, `bedtools`, `cutadapt`, and `MACS2` to align reads,
+call anchor peaks, and summarize PETs per sample in the ChIA-PET experiment.
+<br> <br>
+To use the `looptestMake` function from a different preprocessing step,
+have files `X.loop_counts.bedpe`,`Y.loop_counts.bedpe`, 
+`Z.loop_counts.bedpe` in `bed_dir` for `samples = (X,Y,Z)` where the 
+first lines should resemble: <br> <br>
+1 10002272 10004045 10 120968807 120969483 . 1 <br>
+1 10002272 10004045 10 99551498 99552470 . 1 <br>
+1 10002272 10004045 1 10002272 10004045 . 17 <br>
+<br> <br>
+where the first three columns specify the position (chr:start:stop) of
+the first anchor, the second three columns specify the position
+(chr:start:stop) of the secnd anchor, the 7th column is "." and the 8th
+column is the number of paired-end reads support that particular PET.
+
+## Loading data
+We read in data from the preprocessing pipeline using the `loopdataMake`
+function. The example below uses sample data included in the `diffloopdata`
+package. It contains interactions involving chromosome 1 from a set of six
+Cohesin ChIA-PET samples.$^{1,2}$ You would normally set `bed_dir` to your 
+real data directory.
+
+``` {r load_data} 
+bed_dir <- system.file("extdata", "esc_jurkat", package="diffloopdata")
+bed_dir
+samples <- c("naive_esc_1", "naive_esc_2", "primed_esc_1", "primed_esc_2",
+            "jurkat_1", "jurkat_2")
+```
+Here, we use 1500 bp as a value to merge nearby anchors into
+a single peak. In the `loopdataMake` function, the default is zero and should
+be parameterized based on the resolution of the ChIA-PET Experiment.
+```{r read_data}
+full <- loopdataMake(bed_dir, samples, 1500)
+celltypes <- c("naive", "naive", "primed", "primed", "jurkat", "jurkat")
+full <- updateLDGroups(full, celltypes)
+head(full, 3)
+```
+Alternatively, one could run `full <- loopdataMake(bed_dir)` and the `samples`
+would be inferred from the directory contents. The default call to `loopdataMake` 
+does not merge nearby anchors but instead keeps them distinct. If we want to 
+group nearby anchors after the initial data read, one can run the `mergeAnchors`
+command with the appropriate gap value. <br><br>
+We'll now look at a PCA plot of the raw data:
+```{r pca_prenorm, fig.width=7, fig.height=4, fig.cap ="PCA plot of**un-normalized** ChIA-PET loop data"}
+pcaPlot(full) + geom_text(aes(label=samples)) 
+```
+From this initial PCA plot, it's not clear how the samples separate based on
+their topologies, suggesting some quality control may be warranted.
+
+## QC
+First, we normalize the `loopdata` object, which updates the
+`sizeFactor` of each sample by the number of reads identical to the
+normalization technique employed in `DESeq2`. We recommend computing
+the size factors on the original `loopdata` object to generate the best
+normalization factors. 
+
+```{r sizeFactors}
+full <- calcLDSizeFactors(full)
+head(full,3)
+```
+
+Looking at the full dataset, we can see that a majority of the counts
+were within self-loops:
+```{r qc}
+loopMetrics(full)
+```
+We define "valid" looping in a combined experiment as those supported
+by at least 3 replicates in 2 or more samples. We can generate valid 
+loops by using the `filterLoops` command 
+```{r qc2}
+full_5kb <- filterLoops(full, width=5000, nreplicates=3, nsamples = 1)
+dim(full_5kb)
+valid_full <- filterLoops(full, width=5000, nreplicates=3, nsamples = 2)
+dim(valid_full)
+```
+We can also see the proportion
+of loops that occur within the same chromosome (intrachromosomal) or 
+have loops that bridge chromosomes (interchromosomal). 
+```{r qc3}
+dim(intrachromosomal(valid_full))
+dim(interchromosomal(valid_full))
+```
+Finally, we can determine the number of anchors supported by each sample 
+as well as the loops with different thresholds of counts.
+```{r qc4}
+numLoops(valid_full,1:5)
+head(valid_full)
+```
+
+## Post-Normalization
+
+```{r pca_postnorm, fig.width=7, fig.height=4, fig.cap = "PCA plot of normalized ChIA-PET loop data"}
+pcaPlot(valid_full) + geom_text(aes(label=samples)) +
+    expand_limits(x = c(-20, 34))
+```
+Here, the PC plot is much better as the first principal component separates
+the stem cells and the jurkat samples while the second PC separates the two
+stem cell samples.
+
+## Differential Looping
+Here, we describe the most general association method first fitting the model
+then doing pairwise comparisons by our choice of parameterizing the loopTest
+function.
+```{r geneAssoc}
+# Fit edgeR Models Pairwise between cell types
+fit <- loopFit(valid_full)
+jn_res <- loopTest(fit,coef=2)
+jp_res <- loopTest(fit,coef=3)
+np_res <- loopTest(fit,contrast=c(0,-1,1))
+
+head(np_res)
+```
+
+We could also have computed pairwise associations by subsetting the data and
+using quickAssoc, which only allows loopdata objects with two group classes.
+
+```{r quickAssoc}
+np <- valid_full[,1:4]
+summarize(np[1:3,])
+np_res2 <- quickAssoc(np)
+```
+
+Instead of determining the loops that distinguish these conditions from each
+other pairwise, this framework allows us to determine the loops that are
+significantly different between all of these conditions:
+
+```{r assocResults}
+jnp_res <- loopTest(fit,coef=2:3)
+head(jnp_res)
+#Can also directly subset diffloop objects
+jnp_res[100:101,]
+```
+
+
+## Differential Looping Regions
+What regions are significantly different between jurkat and naive? We can 
+answer this by doing a sliding window test by specifying the window size
+and the step size in the `slidingWindowTest` function.
+```{r swAssoc}
+sw_jn <- slidingWindowTest(jn_res,200000,200000)
+head(sw_jn)
+```
+
+What gene bodies have significantly different looping between the cell lines?
+Whereas the `slidingWindowTest` makes no prior assumptions about the regions
+to be tested, `featureTest` requires a `GRanges` object of coordinates to 
+determine what regions will be tested for association.
+```{r featAssoc}
+chr1 <- getHumanGenes(c("1"))
+ft_jnp <- featureTest(jnp_res,chr1)
+head(ft_jnp,10)
+```
+
+## Quantifying Associations
+How many differential loops are present pairwise between these conditions?
+```{r pairwiseSum, message=FALSE, warning=FALSE}
+np_sig_res <- topLoops(np_res, FDR = 0.2)
+dim(np_sig_res)
+dim(topLoops(jp_res, FDR = 0.2))
+dim(topLoops(jn_res, FDR = 0.2))
+summarize(np_sig_res)
+```
+At FDR < 0.2, only 6 loops are significantly different from the naive and
+primed stem cells whereas the jurkat differs between the primed stem cells
+by 177 significant loops and the naive by 211 significant loops on chromosome 1.
+These results are in line with the underlying biology of these cell types. 
+\newline \newline
+Now we can visualize a PC plot using only loops that are significantly
+different between celltypes
+```{r pca_sigfix, fig.width=7, fig.height=4, fig.cap = "PCA plot of differential loops"}
+pcaPlot(topLoops(jnp_res, FDR = 0.05)) + geom_text(aes(label=samples)) 
+```
+Here, we see a much tighter cluster of the cell types, which may be expected
+since the only variables introduced into the principal components are the loops
+that are statistically different between the cell types. 
+
+## Loop Plots
+We can easily visualize the looping structure of a region specfied by a 
+`GRanges` object in each sample. We also afford the annotation of the region
+with the genes for a particular organism. Currently, mouse and human (default)
+are supported.
+```{r dloplots2,fig.width=7, fig.height=10}
+regA <- GRanges(c("1"),ranges=IRanges(c(36000000),c(36300000)))
+full.plot <- loopPlot(jn_res, regA)
+```
+$^1$Hnisz, Denes, et al. "Activation of proto-oncogenes by disruption of
+chromosome neighborhoods." Science (2016): aad9024. <br><br>
+$^2$Ji, Xiong, et al. "3D Chromosome Regulatory Landscape of Human Pluripotent
+Cells." Cell stem cell (2015).
