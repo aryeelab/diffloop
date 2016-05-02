@@ -1,5 +1,7 @@
 # diffloop
+
 [![Travis-CI Build Status](https://travis-ci.org/aryeelab/diffloop.svg?branch=master)](https://travis-ci.org/aryeelab/diffloop)
+
 An R package for identifying differential features from ChIA-PET expierments. 
 
 ## Preprocessing
@@ -8,7 +10,7 @@ Raw FASTQ read files can be preprocessed with the `dnaloop`
 on `samtools`, `bedtools`, `cutadapt`, and `MACS2` to align reads,
 call anchor peaks, and summarize PETs per sample in the ChIA-PET experiment.
 <br> <br>
-To use the `looptestMake` function from a different preprocessing step,
+To use the `loopdataMake` function from a different preprocessing step,
 have files `X.loop_counts.bedpe`,`Y.loop_counts.bedpe`, 
 `Z.loop_counts.bedpe` in `bed_dir` for `samples = (X,Y,Z)` where the 
 first lines should resemble: <br> <br>
@@ -25,3 +27,7 @@ column is the number of paired-end reads support that particular PET.
 We read in data from the preprocessing pipeline using the `loopdataMake`
 function. The example in the vignette uses sample data included in the `diffloopdata`
 package. 
+
+## Analysis
+Check out the vignette for a working example on quality control, visualization, 
+association, and annotation
