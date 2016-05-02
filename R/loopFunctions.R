@@ -192,8 +192,9 @@ setGeneric(name = "subsetLoops", def = function(dlo, idxa) standardGeneric("subs
     slot(dlo, "interactions", check = TRUE) <- dlo@interactions[idxa, 
         , drop = FALSE]
     slot(dlo, "counts", check = TRUE) <- dlo@counts[idxa, , drop = FALSE]
-    slot(dlo, "rowData", check = TRUE) <- dlo@rowData[idxa, , 
-        drop = FALSE]
+    nRowData <- dlo@rowData[idxa, , drop = FALSE]
+    row.names(nRowData) <- NULL
+    slot(dlo, "rowData", check = TRUE) <- nRowData
     return(cleanup(dlo))
 }
 

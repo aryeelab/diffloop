@@ -6,10 +6,11 @@
 \alias{loopPlot,loops,GRanges-method}
 \title{Visualize looping}
 \usage{
-loopPlot(x, y, organism = "h", geneinfo = "NA", colorLoops = FALSE)
+loopPlot(x, y, organism = "h", geneinfo = "NA", colorLoops = FALSE,
+  cache = TRUE)
 
 \S4method{loopPlot}{loops,GRanges}(x, y, organism = "h", geneinfo = "NA",
-  colorLoops = FALSE)
+  colorLoops = FALSE, cache = TRUE)
 }
 \arguments{
 \item{x}{A loops object}
@@ -21,6 +22,8 @@ loopPlot(x, y, organism = "h", geneinfo = "NA", colorLoops = FALSE)
 \item{geneinfo}{A data.frame manually specifying annotation (see Examples)}
 
 \item{colorLoops}{Differentiates loops based on loop.type in loops object}
+
+\item{cache}{logic variable (default = TRUE) to use gene annotation from July.2015 freeze}
 }
 \value{
 A plot object

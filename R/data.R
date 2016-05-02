@@ -50,3 +50,24 @@ NULL
 #' @return A GRanges object
 #' @source biomaRt July 2015 stable build
 "human.TSS"
+
+#' Human/mouse exon locations
+#'
+#' A dataframe used for plotting annotation for human
+#' and mouse. Each loaded .rda has the same variable
+#' called "geneinfo" (so don't co-load these), but 
+#' the files differ by an m orh
+#'
+#' @format A GRanges object 
+#' \describe{
+#'   \item{chrom}{Chromosomes without "chr"}
+#'   \item{start}{exon start location}
+#'   \item{stop}{exon end location}
+#'   \item{gene}{Gene Name}
+#'   \item{score}{dummy column there for sushi}
+#'   \item{strand}{+1 or -1 to indicate side of DNA}
+#'   ...
+#' }
+#' @return A data.frame
+#' @source biomaRt July 2015 stable build
+"geneinfo"

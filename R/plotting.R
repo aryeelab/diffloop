@@ -21,6 +21,7 @@ NULL
 #' @param organism 'h' for human or 'm' for mouse supported
 #' @param geneinfo A data.frame manually specifying annotation (see Examples)
 #' @param colorLoops Differentiates loops based on loop.type in loops object
+#' @param cache logic variable (default = TRUE) to use gene annotation from July.2015 freeze
 #'
 #' @return A plot object
 #'
@@ -42,20 +43,20 @@ NULL
 #' 
 #' @export
 setGeneric(name = "loopPlot", def = function(x, y, organism = "h", 
-    geneinfo = "NA", colorLoops = FALSE) standardGeneric("loopPlot"))
+    geneinfo = "NA", colorLoops = FALSE, cache = TRUE) standardGeneric("loopPlot"))
 
 #' @rdname loopPlot
 setMethod("loopPlot", signature(x = "loops", y = "GRanges", organism = "ANY", 
-    geneinfo = "ANY", colorLoops = "ANY"), definition = function(x, 
-    y, organism = "h", geneinfo = "NA", colorLoops = FALSE) {
+    geneinfo = "ANY", colorLoops = "ANY", cache = "ANY"), definition = function(x, 
+    y, organism = "h", geneinfo = "NA", colorLoops = FALSE, cache = TRUE) {
     if (!colorLoops) {
-        return(.loopPlot(x, y, organism, geneinfo))
+        return(.loopPlot(x, y, organism, geneinfo, cache))
     } else {
-        return(.loopPlotcolor(x, y, organism, geneinfo))
+        return(.loopPlotcolor(x, y, organism, geneinfo, cache))
     }
 })
 
-.loopPlot <- function(x, y, organism = "h", geneinfo = "NA") {
+.loopPlot <- function(x, y, organism = "h", geneinfo = "NA", cache = TRUE) {
     
     # Immediately restrict the loops object to the region
     objReg <- removeSelfLoops(subsetRegion(x, y))
@@ -66,11 +67,10 @@ setMethod("loopPlot", signature(x = "loops", y = "GRanges", organism = "ANY",
     start <- as.integer(start(ranges(range(y))))
     end <- as.integer(end(ranges(range(y))))
     
-    if (geneinfo == "NA") {
+    if (geneinfo == "NA" && !cache) {
         # Get gene annotation from bioMart
         if (organism == "h") {
-            mart = useMart(biomart = "ENSEMBL_MART_ENSEMBL", 
-                dataset = "hsapiens_gene_ensembl", host = "jul2015.archive.ensembl.org")
+            mart = useMart(biomart = "ensembl", dataset = "hsapiens_gene_ensembl")
             chrom_biomart = gsub("chr", "", chrom)
             geneinfo = getBM(attributes = c("chromosome_name", 
                 "exon_chrom_start", "exon_chrom_end", "external_gene_name", 
@@ -78,8 +78,7 @@ setMethod("loopPlot", signature(x = "loops", y = "GRanges", organism = "ANY",
                 "end"), values = list(chrom_biomart, start, end), 
                 mart = mart)
         } else if (organism == "m") {
-            mart = useMart(biomart = "ENSEMBL_MART_ENSEMBL", 
-                dataset = "mmusculus_gene_ensembl", host = "jul2015.archive.ensembl.org")
+            mart = useMart(biomart = "ensembl", dataset = "mmusculus_gene_ensembl")
             chrom_biomart = gsub("chr", "", chrom)
             geneinfo = getBM(attributes = c("chromosome_name", 
                 "start_position", "end_position", "external_gene_name", 
@@ -94,7 +93,18 @@ setMethod("loopPlot", signature(x = "loops", y = "GRanges", organism = "ANY",
         # reorder and make proper bed format
         geneinfo$score = "."
         geneinfo = geneinfo[, c(1, 2, 3, 4, 6, 5)]
-    }
+    } else if (cache){
+        # load and subset geneinfo; condition on mouse/human
+        if(organism == "h") {
+            rda <- paste(system.file("rda", package = "diffloop"), 
+                "geneinfo.h.rda", sep = "/")
+        } else if (organism == "m") {
+            rda <- paste(system.file("rda", package = "diffloop"), 
+                "geneinfo.m.rda", sep = "/")
+        }
+        load(rda)
+        geneinfo <- geneinfo[geneinfo$chrom == chrom & geneinfo$start > start - 10000 & geneinfo$stop < end + 10000,]
+    } 
     
     # Dimensions of dataframe
     n <- dim(objReg@interactions)[1]  #number of interactions
@@ -154,11 +164,11 @@ setMethod("loopPlot", signature(x = "loops", y = "GRanges", organism = "ANY",
     return(loplot)
 }
 
-.loopPlotcolor <- function(x, y, organism = "h", geneinfo = "NA") {
+.loopPlotcolor <- function(x, y, organism = "h", geneinfo = "NA", cache = TRUE) {
     
     # Immediately restrict the loops object to the region
     objReg <- removeSelfLoops(subsetRegion(x, y))
-    res <- x@rowDat
+    res <- objReg@rowData
     
     # Grab Regional Coordinates
     chrom <- as.character(seqnames(y))
@@ -166,7 +176,7 @@ setMethod("loopPlot", signature(x = "loops", y = "GRanges", organism = "ANY",
     start <- as.integer(start(ranges(range(y))))
     end <- as.integer(end(ranges(range(y))))
     
-    if (geneinfo == "NA") {
+    if (geneinfo == "NA" && !cache) {
         # Get gene annotation from bioMart
         if (organism == "h") {
             mart = useMart(biomart = "ensembl", dataset = "hsapiens_gene_ensembl")
@@ -192,7 +202,19 @@ setMethod("loopPlot", signature(x = "loops", y = "GRanges", organism = "ANY",
         # reorder and make proper bed format
         geneinfo$score = "."
         geneinfo = geneinfo[, c(1, 2, 3, 4, 6, 5)]
-    }
+        
+    } else if (cache){
+        # load and subset geneinfo; condition on mouse/human
+        if(organism == "h") {
+            rda <- paste(system.file("rda", package = "diffloop"), 
+                "geneinfo.h.rda", sep = "/")
+        } else if (organism == "m") {
+            rda <- paste(system.file("rda", package = "diffloop"), 
+                "geneinfo.m.rda", sep = "/")
+        }
+        load(rda)
+        geneinfo <- geneinfo[geneinfo$chrom == chrom & geneinfo$start > start - 10000 & geneinfo$stop < end + 10000,]
+    } 
     
     # Dimensions of dataframe
     n <- dim(objReg@interactions)[1]  #number of interactions
@@ -340,8 +362,7 @@ setMethod(f = "plotTopLoops", signature = c("loops", "ANY", "ANY",
             stop("Too many loops to print; there aren't that many in the data!")
         }
         d <- lto@rowData
-        tl <- subsetLoops(lto, as.integer(rownames(head(d[order(d$PValue), 
-            , drop = FALSE], n = n))))
+        tl <- subsetLoops(lto, as.integer(rownames(head(d[order(d$PValue), , drop = FALSE], n = n))))
     } else if (FDR < 1 | PValue < 1) {
         tl <- topLoops(lto, FDR = FDR, PValue = PValue)
         n <- dim(tl)[2]
