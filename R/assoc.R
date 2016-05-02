@@ -164,7 +164,7 @@ setMethod(f = "slidingWindowTest", signature = c("looptest",
     # loops
     keepcols <- c("chr_1", "start_1", "end_1", "chr_2", "start_2", 
         "end_2")
-    bigdf <- cbind(summarize(dlo)[keepcols], pvals)
+    bigdf <- cbind(summary(dlo)[keepcols], pvals)
     df.use <- bigdf[bigdf$chr_1 == bigdf$chr_2, ]  #only intra
     
     all.chromosomes <- unique(c(levels(droplevels(df.use$chr_1)), levels(droplevels(df.use$chr_2))))
@@ -274,7 +274,7 @@ setMethod(f = "featureTest", signature = c("looptest", "GRanges"),
         # loops
         keepcols <- c("chr_1", "start_1", "end_1", "chr_2", "start_2", 
             "end_2")
-        bigdf <- cbind(summarize(dlo)[keepcols], pvals)
+        bigdf <- cbind(summary(dlo)[keepcols], pvals)
         df.use <- bigdf[bigdf$chr_1 == bigdf$chr_2, ]  #intra
         featuredf <- as.data.frame(features)
         

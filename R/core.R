@@ -3,7 +3,7 @@ NULL
 
 #' Link the anchors and loops back together 
 #'
-#' \code{summarize} takes a \code{loopdata/looptest} object and breaks the 
+#' \code{summary} takes a \code{loopdata/looptest} object and breaks the 
 #' loopdata structure resulting in a \code{data.frame}. 
 #'
 #' This function returns a \code{data.frame} where the left and right anchors 
@@ -13,7 +13,7 @@ NULL
 #' in the \code{results} slot is added on but the individual counts are 
 #' excluded.
 #'
-#' @param .data A loopdata object to be summarized
+#' @param object A loopdata object to be summarized
 #'
 #' @return A data.frame
 #'
@@ -21,14 +21,14 @@ NULL
 #' # Summarizing the first ten loops in \code{jpn_chr1reg}
 #' rda<-paste(system.file('rda',package='diffloop'),'jpn_chr1reg.rda',sep='/')
 #' load(rda)
-#' summarydf <- summarize(jpn_chr1reg[1:10,])
+#' summarydf <- summary(jpn_chr1reg[1:10,])
 #' # Summarizing the loops and significance results between naive and primed
-#' summarylt <- summarize(quickAssoc(jpn_chr1reg[,1:4])[1:10,])
+#' summarylt <- summary(quickAssoc(jpn_chr1reg[,1:4])[1:10,])
 #' @import plyr
 
 #' @export
-setMethod(f = "summarize", signature = c("loopdata"), definition = function(.data) {
-    dlo <- .data
+setMethod(f = "summary", signature = c("loopdata"), definition = function(object) {
+    dlo <- object
     # Grab all the left anchors in order of loop occurence
     leftAnchor2 <- as.data.frame(dlo@anchors[dlo@loops[, 1]])
     leftAnchor2 <- subset(leftAnchor2, select = -c(width, strand))
@@ -49,9 +49,9 @@ setMethod(f = "summarize", signature = c("loopdata"), definition = function(.dat
     cbind(leftAnchor2, rightAnchor2, loopwidth, dlo@counts)
 })
 
-#' @rdname summarize-loopdata-method 
-setMethod(f = "summarize", signature = c("looptest"), definition = function(.data) {
-    dlo <- .data@loopdata
+#' @rdname summary-loopdata-method 
+setMethod(f = "summary", signature = c("looptest"), definition = function(object) {
+    dlo <- object@loopdata
     # Grab all the left anchors in order of loop occurence
     leftAnchor2 <- as.data.frame(dlo@anchors[dlo@loops[, 1]])
     leftAnchor2 <- subset(leftAnchor2, select = -c(width, strand))
@@ -69,7 +69,7 @@ setMethod(f = "summarize", signature = c("looptest"), definition = function(.dat
     # Add the loop features width and counts (per sample)
     loopwidth <- matrix(loopWidth(dlo), ncol = 1)
     colnames(loopwidth) <- "loopwidth"
-    cbind(leftAnchor2, rightAnchor2, loopwidth, .data@results)
+    cbind(leftAnchor2, rightAnchor2, loopwidth, object@results)
 })
 
 # Function that removes all anchors not being referenced in

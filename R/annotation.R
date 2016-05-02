@@ -116,3 +116,100 @@ setMethod(f = "getHumanGenes", signature = c("missing"), definition = function(c
 setMethod(f = "getHumanGenes", signature = c("character"), definition = function(chr) {
     return(.getHumanGenes(chr))
 })
+
+#' Annotate loops as Enhancer-Promoter or CTCF-CTCF
+#'
+#' \code{annotateLoops} adds a column to the results slot of a looptest
+#' object categorizing loops as either e-p (enhancer-promoter), ctcf 
+#' (CTCF-CTCF) or none (no biological annotation). If both ctcf and e-p,
+#' then categorized as e-p. 
+#'
+#' Function annotates loops where both anchors are near CTCF peaks or where 
+#' one anchor is near an enhancer and the other near a promoter. Consider using
+#' functions \code{addchr}, \code{rmchr}, \code{bedToGRanges}, and  \code{padGRanges}
+#' when setting up the 3 GRanges inputs. Provide a blank GRanges objects to ignore
+#' classification for one set. 
+#'
+#' @param lto A looptest object whose loops will be annotated
+#' @param ctcf GRanges object corresponding to locations of CTCF peaks
+#' @param enhancer GRanges object corresponding to locations of enhancer peaks
+#' @param promoter GRanges object corresponding to locations of promoter regions
+#'
+#' @return A looptest object with an additional row "loop.type" in the results slot
+#'
+#' @examples
+#' rda<-paste(system.file('rda',package='diffloop'),'jpn_chr1reg.rda',sep='/')
+#' load(rda)
+#' ctcf_j <- system.file('extdata','Jurkat_CTCF_chr1.narrowPeak',package = 'diffloop')
+#' ctcf <- rmchr(padGRanges(bedToGRanges(ctcf_j), pad = 1000))
+#' h3k27ac_j <- system.file('extdata','Jurkat_H3K27ac_chr1.narrowPeak',package = 'diffloop')
+#' h3k27ac <- rmchr(padGRanges(bedToGRanges(h3k27ac_j), pad = 1000))
+#' promoter_rs <- system.file('extdata','chr1-TSS.bed',package = 'diffloop')
+#' promoter <- rmchr(bedToGRanges(promoter_rs))
+#' jn <- jpn_chr1reg[,c(1,2,5,6)]
+#' jn <- removeSelfLoops(jn)
+#' assoc_jn <- quickAssoc(jn)
+#' annotated_jn <- annotateLoops(assoc_jn, ctcf, h3k27ac, promoter)
+#' head(annotated_jn)
+#' 
+#' @import GenomicRanges
+#' @export
+setGeneric(name = "annotateLoops", def = function(lto, ctcf, 
+    enhancer, promoter) standardGeneric("annotateLoops"))
+
+#' @rdname annotateLoops
+setMethod(f = "annotateLoops", signature = c("looptest", "GRanges", 
+    "GRanges", "GRanges"), definition = function(lto, ctcf, 
+    enhancer, promoter) {
+        
+        lto.df <- summary(lto)
+        Ranchors <- GRanges(lto.df[, 1], IRanges(lto.df[, 2], lto.df[, 3]))
+        Lanchors <- GRanges(lto.df[, 4], IRanges(lto.df[, 5], lto.df[, 6]))
+    
+        # Determine if right anchor is near CTCF peak
+        Rhits.c <- suppressWarnings(findOverlaps(ctcf, Ranchors, maxgap = 0))
+        Rvalues.c <- rep(FALSE, dim(lto.df)[1])
+        Rvalues.c[unique(subjectHits(Rhits.c))] <- TRUE
+        
+        # Determine if left anchor is near CTCF peak
+        Lhits.c <- suppressWarnings(findOverlaps(ctcf, Lanchors, maxgap = 0))
+        Lvalues.c <- rep(FALSE, dim(lto.df)[1])
+        Lvalues.c[unique(subjectHits(Lhits.c))] <- TRUE
+        
+        #######
+        
+        # Determine if right anchor is near promoter region
+        Rhits.p <- suppressWarnings(findOverlaps(promoter, Ranchors, maxgap = 0))
+        Rvalues.p <- rep(FALSE, dim(lto.df)[1])
+        Rvalues.p[unique(subjectHits(Rhits.p))] <- TRUE
+        
+        # Determine if left anchor is near promoter region
+        Lhits.p <- suppressWarnings(findOverlaps(promoter, Lanchors, maxgap = 0))
+        Lvalues.p <- rep(FALSE, dim(lto.df)[1])
+        Lvalues.p[unique(subjectHits(Lhits.p))] <- TRUE
+        
+        #######
+        
+        # Determine if right anchor is near enhancer peak
+        Rhits.e <- suppressWarnings(findOverlaps(ctcf, Ranchors, maxgap = 0))
+        Rvalues.e <- rep(FALSE, dim(lto.df)[1])
+        Rvalues.e[unique(subjectHits(Rhits.e))] <- TRUE
+        
+        # Determine if left anchor is near enhancer peak
+        Lhits.e <- suppressWarnings(findOverlaps(ctcf, Lanchors, maxgap = 0))
+        Lvalues.e <- rep(FALSE, dim(lto.df)[1])
+        Lvalues.e[unique(subjectHits(Lhits.e))] <- TRUE
+        
+        #######
+        
+        ctcf.loops <- Lvalues.c & Rvalues.c
+        ep.loops <- (Lvalues.e & Rvalues.p) | (Lvalues.p & Rvalues.e)
+        loop.types <- as.integer(ctcf.loops) + as.integer(ep.loops)*2
+        loop.types <- gsub("3", "e-p", loop.types)
+        loop.types <- gsub("2", "e-p", loop.types)
+        loop.types <- gsub("1", "ctcf", loop.types)
+        loop.types <- gsub("0", "none", loop.types)
+        
+        lto@results$loop.type <- loop.types
+        return(lto)
+})

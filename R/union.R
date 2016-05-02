@@ -33,8 +33,8 @@ NULL
 #' @export
 setMethod(f = "union", signature = c("loopdata", "loopdata"), 
     definition = function(x, y) {
-        o1df <- summarize(x)
-        o2df <- summarize(y)
+        o1df <- summary(x)
+        o2df <- summary(y)
         
         # Get combined anchors
         a1 <- data.frame(o1df$chr_1, o1df$start_1, o1df$end_1)
