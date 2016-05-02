@@ -215,7 +215,7 @@ setMethod(f = "getHumanTSS", signature = c("character", "ANY"),
 
 #' Annotate loops as Enhancer-Promoter or CTCF-CTCF
 #'
-#' \code{annotateLoops} adds a column to the results slot of a loops
+#' \code{annotateLoops} adds a column to the rowData slot of a loops
 #' object categorizing loops as either e-p (enhancer-promoter), ctcf 
 #' (CTCF-CTCF) or none (no biological annotation). If both ctcf and e-p,
 #' then categorized as e-p. 
@@ -231,7 +231,7 @@ setMethod(f = "getHumanTSS", signature = c("character", "ANY"),
 #' @param enhancer GRanges object corresponding to locations of enhancer peaks
 #' @param promoter GRanges object corresponding to locations of promoter regions
 #'
-#' @return A loops object with an additional row 'loop.type' in the results slot
+#' @return A loops object with an additional row 'loop.type' in the rowData slot
 #'
 #' @examples
 #' rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')

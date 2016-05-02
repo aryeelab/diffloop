@@ -21,10 +21,10 @@ annotateLoops(lto, ctcf, enhancer, promoter)
 \item{promoter}{GRanges object corresponding to locations of promoter regions}
 }
 \value{
-A loops object with an additional row 'loop.type' in the results slot
+A loops object with an additional row 'loop.type' in the rowData slot
 }
 \description{
-\code{annotateLoops} adds a column to the results slot of a loops
+\code{annotateLoops} adds a column to the rowData slot of a loops
 object categorizing loops as either e-p (enhancer-promoter), ctcf 
 (CTCF-CTCF) or none (no biological annotation). If both ctcf and e-p,
 then categorized as e-p.

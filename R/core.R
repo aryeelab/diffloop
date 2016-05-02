@@ -270,8 +270,8 @@ setMethod(f = "subsetRegion", signature = c("loops", "GRanges",
     intsdf <- as.data.frame(dlo@interactions)
     
     # Update interactions indices
-    lm <- mapping[match(intsdf$left, mapping$queryHits), 2, drop=F]
-    rm <- mapping[match(intsdf$right,mapping$queryHits), 2, drop=F]
+    lm <- mapping[match(intsdf$left, mapping$queryHits), 2, drop=FALSE]
+    rm <- mapping[match(intsdf$right,mapping$queryHits), 2, drop=FALSE]
     
     # Format new indices matrix
     totalupdate <- cbind(unlist(lm), unlist(rm))
@@ -282,6 +282,7 @@ setMethod(f = "subsetRegion", signature = c("loops", "GRanges",
     # Subset rowData
     newRowData <- as.data.frame(dlo@rowData[cc, ])
     colnames(newRowData) <- colnames(dlo@rowData)
+    row.names(newRowData) <- NULL
     
     # Grab counts indicies; removes lines that don't map to
     # anything via making them NAs and then removing them
@@ -289,8 +290,7 @@ setMethod(f = "subsetRegion", signature = c("loops", "GRanges",
     colnames(newcounts) <- colnames(dlo@counts)
     
     # Update values
-    slot(dlo, "anchors", check = TRUE) <- dlo@anchors[keepTheseAnchors, 
-        ]
+    slot(dlo, "anchors", check = TRUE) <- dlo@anchors[keepTheseAnchors, ]
     slot(dlo, "interactions", check = TRUE) <- newinteractions
     slot(dlo, "counts", check = TRUE) <- newcounts
     slot(dlo, "rowData", check = TRUE) <- newRowData
@@ -306,8 +306,8 @@ setMethod(f = "subsetRegion", signature = c("loops", "GRanges",
     intsdf <- as.data.frame(dlo@interactions)
     
     # Update interaction indicies
-    lm <- mapping[match(intsdf$left, mapping$queryHits), 2, drop=F]
-    rm <- mapping[match(intsdf$right,mapping$queryHits), 2, drop=F]
+    lm <- mapping[match(intsdf$left, mapping$queryHits), 2, drop=FALSE]
+    rm <- mapping[match(intsdf$right,mapping$queryHits), 2, drop=FALSE]
     
     # Format new indices matrix
     totalupdate <- cbind(unlist(lm), unlist(rm))
@@ -323,6 +323,8 @@ setMethod(f = "subsetRegion", signature = c("loops", "GRanges",
     # Subset rowData
     newRowData <- as.data.frame(dlo@rowData[cc, ])
     colnames(newRowData) <- colnames(dlo@rowData)
+    row.names(newRowData) <- NULL
+
     
     # Update values
     slot(dlo, "anchors", check = TRUE) <- newAnchors
