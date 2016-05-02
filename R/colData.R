@@ -67,13 +67,34 @@ setMethod("updateLDGroups", c("loopdata"), function(dlo, groups) {
     return(dlo)
 })
 
+#' Grab/Update Sample Names
+#'
+#' \code{sampleNames} takes a loopdata object returns the names of 
+#' the samples in the structure. One can also update the names using
+#' set replace.
+#'
+#' The examples show both accession and updating sample names. 
+#'
+#' @param dlo A loopdata object 
+#'
+#' @return Vector of sample names
+#'
+#' @examples
+#' rda<-paste(system.file('rda',package='diffloop'),'jpn_chr1reg.rda',sep='/')
+#' load(rda)
+#' sampleNames(jpn_chr1reg)
+#' nnames <- c("one", "two", "three", "four", "five", "six")
+#' sampleNames(jpn_chr1reg) <- nnames
+
 #' @importMethodsFrom Biobase sampleNames
 #' @export
 setMethod("sampleNames", "loopdata", function(object) {
     rownames(object@colData)
 })
 
+
 #' @importMethodsFrom Biobase sampleNames<-
+#' @rdname sampleNames-loopdata-method
 #' @export
 setReplaceMethod("sampleNames", c("loopdata", "ANY"), function(object, value) {
 
