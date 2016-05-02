@@ -189,9 +189,8 @@ setGeneric(name = "subsetLoops", def = function(dlo, idxa) standardGeneric("subs
 
 .subsetLoops <- function(dlo, idxa) {
     # Keep Unique Interactions and their counts
-    slot(dlo, "interactions", check = TRUE) <- dlo@interactions[idxa, 
-        , drop = FALSE]
-    slot(dlo, "counts", check = TRUE) <- dlo@counts[idxa, , drop = FALSE]
+    slot(dlo, "interactions", check = TRUE) <- as.matrix(dlo@interactions[idxa, , drop = FALSE])
+    slot(dlo, "counts", check = TRUE) <- as.matrix(dlo@counts[idxa, , drop = FALSE])
     nRowData <- dlo@rowData[idxa, , drop = FALSE]
     row.names(nRowData) <- NULL
     slot(dlo, "rowData", check = TRUE) <- nRowData

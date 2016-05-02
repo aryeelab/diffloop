@@ -48,13 +48,23 @@ setMethod(f = "summary", signature = c("loops"), definition = function(object) {
     cbind(leftAnchor2, rightAnchor2, dlo@counts, object@rowData)
 })
 
+.emptyloopsobject <- function(colData){
+
+}
+
 # Function that removes all anchors not being referenced in
 # interactions matrix and updates indices. For internal use
 # only.
 setGeneric(name = "cleanup", def = function(dlo) standardGeneric("cleanup"))
 setMethod(f = "cleanup", signature = c("loops"), definition = function(dlo) {
-    if (dim(dlo@counts)[1] == 0) {
-        stop("Attempting to subset to empty loops object!")
+    if (as.integer(dim(dlo)[2]) == 0) {
+        dlo <- loops()
+        slot(dlo, "anchors", check = TRUE) <- GRanges()
+        slot(dlo, "interactions", check = TRUE) <- matrix()
+        slot(dlo, "counts", check = TRUE) <- matrix()
+        slot(dlo, "colData", check = TRUE) <- dlo@colData
+        slot(dlo, "rowData", check = TRUE) <- data.frame()
+        return(dlo)
     }
     
     # Grab indicies of anchors being referenced in loops
