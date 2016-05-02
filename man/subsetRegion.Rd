@@ -35,8 +35,6 @@ region for the loop to be preserved when extracting. However, by specifying
 a numeric 1, interactions with either the left or right anchor will be extracted.
 Loops with both anchors in the region will be excluded (exclusive \code{or}).
 To get an inclusive \code{or}, take the union of subsetting both with 1 and 2.
-For looptest objects, can currently only subset regions where both anchors are 
-present
 }
 \examples{
 # Grab region chr1:36000000-36100000

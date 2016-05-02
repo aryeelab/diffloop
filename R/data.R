@@ -18,3 +18,35 @@ NULL
 #' @return A loops object
 #' @source subsetRegion(loops,GRanges(c('1'),IRanges(c(36000000),c(36300000))))
 "loops.small"
+
+#' Human protein coding genes
+#'
+#' A GRanges object with the human protein-coding genes
+#'
+#' @format A GRanges object 
+#' \describe{
+#'   \item{seqnames}{Chromosomes without "chr"}
+#'   \item{ranges}{start/end loci}
+#'   \item{strand}{not specified ('*' everywhere)}
+#'   \item{id}{Gene Name}
+#'   ...
+#' }
+#' @return A GRanges object
+#' @source biomaRt July 2015 stable build
+"human.genes"
+
+#' Human 60k+ transcription start sites
+#'
+#' A GRanges object with all loci of transcription start sites
+#'
+#' @format A GRanges object 
+#' \describe{
+#'   \item{seqnames}{Chromosomes without "chr"}
+#'   \item{ranges}{start/end loci are same}
+#'   \item{strand}{not specified ('*' everywhere)}
+#'   \item{id}{Gene Name}
+#'   ...
+#' }
+#' @return A GRanges object
+#' @source biomaRt July 2015 stable build
+"human.TSS"

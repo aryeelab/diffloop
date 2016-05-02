@@ -7,11 +7,11 @@
 \alias{getHumanTSS,missing-method}
 \title{Get Human Transcription Start Sites}
 \usage{
-getHumanTSS(chr)
+getHumanTSS(chr, cache = TRUE)
 
-\S4method{getHumanTSS}{missing}(chr)
+\S4method{getHumanTSS}{missing}(chr, cache = TRUE)
 
-\S4method{getHumanTSS}{character}(chr)
+\S4method{getHumanTSS}{character}(chr, cache = TRUE)
 }
 \arguments{
 \item{chr}{Specifies what chromosomes are desired for the TSS}

@@ -8,7 +8,7 @@
 \S4method{head}{loops}(x, n = 6, ...)
 }
 \arguments{
-\item{x}{A looptest object}
+\item{x}{A loops object}
 
 \item{n}{Number of lines to view}
 

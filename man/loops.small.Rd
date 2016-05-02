@@ -4,7 +4,7 @@
 \name{loops.small}
 \alias{loops.small}
 \title{chr1:36000000-36300000 loops}
-\format{A small loopdata object 
+\format{A small loops object 
 \describe{
   \item{anchors}{GRanges object of anchor locations}
   \item{loops}{indexes of interactions }

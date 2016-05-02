@@ -7,14 +7,16 @@
 \alias{getHumanGenes,missing-method}
 \title{Get protein coding gene regions}
 \usage{
-getHumanGenes(chr)
+getHumanGenes(chr, cache = TRUE)
 
-\S4method{getHumanGenes}{missing}(chr)
+\S4method{getHumanGenes}{missing}(chr, cache = TRUE)
 
-\S4method{getHumanGenes}{character}(chr)
+\S4method{getHumanGenes}{character}(chr, cache = TRUE)
 }
 \arguments{
 \item{chr}{A vector of chromosomes}
+
+\item{cache}{logic variable (default = TRUE) to use genes from July.2015 freeze}
 }
 \value{
 A GRanges object

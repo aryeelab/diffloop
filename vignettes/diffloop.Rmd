@@ -169,7 +169,7 @@ Whereas the `slidingWindowTest` makes no prior assumptions about the regions
 to be tested, `featureTest` requires a `GRanges` object of coordinates to 
 determine what regions will be tested for association.
 ```{r featAssoc}
-chr1 <- getHumanGenes(c('1'))
+chr1 <- getHumanGenes(c("1"))
 ft_jnp <- featureTest(jnp_res,chr1)
 head(ft_jnp,10)
 ```

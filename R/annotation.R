@@ -39,8 +39,7 @@ setGeneric(name = "annotateAnchors", def = function(dlo, features,
     hits <- suppressWarnings(findOverlaps(features, dlo@anchors, 
         maxgap = maxgap))
     idx <- unique(subjectHits(hits))
-    values <- data.frame(matrix(FALSE, ncol = 1, nrow =
-                                    length(ranges(dlo@anchors))))
+    values <- data.frame(matrix(FALSE, ncol = 1, nrow = length(ranges(dlo@anchors))))
     values[idx, ] <- TRUE
     colnames(values) <- featureName
     mcols(dlo@anchors) <- c(mcols(dlo@anchors), values)
@@ -73,6 +72,7 @@ setMethod(f = "annotateAnchors", signature = c("loops", "GRanges",
 #' (by default) orspecified within a particular chromosome. 
 #'
 #' @param chr A vector of chromosomes 
+#' @param cache logic variable (default = TRUE) to use genes from July.2015 freeze
 #'
 #' @return A GRanges object
 #'
@@ -87,13 +87,12 @@ setMethod(f = "annotateAnchors", signature = c("loops", "GRanges",
 #' @importFrom S4Vectors queryHits subjectHits
 #' 
 #' @export
-setGeneric(name = "getHumanGenes", def = function(chr) standardGeneric("getHumanGenes"))
+setGeneric(name = "getHumanGenes", def = function(chr, cache = TRUE) standardGeneric("getHumanGenes"))
 
 #' @import GenomicRanges
-.getHumanGenes <- function(chr) {
+.getHumanGenesNoCache <- function(chr) {
     vals = list(chr, "protein_coding")
-    mart = useMart(biomart = "ENSEMBL_MART_ENSEMBL", dataset = "hsapiens_gene_ensembl", 
-        host = "jul2015.archive.ensembl.org")
+    mart = useMart(biomart = "ensembl", dataset = "hsapiens_gene_ensembl")
     geneinfo = getBM(attributes = c("chromosome_name", "start_position", 
         "end_position", "external_gene_name"), filters = c("chromosome_name", 
         "biotype"), values = vals, mart = mart)
@@ -107,17 +106,37 @@ setGeneric(name = "getHumanGenes", def = function(chr) standardGeneric("getHuman
 }
 
 #' @rdname getHumanGenes
-setMethod(f = "getHumanGenes", signature = c("missing"), definition = function(chr) {
-    all <- c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", 
-        "11", "12", "13", "14", "15", "16", "17", "18", "19", 
-        "20", "21", "22", "X", "Y")
-    return(.getHumanGenes(all))
-})
+setMethod(f = "getHumanGenes", signature = c("missing", "ANY"), 
+    definition = function(chr, cache = TRUE) {
+        all <- c("1", "2", "3", "4", "5", "6", "7", "8", "9", 
+            "10", "11", "12", "13", "14", "15", "16", "17", "18", 
+            "19", "20", "21", "22", "X", "Y")
+        if (cache) {
+            human.genes = NULL
+            rda <- paste(system.file("rda", package = "diffloop"), 
+                "human.genes.rda", sep = "/")
+            load(rda)
+            return(human.genes[as.vector(as.data.frame(human.genes)$seqnames) %in%
+                as.vector(all)])
+        } else {
+            return(.getHumanGenesNoCache(all))
+        }
+    })
 
 #' @rdname getHumanGenes
-setMethod(f = "getHumanGenes", signature = c("character"), definition = function(chr) {
-    return(.getHumanGenes(chr))
-})
+setMethod(f = "getHumanGenes", signature = c("character", "ANY"), 
+    definition = function(chr, cache = TRUE) {
+        if (cache) {
+            human.genes = NULL
+            rda <- paste(system.file("rda", package = "diffloop"), 
+                "human.genes.rda", sep = "/")
+            load(rda)
+            return(human.genes[is.element(as.vector(as.data.frame(human.genes)$seqnames), 
+                as.vector(chr))])
+        } else {
+            return(.getHumanGenesNoCache(chr))
+        }
+    })
 
 #' Get Human Transcription Start Sites
 #'
@@ -141,26 +160,45 @@ setMethod(f = "getHumanGenes", signature = c("character"), definition = function
 #' @importFrom S4Vectors queryHits subjectHits
 #' 
 #' @export
-setGeneric(name = "getHumanTSS", def = function(chr) standardGeneric("getHumanTSS"))
+setGeneric(name = "getHumanTSS", def = function(chr, cache = TRUE) standardGeneric("getHumanTSS"))
 
 #' @rdname getHumanTSS
-setMethod(f = "getHumanTSS", signature = c("missing"), definition = function(chr) {
-    chr <- c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", 
-        "11", "12", "13", "14", "15", "16", "17", "18", "19", 
-        "20", "21", "22", "X", "Y")
-    return(.getHumanTSS(chr))
-})
+setMethod(f = "getHumanTSS", signature = c("missing", "ANY"), 
+    definition = function(chr, cache = TRUE) {
+        all <- c("1", "2", "3", "4", "5", "6", "7", "8", "9", 
+            "10", "11", "12", "13", "14", "15", "16", "17", "18", 
+            "19", "20", "21", "22", "X", "Y")
+        if (cache) {
+            human.TSS = NULL
+            rda <- paste(system.file("rda", package = "diffloop"), 
+                "human.TSS.rda", sep = "/")
+            load(rda)
+            return(human.TSS[as.vector(as.data.frame(human.TSS)$seqnames) %in%
+                as.vector(all)])
+        } else {
+            return(.getHumanGenesNoCache(all))
+        }
+    })
 
 #' @rdname getHumanTSS
-setMethod(f = "getHumanTSS", signature = c("character"), definition = function(chr) {
-    return(.getHumanTSS(chr))
-})
+setMethod(f = "getHumanTSS", signature = c("character", "ANY"), 
+    definition = function(chr, cache = TRUE) {
+        if (cache) {
+            human.TSS = NULL
+            rda <- paste(system.file("rda", package = "diffloop"), 
+                "human.TSS.rda", sep = "/")
+            load(rda)
+            return(human.TSS[is.element(as.vector(as.data.frame(human.TSS)$seqnames), 
+                as.vector(chr))])
+        } else {
+            return(.getHumanTSSNoCache(chr))
+        }
+    })
 
 #' @import GenomicRanges
-.getHumanTSS <- function(chr) {
+.getHumanTSSNoCache <- function(chr) {
     vals = list(chr)
-    mart = useMart(biomart = "ENSEMBL_MART_ENSEMBL", dataset = "hsapiens_gene_ensembl", 
-        host = "jul2015.archive.ensembl.org")
+    mart = useMart(biomart = "ensembl", dataset = "hsapiens_gene_ensembl")
     geneinfo = getBM(attributes = c("chromosome_name", "start_position", 
         "external_gene_name"), filters = c("chromosome_name"), 
         values = vals, mart = mart)
