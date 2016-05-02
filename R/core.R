@@ -102,6 +102,7 @@ setMethod(f = "cleanup", signature = c("loopdata"), definition = function(dlo) {
         2]))
     upints <- as.matrix(totalupdate)
     colnames(upints) <- c("left", "right")
+    rownames(upints) <- NULL
     
     # Update values
     slot(dlo, "loops", check = TRUE) <- upints

@@ -285,3 +285,40 @@ setMethod(f = "bedToGRanges", signature = c("character"), definition = function(
     }
     return(gr)
 })
+
+#' Pad a GRanges object
+#'
+#' \code{padGRanges} takes a GRanges object and adds or substracts 
+#' distance based on user-defined input. Upstream and downstream
+#' consider strand information when available. Specify only either
+#' pad or upstream/downstream when using
+#'
+#' @param gro A granges object
+#' @param upstream Distance in BP added upstream
+#' @param downstream Distance in BP added downstream
+#' @param pad Distance in BP added 
+#'
+#' @return A GRanges object with adjusted start and end values
+#'
+#' @examples
+#' #Read in CTCF Jurkat peaks in
+#' ctcf_j <- system.file('extdata','Jurkat_CTCF_chr1.narrowPeak',package = 'diffloop')
+#' ctcf <- bedToGRanges(ctcf_j)
+#' ctcf.pad <- padGranges(ctcf, pad = 1000)
+#' 
+#' 
+#' @import GenomicRanges
+#' @export
+setGeneric(name = "padGRanges", def = function(gro, upstream = 0, downstream = 0, pad = 0) standardGeneric("padGRanges"))
+
+#' @rdname padGRanges 
+setMethod(f = "padGRanges", signature = c("GRanges", "ANY", "ANY", "ANY"),
+        definition = function(gro, upstream = 0, downstream = 0, pad = 0) {
+            g.df <- data.frame(gro)
+            g.df[g.df$strand == "-",]$start <-  g.df[g.df$strand == "-",]$start - pad - downstream
+            g.df[g.df$strand == "-",]$end <-  g.df[g.df$strand == "-",]$end + pad + upstream
+            pos <- g.df$strand == "+" | g.df$strand == "*"
+            g.df[pos,]$start <-  g.df[pos,]$start - pad - upstream
+            g.df[pos,]$end <-  g.df[pos,]$end + pad + downstream
+            return(GRanges(g.df))
+})
