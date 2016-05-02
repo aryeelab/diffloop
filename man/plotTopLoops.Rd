@@ -21,7 +21,7 @@ determined by PValue}
 
 \item{FDR}{False discovery rate threshold for inclusion}
 
-\item{organism}{Either "m" for mouse or "h" for human.}
+\item{organism}{Either 'm' for mouse or 'h' for human.}
 }
 \value{
 Prints a time stamped .pdf file of top loops

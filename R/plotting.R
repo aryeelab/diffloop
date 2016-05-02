@@ -172,7 +172,7 @@ setMethod("loopPlot", signature(x = "looptest", y = "GRanges",
     
     pg = plotGenes(geneinfo = geneinfo, chrom = chromchr, chromstart = start, 
         chromend = end, bheight = 0.1, plotgenetype = "box", 
-        bentline = FALSE, labeloffset = 0.4, fontsize = 1, arrowlength = 0.025,
+        bentline = FALSE, labeloffset = 0.4, fontsize = 1, arrowlength = 0.025, 
         labeltext = TRUE)
     mtext(paste0("Region: ", chrom, ":", start, "-", end), outer = TRUE, 
         line = 1)
@@ -217,7 +217,7 @@ setMethod(f = "pcaPlot", signature = c("looptest"), definition = function(dlo) {
     pcaPlot(dlo@loopdata)
 })
 
- 
+
 
 
 #' Plot the most significant loops
@@ -235,7 +235,7 @@ setMethod(f = "pcaPlot", signature = c("looptest"), definition = function(dlo) {
 #' determined by PValue
 #' @param PValue Maximum pvalue threshold for loop inclusion when printing loop plot
 #' @param FDR False discovery rate threshold for inclusion
-#' @param organism Either "m" for mouse or "h" for human. 
+#' @param organism Either 'm' for mouse or 'h' for human. 
 #'
 #' @return Prints a time stamped .pdf file of top loops
 #'
@@ -250,27 +250,36 @@ setMethod(f = "pcaPlot", signature = c("looptest"), definition = function(dlo) {
 #' @import plyr
 #' @import GenomicRanges
 #' @export
-setGeneric(name = "plotTopLoops", def = function(lto, n = 0, PValue = 1, FDR = 1, organism = "h") standardGeneric("plotTopLoops"))
+setGeneric(name = "plotTopLoops", def = function(lto, n = 0, 
+    PValue = 1, FDR = 1, organism = "h") standardGeneric("plotTopLoops"))
 
 #' @rdname plotTopLoops
-setMethod(f = "plotTopLoops", signature = c("looptest", "ANY", "ANY", "ANY", "ANY"),
-definition = function(lto, n = 0, PValue = 1, FDR = 1, organism = "h") {
-    if (n > 0){
-        if (n > dim(lto)[2]) { stop("Too many loops to print; there aren't that many in the data!")}
+setMethod(f = "plotTopLoops", signature = c("looptest", "ANY", 
+    "ANY", "ANY", "ANY"), definition = function(lto, n = 0, PValue = 1, 
+    FDR = 1, organism = "h") {
+    if (n > 0) {
+        if (n > dim(lto)[2]) {
+            stop("Too many loops to print; there aren't that many in the data!")
+        }
         d <- lto@results
-        tl <- subsetLoops(lto@loopdata, as.integer(rownames(head(d[order(d$PValue), , drop = FALSE], n = n))))
+        tl <- subsetLoops(lto@loopdata, as.integer(rownames(head(d[order(d$PValue), 
+            , drop = FALSE], n = n))))
     } else if (FDR < 1 | PValue < 1) {
         tl <- topLoops(lto, FDR = FDR, PValue = PValue)@loopdata
         n <- dim(tl)[2]
-    } else { stop("Specify valid parameters (either n > 0 or PValue/FDR < 1")}
-    fname <- gsub(":", ".", gsub(" ", "at", paste("top-",as.character(n), "loops-", Sys.time(), ".pdf", sep=""), fixed = TRUE))
+    } else {
+        stop("Specify valid parameters (either n > 0 or PValue/FDR < 1")
+    }
+    fname <- gsub(":", ".", gsub(" ", "at", paste("top-", as.character(n), 
+        "loops-", Sys.time(), ".pdf", sep = ""), fixed = TRUE))
     pdf(file = fname)
     pb <- txtProgressBar(min = 0, max = n, style = 3)
-    for (i in 1:n){
-        one <- subsetLoops(tl,i)
+    for (i in 1:n) {
+        one <- subsetLoops(tl, i)
         lw <- loopWidth(one)
-        regPlot <- GRanges(c(one@anchors[1]@seqnames),IRanges(c(start(one@anchors[1]@ranges)),c(end(one@anchors[1]@ranges))))
-        regPlot <- padGRanges(regPlot, pad = lw*1.5)
+        regPlot <- GRanges(c(one@anchors[1]@seqnames),IRanges(c(start(one@anchors[1]@ranges)), 
+            c(end(one@anchors[1]@ranges))))
+        regPlot <- padGRanges(regPlot, pad = lw * 1.5)
         loopPlot(lto, regPlot)
         setTxtProgressBar(pb, i)
     }

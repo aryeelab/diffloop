@@ -309,16 +309,20 @@ setMethod(f = "bedToGRanges", signature = c("character"), definition = function(
 #' 
 #' @import GenomicRanges
 #' @export
-setGeneric(name = "padGRanges", def = function(gro, upstream = 0, downstream = 0, pad = 0) standardGeneric("padGRanges"))
+setGeneric(name = "padGRanges", def = function(gro, upstream = 0, 
+    downstream = 0, pad = 0) standardGeneric("padGRanges"))
 
 #' @rdname padGRanges 
-setMethod(f = "padGRanges", signature = c("GRanges", "ANY", "ANY", "ANY"),
-        definition = function(gro, upstream = 0, downstream = 0, pad = 0) {
-            g.df <- data.frame(gro)
-            g.df[g.df$strand == "-",]$start <-  g.df[g.df$strand == "-",]$start - pad - downstream
-            g.df[g.df$strand == "-",]$end <-  g.df[g.df$strand == "-",]$end + pad + upstream
-            pos <- g.df$strand == "+" | g.df$strand == "*"
-            g.df[pos,]$start <-  g.df[pos,]$start - pad - upstream
-            g.df[pos,]$end <-  g.df[pos,]$end + pad + downstream
-            return(GRanges(g.df))
+setMethod(f = "padGRanges", signature = c("GRanges", "ANY", "ANY", 
+    "ANY"), definition = function(gro, upstream = 0, downstream = 0, 
+    pad = 0) {
+    g.df <- data.frame(gro)
+    g.df[g.df$strand == "-", ]$start <- g.df[g.df$strand == "-", 
+        ]$start - pad - downstream
+    g.df[g.df$strand == "-", ]$end <- g.df[g.df$strand == "-", 
+        ]$end + pad + upstream
+    pos <- g.df$strand == "+" | g.df$strand == "*"
+    g.df[pos, ]$start <- g.df[pos, ]$start - pad - upstream
+    g.df[pos, ]$end <- g.df[pos, ]$end + pad + downstream
+    return(GRanges(g.df))
 })
