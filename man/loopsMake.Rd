@@ -18,7 +18,7 @@ loopsMake(beddir, samples = NA, mergegap = 0, type = "all")
 
 \item{mergegap}{An integer value of the radius to merge anchors; default 0}
 
-\item{type}{Specificies "intra", "inter", or "all" looping. Default "all"}
+\item{type}{Specificies 'intra', 'inter', or 'all' looping. Default 'all'}
 }
 \value{
 A loops object
@@ -32,8 +32,8 @@ This function reads in preprocessed ChIA-PET data produced by the
 \code{dnaloop} preprocessing pipeline. The preprocessed directory 
 contains one subdirectory per sample. The \code{samples} argument specifies
 which samples are read. if \code{samples} is not specified all samples will
-be read. \code{type} restricts loops whether they are on the same "inter" or
-different "intra" chormosome. Default is "all"
+be read. \code{type} restricts loops whether they are on the same 'inter' or
+different 'intra' chormosome. Default is 'all'
 }
 \examples{
 # Reading in all samples, no mergegap, all loops
@@ -43,7 +43,7 @@ bd<- system.file('extdata', 'esc_jurkat', package='diffloopdata')
 # Reading in a subset of samples, 1kb mergegap, only intrachromosomal
 # looping
 samples <- c('naive_esc_1', 'naive_esc_2')
-naive.intra <- loopsMake(bd, samples, 1000, "intra")
+naive.intra <- loopsMake(bd, samples, 1000, 'intra')
 
 }
 

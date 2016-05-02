@@ -35,29 +35,29 @@ NULL
 setGeneric(name = "loopFit", def = function(y, design, method = "QLF") standardGeneric("loopFit"))
 
 #' @rdname loopFit
-setMethod(f = "loopFit", signature = c("loops", "missing", 
-    "missing"), definition = function(y, design, method) {
-    groups <- y@colData$groups
-    z <- DGEList(counts = y@counts, group = groups)
-    z <- calcNormFactors(z)
-    design <- model.matrix(~groups)
-    cat("The coefficients of the fitted GLM object are:\n")
-    cat(colnames(model.matrix(~groups)))
-    yy <- estimateDisp(z, design)
-    fit <- glmQLFit(yy, design, robust = TRUE)
-    return(loopfit(loops = y, fit = fit))
-})
+setMethod(f = "loopFit", signature = c("loops", "missing", "missing"), 
+    definition = function(y, design, method) {
+        groups <- y@colData$groups
+        z <- DGEList(counts = y@counts, group = groups)
+        z <- calcNormFactors(z)
+        design <- model.matrix(~groups)
+        cat("The coefficients of the fitted GLM object are:\n")
+        cat(colnames(model.matrix(~groups)))
+        yy <- estimateDisp(z, design)
+        fit <- glmQLFit(yy, design, robust = TRUE)
+        return(loopfit(loops = y, fit = fit))
+    })
 
 #' @rdname loopFit
-setMethod(f = "loopFit", signature = c("loops", "matrix", 
-    "missing"), definition = function(y, design, method) {
-    groups <- y@colData$groups
-    z <- DGEList(counts = y@counts, group = groups)
-    z <- calcNormFactors(z)
-    yy <- estimateDisp(z, design)
-    fit <- glmQLFit(yy, design, robust = TRUE)
-    return(loopfit(loops = y, fit = fit))
-})
+setMethod(f = "loopFit", signature = c("loops", "matrix", "missing"), 
+    definition = function(y, design, method) {
+        groups <- y@colData$groups
+        z <- DGEList(counts = y@counts, group = groups)
+        z <- calcNormFactors(z)
+        yy <- estimateDisp(z, design)
+        fit <- glmQLFit(yy, design, robust = TRUE)
+        return(loopfit(loops = y, fit = fit))
+    })
 
 #' Differential Loop Calling
 #'
@@ -98,7 +98,8 @@ setMethod(f = "loopTest", signature = c("loopfit", "missing",
     "missing", "missing"), definition = function(y, coef, contrast, 
     method) {
     qlf <- glmQLFTest(y@fit, coef = 2)
-    results <- as.data.frame(topTags(qlf, n = nrow(y@loops@counts), sort.by = "none"))
+    results <- as.data.frame(topTags(qlf, n = nrow(y@loops@counts), 
+        sort.by = "none"))
     newRowData <- as.data.frame(cbind(y@loops@rowData, results))
     row.names(newRowData) <- NULL
     y@loops@rowData <- newRowData
@@ -110,7 +111,8 @@ setMethod(f = "loopTest", signature = c("loopfit", "numeric",
     "missing", "missing"), definition = function(y, coef, contrast, 
     method) {
     qlf <- glmQLFTest(y@fit, coef)
-    results <- as.data.frame(topTags(qlf, n = nrow(y@loops@counts), sort.by = "none"))
+    results <- as.data.frame(topTags(qlf, n = nrow(y@loops@counts), 
+        sort.by = "none"))
     newRowData <- as.data.frame(cbind(y@loops@rowData, results))
     row.names(newRowData) <- NULL
     y@loops@rowData <- newRowData
@@ -122,7 +124,8 @@ setMethod(f = "loopTest", signature = c("loopfit", "missing",
     "numeric", "missing"), definition = function(y, coef, contrast, 
     method) {
     qlf <- glmQLFTest(y@fit, contrast = contrast)
-    results <- as.data.frame(topTags(qlf, n = nrow(y@loops@counts), sort.by = "none"))
+    results <- as.data.frame(topTags(qlf, n = nrow(y@loops@counts), 
+        sort.by = "none"))
     newRowData <- as.data.frame(cbind(y@loops@rowData, results))
     row.names(newRowData) <- NULL
     y@loops@rowData <- newRowData
@@ -165,8 +168,8 @@ setGeneric(name = "slidingWindowTest", def = function(x, window,
     step) standardGeneric("slidingWindowTest"))
 
 #' @rdname slidingWindowTest
-setMethod(f = "slidingWindowTest", signature = c("loops", 
-    "numeric", "numeric"), definition = function(x, window, step) {
+setMethod(f = "slidingWindowTest", signature = c("loops", "numeric", 
+    "numeric"), definition = function(x, window, step) {
     dlo <- x
     pvals <- x@rowData$PValue
     
@@ -177,7 +180,8 @@ setMethod(f = "slidingWindowTest", signature = c("loops",
     bigdf <- cbind(summary(dlo)[keepcols], pvals)
     df.use <- bigdf[bigdf$chr_1 == bigdf$chr_2, ]  #only intra
     
-    all.chromosomes <- unique(c(levels(droplevels(df.use$chr_1)), levels(droplevels(df.use$chr_2))))
+    all.chromosomes <- unique(c(levels(droplevels(df.use$chr_1)), 
+        levels(droplevels(df.use$chr_2))))
     
     # Count how many regions will be present
     nRegions.perchr <- sapply(all.chromosomes, function(t) {
@@ -225,8 +229,8 @@ setMethod(f = "slidingWindowTest", signature = c("loops",
                 combinedP <- min(length(wPvals) * wPvals/r)
                 FDR <- combinedP
                 combinedResult <- cbind(combinedP, FDR)
-                row <- data.frame(chrom, start, end, length(wPvals), combinedResult, 
-                  stringsAsFactors = FALSE)
+                row <- data.frame(chrom, start, end, length(wPvals), 
+                  combinedResult, stringsAsFactors = FALSE)
                 resdf[i, ] <- row
             }
             i <- i + 1
@@ -237,7 +241,8 @@ setMethod(f = "slidingWindowTest", signature = c("loops",
     # we actually had a hit.
     resdf <- resdf[complete.cases(resdf), ]
     resdf$X5 <- p.adjust(resdf$X5, method = "fdr")
-    colnames(resdf) <- c("chr", "start", "stop", "n", "FDR", "PValue")
+    colnames(resdf) <- c("chr", "start", "stop", "n", "FDR", 
+        "PValue")
     return(resdf[with(resdf, order(FDR)), ])
 })
 
@@ -316,8 +321,8 @@ setMethod(f = "featureTest", signature = c("loops", "GRanges"),
                 combinedP <- min(length(wPvals) * wPvals/r)
                 FDR <- combinedP
                 combinedResult <- cbind(combinedP, FDR)
-                row <- data.frame(chr, start, end, length(wPvals), feat, combinedResult, 
-                  stringsAsFactors = FALSE)
+                row <- data.frame(chr, start, end, length(wPvals), 
+                  feat, combinedResult, stringsAsFactors = FALSE)
                 resdf[i, ] <- row
             }
             i <- i + 1
@@ -371,7 +376,8 @@ setMethod(f = "quickAssoc", signature = c("loops"), definition = function(y) {
     yy <- estimateDisp(z, design)
     fit <- glmQLFit(yy, design, robust = TRUE)
     qlf <- glmQLFTest(fit, coef = 2)
-    results <- as.data.frame(topTags(qlf, n = nrow(y@counts), sort.by = "none"))
+    results <- as.data.frame(topTags(qlf, n = nrow(y@counts), 
+        sort.by = "none"))
     newRowData <- as.data.frame(cbind(y@rowData, results))
     row.names(newRowData) <- NULL
     y@rowData <- newRowData
@@ -409,23 +415,23 @@ setGeneric(name = "topLoops", def = function(dlo, FDR, PValue) standardGeneric("
     idxP <- dlo@rowData$PValue <= PValue
     idxA <- idxF & idxP
     
-    return(subsetLoops(dlo,idxA))
+    return(subsetLoops(dlo, idxA))
 }
 
 #' @rdname topLoops
-setMethod(f = "topLoops", signature = c("loops", "numeric", 
-    "numeric"), definition = function(dlo, FDR, PValue) {
-    .topLoops(dlo, FDR, PValue)
-})
+setMethod(f = "topLoops", signature = c("loops", "numeric", "numeric"), 
+    definition = function(dlo, FDR, PValue) {
+        .topLoops(dlo, FDR, PValue)
+    })
 
 #' @rdname topLoops
-setMethod(f = "topLoops", signature = c("loops", "numeric", 
-    "missing"), definition = function(dlo, FDR, PValue) {
-    .topLoops(dlo, FDR, 1)
-})
+setMethod(f = "topLoops", signature = c("loops", "numeric", "missing"), 
+    definition = function(dlo, FDR, PValue) {
+        .topLoops(dlo, FDR, 1)
+    })
 
 #' @rdname topLoops
-setMethod(f = "topLoops", signature = c("loops", "missing", 
-    "numeric"), definition = function(dlo, FDR, PValue) {
-    .topLoops(dlo, 1, PValue)
-})
+setMethod(f = "topLoops", signature = c("loops", "missing", "numeric"), 
+    definition = function(dlo, FDR, PValue) {
+        .topLoops(dlo, 1, PValue)
+    })

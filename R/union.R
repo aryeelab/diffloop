@@ -32,96 +32,96 @@ NULL
 
 #' @import plyr
 #' @export
-setMethod(f = "union", signature = c("loops", "loops"), 
-    definition = function(x, y) {
-        o1df <- summary(x)
-        o2df <- summary(y)
-        
-        # Get combined anchors
-        a1 <- data.frame(o1df$chr_1, o1df$start_1, o1df$end_1)
-        a2 <- data.frame(o2df$chr_1, o2df$start_1, o2df$end_1)
-        a3 <- data.frame(o1df$chr_2, o1df$start_2, o1df$end_2)
-        a4 <- data.frame(o2df$chr_2, o2df$start_2, o2df$end_2)
-        
-        colnames(a1) <- NULL
-        colnames(a2) <- NULL
-        colnames(a3) <- NULL
-        colnames(a4) <- NULL
-        
-        la <- list(a1, a2, a3, a4)
-        
-        a0 <- ldply(la, data.frame)
-        anchors <- makeGRangesFromDataFrame(a0, seqnames.field = "X1", 
-            start.field = "X2", end.field = "X3")
-        anchors <- reduce(anchors)
-        
-        # Index interactions in df1
-        int1 <- apply(data.frame(a1, a3), 1, function(t) {
-            i1 <- which(as.list(seqnames(anchors)) == t[1] & 
-                as.integer(start(ranges(anchors))) == as.integer(t[2]) & 
-                as.integer(end(ranges(anchors))) == as.integer(t[3]))
-            i2 <- which(as.list(seqnames(anchors)) == t[4] & 
-                as.integer(start(ranges(anchors))) == as.integer(t[5]) & 
-                as.integer(end(ranges(anchors))) == as.integer(t[6]))
-            cbind(i1, i2)
-        })
-        
-        # Index interactions in df2
-        int2 <- apply(data.frame(a2, a4), 1, function(t) {
-            i1 <- which(as.list(seqnames(anchors)) == t[1] & 
-                as.integer(start(ranges(anchors))) == as.integer(t[2]) & 
-                as.integer(end(ranges(anchors))) == as.integer(t[3]))
-            i2 <- which(as.list(seqnames(anchors)) == t[4] & 
-                as.integer(start(ranges(anchors))) == as.integer(t[5]) & 
-                as.integer(end(ranges(anchors))) == as.integer(t[6]))
-            cbind(i1, i2)
-        })
-        
-        in1 <- t(int1)
-        in2 <- t(int2)
-        
-        colnames(in1) <- c("left", "right")
-        colnames(in2) <- c("left", "right")
-        
-        # Get counts
-        sam1 <- colnames(x@counts)
-        sam2 <- colnames(y@counts)
-        cs1 <- sapply(sam1, function(s) {
-            indx <- grep(s, colnames(o1df))
-            o1df[, indx]
-        })
-        cs2 <- sapply(sam2, function(s) {
-            indx <- grep(s, colnames(o2df))
-            o2df[, indx]
-        })
-        
-        d1 <- melt(data.frame(in1, cs1), id.vars = c("left", 
-            "right"))
-        d2 <- melt(data.frame(in2, cs2), id.vars = c("left", 
-            "right"))
-        
-        # Grab unique rows only, then reshape
-        base <- unique(ldply(list(d1, d2), data.frame))
-        bigTab <- suppressWarnings(dcast(base, left + right ~ 
-            variable, max))
-        newinteractions <- matrix(c(bigTab$left, bigTab$right), ncol = 2)
-        colnames(newinteractions) <- c("left", "right")
-        newCounts <- data.matrix(bigTab[, -1:-2])
-        
-        # Update colData
-        unsorted <- rbind(x@colData, y@colData)
-        newcolData <- unsorted[match(colnames(newCounts), rownames(unsorted)), ]
-        cat("Check for NAs; Subset this object from  more comprehensive object\n")
-        
-        # Initialize rowData slot (with loop widths)
-        w <- start(anchors[newinteractions[, 2]]) - end(anchors[newinteractions[, 1]]) + 1
-        w [ w < 0] <- 0
-        rowData <- as.data.frame(w)
-        colnames(rowData) <- c("loopWidth")
-        
-        return(loops(anchors = anchors, interactions = newinteractions, 
-            counts = newCounts, colData = newcolData, rowData = rowData))
+setMethod(f = "union", signature = c("loops", "loops"), definition = function(x, 
+    y) {
+    o1df <- summary(x)
+    o2df <- summary(y)
+    
+    # Get combined anchors
+    a1 <- data.frame(o1df$chr_1, o1df$start_1, o1df$end_1)
+    a2 <- data.frame(o2df$chr_1, o2df$start_1, o2df$end_1)
+    a3 <- data.frame(o1df$chr_2, o1df$start_2, o1df$end_2)
+    a4 <- data.frame(o2df$chr_2, o2df$start_2, o2df$end_2)
+    
+    colnames(a1) <- NULL
+    colnames(a2) <- NULL
+    colnames(a3) <- NULL
+    colnames(a4) <- NULL
+    
+    la <- list(a1, a2, a3, a4)
+    
+    a0 <- ldply(la, data.frame)
+    anchors <- makeGRangesFromDataFrame(a0, seqnames.field = "X1", 
+        start.field = "X2", end.field = "X3")
+    anchors <- reduce(anchors)
+    
+    # Index interactions in df1
+    int1 <- apply(data.frame(a1, a3), 1, function(t) {
+        i1 <- which(as.list(seqnames(anchors)) == t[1] & as.integer(start(ranges(anchors))) == 
+            as.integer(t[2]) & as.integer(end(ranges(anchors))) == 
+            as.integer(t[3]))
+        i2 <- which(as.list(seqnames(anchors)) == t[4] & as.integer(start(ranges(anchors))) == 
+            as.integer(t[5]) & as.integer(end(ranges(anchors))) == 
+            as.integer(t[6]))
+        cbind(i1, i2)
     })
+    
+    # Index interactions in df2
+    int2 <- apply(data.frame(a2, a4), 1, function(t) {
+        i1 <- which(as.list(seqnames(anchors)) == t[1] & as.integer(start(ranges(anchors))) == 
+            as.integer(t[2]) & as.integer(end(ranges(anchors))) == 
+            as.integer(t[3]))
+        i2 <- which(as.list(seqnames(anchors)) == t[4] & as.integer(start(ranges(anchors))) == 
+            as.integer(t[5]) & as.integer(end(ranges(anchors))) == 
+            as.integer(t[6]))
+        cbind(i1, i2)
+    })
+    
+    in1 <- t(int1)
+    in2 <- t(int2)
+    
+    colnames(in1) <- c("left", "right")
+    colnames(in2) <- c("left", "right")
+    
+    # Get counts
+    sam1 <- colnames(x@counts)
+    sam2 <- colnames(y@counts)
+    cs1 <- sapply(sam1, function(s) {
+        indx <- grep(s, colnames(o1df))
+        o1df[, indx]
+    })
+    cs2 <- sapply(sam2, function(s) {
+        indx <- grep(s, colnames(o2df))
+        o2df[, indx]
+    })
+    
+    d1 <- melt(data.frame(in1, cs1), id.vars = c("left", "right"))
+    d2 <- melt(data.frame(in2, cs2), id.vars = c("left", "right"))
+    
+    # Grab unique rows only, then reshape
+    base <- unique(ldply(list(d1, d2), data.frame))
+    bigTab <- suppressWarnings(dcast(base, left + right ~ variable, 
+        max))
+    newinteractions <- matrix(c(bigTab$left, bigTab$right), ncol = 2)
+    colnames(newinteractions) <- c("left", "right")
+    newCounts <- data.matrix(bigTab[, -1:-2])
+    
+    # Update colData
+    unsorted <- rbind(x@colData, y@colData)
+    newcolData <- unsorted[match(colnames(newCounts), rownames(unsorted)), 
+        ]
+    cat("Check for NAs; Subset this object from  more comprehensive object\n")
+    
+    # Initialize rowData slot (with loop widths)
+    w <- start(anchors[newinteractions[, 2]]) - end(anchors[newinteractions[, 
+        1]]) + 1
+    w[w < 0] <- 0
+    rowData <- as.data.frame(w)
+    colnames(rowData) <- c("loopWidth")
+    
+    return(loops(anchors = anchors, interactions = newinteractions, 
+        counts = newCounts, colData = newcolData, rowData = rowData))
+})
 
 
 #' Subset two difloop objects

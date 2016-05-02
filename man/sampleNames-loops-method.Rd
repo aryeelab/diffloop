@@ -30,7 +30,7 @@ The examples show both accession and updating sample names.
 rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
 load(rda)
 sampleNames(loops.small)
-nnames <- c("one", "two", "three", "four", "five", "six")
+nnames <- c('one', 'two', 'three', 'four', 'five', 'six')
 sampleNames(loops.small) <- nnames
 }
 

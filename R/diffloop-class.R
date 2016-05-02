@@ -12,11 +12,12 @@ NULL
 #' @import GenomicRanges
 #' @export
 loops <- setClass("loops", slots = c(anchors = "GRanges", 
-    interactions = "matrix", counts = "matrix", colData = "data.frame", rowData = "data.frame"))
+    interactions = "matrix", counts = "matrix",
+    colData = "data.frame", rowData = "data.frame"))
 
 #' A class to represent ChIA-PET interaction data and an edgeR fit. 
 #'
-#' @slot loops A loops object with anchors, interactions, counts, colData,and rowData
+#' @slot loops A loops object with anchors, interactions, counts, colData, and rowData
 #' @slot fit An edgeR fit from running the loopFit function
 #' @import edgeR
 #' @export

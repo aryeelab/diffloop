@@ -45,16 +45,15 @@ setGeneric(name = "loopPlot", def = function(x, y, organism = "h",
     geneinfo = "NA", colorLoops = FALSE) standardGeneric("loopPlot"))
 
 #' @rdname loopPlot
-setMethod("loopPlot", signature(x = "loops", y = "GRanges", 
-    organism = "ANY", geneinfo = "ANY", colorLoops = "ANY"), 
-    definition = function(x, y, organism = "h", geneinfo = "NA", 
-        colorLoops = FALSE) {
-        if (!colorLoops) {
-            return(.loopPlot(x, y, organism, geneinfo))
-        } else {
-            return(.loopPlotcolor(x, y, organism, geneinfo))
-        }
-    })
+setMethod("loopPlot", signature(x = "loops", y = "GRanges", organism = "ANY", 
+    geneinfo = "ANY", colorLoops = "ANY"), definition = function(x, 
+    y, organism = "h", geneinfo = "NA", colorLoops = FALSE) {
+    if (!colorLoops) {
+        return(.loopPlot(x, y, organism, geneinfo))
+    } else {
+        return(.loopPlotcolor(x, y, organism, geneinfo))
+    }
+})
 
 .loopPlot <- function(x, y, organism = "h", geneinfo = "NA") {
     
@@ -160,7 +159,7 @@ setMethod("loopPlot", signature(x = "loops", y = "GRanges",
     # Immediately restrict the loops object to the region
     objReg <- removeSelfLoops(subsetRegion(x, y))
     res <- x@rowDat
-
+    
     # Grab Regional Coordinates
     chrom <- as.character(seqnames(y))
     chromchr <- paste(c("chr", as.character(chrom)), collapse = "")
@@ -333,9 +332,9 @@ setGeneric(name = "plotTopLoops", def = function(lto, n = 0,
     PValue = 1, FDR = 1, organism = "h", colorLoops = FALSE) standardGeneric("plotTopLoops"))
 
 #' @rdname plotTopLoops
-setMethod(f = "plotTopLoops", signature = c("loops", "ANY", 
-    "ANY", "ANY", "ANY", "ANY"), definition = function(lto, n = 0, 
-    PValue = 1, FDR = 1, organism = "h", colorLoops = FALSE) {
+setMethod(f = "plotTopLoops", signature = c("loops", "ANY", "ANY", 
+    "ANY", "ANY", "ANY"), definition = function(lto, n = 0, PValue = 1, 
+    FDR = 1, organism = "h", colorLoops = FALSE) {
     if (n > 0) {
         if (n > dim(lto)[2]) {
             stop("Too many loops to print; there aren't that many in the data!")
@@ -357,8 +356,7 @@ setMethod(f = "plotTopLoops", signature = c("loops", "ANY",
     for (i in 1:n) {
         one <- subsetLoops(tl, i)
         lw <- loopWidth(one)
-        regPlot <- GRanges(c(one@anchors[1]@seqnames),
-            IRanges(c(start(one@anchors[1]@ranges)), 
+        regPlot <- GRanges(c(one@anchors[1]@seqnames), IRanges(c(start(one@anchors[1]@ranges)), 
             c(end(one@anchors[1]@ranges))))
         regPlot <- padGRanges(regPlot, pad = lw * 1.5)
         loopPlot(lto, regPlot, organism = organism, colorLoops = colorLoops)

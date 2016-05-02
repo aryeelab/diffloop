@@ -84,7 +84,7 @@ setMethod("updateLDGroups", c("loops"), function(dlo, groups) {
 #' rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
 #' load(rda)
 #' sampleNames(loops.small)
-#' nnames <- c("one", "two", "three", "four", "five", "six")
+#' nnames <- c('one', 'two', 'three', 'four', 'five', 'six')
 #' sampleNames(loops.small) <- nnames
 
 #' @importMethodsFrom Biobase sampleNames
@@ -97,13 +97,14 @@ setMethod("sampleNames", "loops", function(object) {
 #' @importMethodsFrom Biobase sampleNames<-
 #' @rdname sampleNames-loops-method
 #' @export
-setReplaceMethod("sampleNames", c("loops", "ANY"), function(object, value) {
-
+setReplaceMethod("sampleNames", c("loops", "ANY"), function(object, 
+    value) {
+    
     dfcd <- object@colData
     rownames(dfcd) <- value
     ncounts <- object@counts
     colnames(ncounts) <- value
-
+    
     slot(object, "counts", check = TRUE) <- ncounts
     slot(object, "colData", check = TRUE) <- dfcd
     

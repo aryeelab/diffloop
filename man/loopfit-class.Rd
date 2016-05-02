@@ -11,7 +11,7 @@ A class to represent ChIA-PET interaction data and an edgeR fit.
 \section{Slots}{
 
 \describe{
-\item{\code{loops}}{A loops object with anchors, interactions, counts, colData,and rowData}
+\item{\code{loops}}{A loops object with anchors, interactions, counts, colData, and rowData}
 
 \item{\code{fit}}{An edgeR fit from running the loopFit function}
 }}

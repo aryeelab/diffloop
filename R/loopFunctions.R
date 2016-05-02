@@ -65,15 +65,16 @@ setGeneric(name = "removeSelfLoops", def = function(dlo) standardGeneric("remove
 
 #' @rdname removeSelfLoops
 setMethod(f = "removeSelfLoops", signature = c("loops"), definition = function(dlo) {
-    return(subsetLoops(dlo, dlo@interactions[, 1] != dlo@interactions[, 2]))
+    return(subsetLoops(dlo, dlo@interactions[, 1] != dlo@interactions[, 
+        2]))
 })
 
 # Return Boolean Vector for loops in loops if both anchors
 # are unique... Internal method
 setGeneric(name = "uniqueLoops", def = function(dlo) standardGeneric("uniqueLoops"))
 setMethod(f = "uniqueLoops", signature = c("loops"), definition = function(dlo) {
-    return(((!is.na(dlo@interactions[, 1]) & !is.na(dlo@interactions[, 2])) & 
-        (dlo@interactions[, 1] != dlo@interactions[, 2])))
+    return(((!is.na(dlo@interactions[, 1]) & !is.na(dlo@interactions[, 
+        2])) & (dlo@interactions[, 1] != dlo@interactions[, 2])))
 })
 
 # Determine loop type as either unique (with called anchors),
@@ -154,7 +155,8 @@ setGeneric(name = "loopWidth", def = function(dlo) standardGeneric("loopWidth"))
 
 #' @rdname loopWidth
 setMethod(f = "loopWidth", signature = c("loops"), definition = function(dlo) {
-    w <- start(dlo@anchors[dlo@interactions[, 2]]) - end(dlo@anchors[dlo@interactions[, 1]]) + 1
+    w <- start(dlo@anchors[dlo@interactions[, 2]]) - end(dlo@anchors[dlo@interactions[, 
+        1]]) + 1
     return(w)
 })
 
@@ -187,19 +189,19 @@ setGeneric(name = "subsetLoops", def = function(dlo, idxa) standardGeneric("subs
 
 .subsetLoops <- function(dlo, idxa) {
     # Keep Unique Interactions and their counts
-    slot(dlo, "interactions", check = TRUE) <- dlo@interactions[idxa, , drop = FALSE]
+    slot(dlo, "interactions", check = TRUE) <- dlo@interactions[idxa, 
+        , drop = FALSE]
     slot(dlo, "counts", check = TRUE) <- dlo@counts[idxa, , drop = FALSE]
-    slot(dlo, "rowData", check = TRUE) <- dlo@rowData[idxa, , drop = FALSE]
+    slot(dlo, "rowData", check = TRUE) <- dlo@rowData[idxa, , 
+        drop = FALSE]
     return(cleanup(dlo))
 }
 
 #' @rdname subsetLoops
 setMethod(f = "subsetLoops", signature = c("loops", "logical"), 
     definition = function(dlo, idxa) {
-        if(all(idxa))
-            return(dlo)
-        else
-            return(.subsetLoops(dlo, idxa))
+        if (all(idxa)) 
+            return(dlo) else return(.subsetLoops(dlo, idxa))
     })
 
 #' @rdname subsetLoops
@@ -259,7 +261,7 @@ setMethod(f = "filterLoops", definition = function(dlo, width = 0,
             nreplicates)) >= nsamples)
     idxa <- (idxw & idxr & idxn)
     ndlo <- subsetLoops(dlo, idxa)
-    if (width > 0)
+    if (width > 0) 
         ndlo <- removeSelfLoops(ndlo)
     return(ndlo)
 })
@@ -346,12 +348,11 @@ setMethod(f = "loopGenes", signature = c("loops", "GRanges"),
 setGeneric(name = "intrachromosomal", def = function(dlo) standardGeneric("intrachromosomal"))
 
 #' @rdname intrachromosomal
-setMethod(f = "intrachromosomal", signature = c("loops"), 
-    definition = function(dlo) {
-        idx <- as.character(dlo@anchors[dlo@interactions[, 1]]@seqnames) == 
-            as.character(dlo@anchors[dlo@interactions[, 2]]@seqnames)
-        return(subsetLoops(dlo, idx))
-    })
+setMethod(f = "intrachromosomal", signature = c("loops"), definition = function(dlo) {
+    idx <- as.character(dlo@anchors[dlo@interactions[, 1]]@seqnames) == 
+        as.character(dlo@anchors[dlo@interactions[, 2]]@seqnames)
+    return(subsetLoops(dlo, idx))
+})
 
 
 #' Loops between chromosomes
@@ -381,10 +382,9 @@ setMethod(f = "intrachromosomal", signature = c("loops"),
 setGeneric(name = "interchromosomal", def = function(dlo) standardGeneric("interchromosomal"))
 
 #' @rdname interchromosomal
-setMethod(f = "interchromosomal", signature = c("loops"), 
-    definition = function(dlo) {
-        idx <- as.character(dlo@anchors[dlo@interactions[, 1]]@seqnames) != 
-            as.character(dlo@anchors[dlo@interactions[, 2]]@seqnames)
-        return(subsetLoops(dlo, idx))
-        
+setMethod(f = "interchromosomal", signature = c("loops"), definition = function(dlo) {
+    idx <- as.character(dlo@anchors[dlo@interactions[, 1]]@seqnames) != 
+        as.character(dlo@anchors[dlo@interactions[, 2]]@seqnames)
+    return(subsetLoops(dlo, idx))
+    
 })

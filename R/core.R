@@ -29,14 +29,16 @@ setMethod(f = "summary", signature = c("loops"), definition = function(object) {
     dlo <- object
     
     # Grab all the left anchors in order of loop occurence
-    leftAnchor2 <- as.data.frame(dlo@anchors[dlo@interactions[, 1]])
+    leftAnchor2 <- as.data.frame(dlo@anchors[dlo@interactions[, 
+        1]])
     leftAnchor2 <- subset(leftAnchor2, select = -c(width, strand))
     colnames(leftAnchor2) <- paste(colnames(leftAnchor2), "1", 
         sep = "_")
     colnames(leftAnchor2)[1] <- "chr_1"
     
     # Grab all the right anchors in order of loop occurence
-    rightAnchor2 <- as.data.frame(dlo@anchors[dlo@interactions[, 2]])
+    rightAnchor2 <- as.data.frame(dlo@anchors[dlo@interactions[, 
+        2]])
     rightAnchor2 <- subset(rightAnchor2, select = -c(width, strand))
     colnames(rightAnchor2) <- paste(colnames(rightAnchor2), "2", 
         sep = "_")
@@ -47,7 +49,8 @@ setMethod(f = "summary", signature = c("loops"), definition = function(object) {
 })
 
 # Function that removes all anchors not being referenced in
-# interactions matrix and updates indices. For internal use only.
+# interactions matrix and updates indices. For internal use
+# only.
 setGeneric(name = "cleanup", def = function(dlo) standardGeneric("cleanup"))
 setMethod(f = "cleanup", signature = c("loops"), definition = function(dlo) {
     if (dim(dlo@counts)[1] == 0) {
@@ -55,7 +58,8 @@ setMethod(f = "cleanup", signature = c("loops"), definition = function(dlo) {
     }
     
     # Grab indicies of anchors being referenced in loops
-    idf <- data.frame(dlo@interactions[, 1], dlo@interactions[, 2])
+    idf <- data.frame(dlo@interactions[, 1], dlo@interactions[, 
+        2])
     sdf <- stack(idf)
     udf <- sort(unique(sdf[, "values"]))
     
@@ -205,15 +209,19 @@ setMethod(f = "mergeAnchors", signature = c("loops", "numeric",
 #' loops.small.both <- union(loops.small.one, loops.small.two)
 #' @import GenomicRanges
 #' @export
-setGeneric(name = "subsetRegion", def = function(dlo, region, nanchors) standardGeneric("subsetRegion"))
+setGeneric(name = "subsetRegion", def = function(dlo, region, 
+    nanchors) standardGeneric("subsetRegion"))
 
 #' @rdname subsetRegion
 setMethod(f = "subsetRegion", signature = c("loops", "GRanges", 
     "numeric"), definition = function(dlo, region, nanchors) {
-        if(nanchors == "1") { .subsetRegion1(dlo, region)
-        } else if(nanchors == "2"){ .subsetRegion2(dlo, region)
-        } else{ print("Please specify either 1 or 2 anchors in region")
-        }
+    if (nanchors == "1") {
+        .subsetRegion1(dlo, region)
+    } else if (nanchors == "2") {
+        .subsetRegion2(dlo, region)
+    } else {
+        print("Please specify either 1 or 2 anchors in region")
+    }
 })
 
 #' @rdname subsetRegion
@@ -223,105 +231,110 @@ setMethod(f = "subsetRegion", signature = c("loops", "GRanges",
 })
 
 .subsetRegion1 <- function(dlo, region) {
-        # Keep only those anchors that are being used
-        newAnchors <- dlo@anchors[findOverlaps(region, dlo@anchors)@to,]
-        
-        # Create mapping from old indices to new indices
-        mapping <- as.data.frame(findOverlaps(dlo@anchors, newAnchors))
-        intsdf <- as.data.frame(dlo@interactions)
-        
-        # Update interactions indices
-        leftmatch <- t(sapply(intsdf$left, function(x) mapping[mapping[, 
-            1] == x, ]))
-        rightmatch <- t(sapply(intsdf$right, function(x) mapping[mapping[, 
-            1] == x, ]))
-        lm <- suppressWarnings(as.numeric(as.character(leftmatch[, 
-            2])))
-        rm <- suppressWarnings(as.numeric(as.character(rightmatch[, 
-            2])))
-        
-        keepTheseLoops <- xor(!is.na(lm), !is.na(rm)) # only one anchor in region
-        keepTheseAnchors <- unique(unlist(intsdf[keepTheseLoops,], use.names=FALSE))
-        
-        #Go back through the motions
-
-        # Create mapping from old indices to new indices
-        mapping <- as.data.frame(findOverlaps(dlo@anchors, dlo@anchors[keepTheseAnchors,]))
-        intsdf <- as.data.frame(dlo@interactions)
-        
-        # Update interactions indices
-        leftmatch <- t(sapply(intsdf$left, function(x) mapping[mapping[, 
-            1] == x, ]))
-        rightmatch <- t(sapply(intsdf$right, function(x) mapping[mapping[, 
-            1] == x, ]))
-        lm <- suppressWarnings(as.numeric(as.character(leftmatch[, 
-            2])))
-        rm <- suppressWarnings(as.numeric(as.character(rightmatch[, 
-            2])))
-        
-        
-        # Format new indices matrix
-        totalupdate <- cbind(unlist(lm), unlist(rm))
-        cc <- complete.cases(totalupdate)
-        newinteractions <- matrix(totalupdate[cc], ncol = 2)
-        colnames(newinteractions) <- c("left", "right")
-        
-        # Subset rowData
-        newRowData <- as.data.frame(dlo@rowData[cc,])
-        colnames(newRowData) <- colnames(dlo@rowData)
-        
-        # Grab counts indicies; removes lines that don't map to
-        # anything via making them NAs and then removing them
-        newcounts <- matrix(dlo@counts[cc], ncol = ncol(dlo@counts))
-        colnames(newcounts) <- colnames(dlo@counts)
-        
-        # Update values
-        slot(dlo, "anchors", check = TRUE) <- dlo@anchors[keepTheseAnchors,]
-        slot(dlo, "interactions", check = TRUE) <- newinteractions
-        slot(dlo, "counts", check = TRUE) <- newcounts
-        slot(dlo, "rowData", check = TRUE) <- newRowData
-        return(dlo)
+    # Keep only those anchors that are being used
+    newAnchors <- dlo@anchors[findOverlaps(region, dlo@anchors)@to, 
+        ]
+    
+    # Create mapping from old indices to new indices
+    mapping <- as.data.frame(findOverlaps(dlo@anchors, newAnchors))
+    intsdf <- as.data.frame(dlo@interactions)
+    
+    # Update interactions indices
+    leftmatch <- t(sapply(intsdf$left, function(x) mapping[mapping[, 
+        1] == x, ]))
+    rightmatch <- t(sapply(intsdf$right, function(x) mapping[mapping[, 
+        1] == x, ]))
+    lm <- suppressWarnings(as.numeric(as.character(leftmatch[, 
+        2])))
+    rm <- suppressWarnings(as.numeric(as.character(rightmatch[, 
+        2])))
+    
+    keepTheseLoops <- xor(!is.na(lm), !is.na(rm))  # only one anchor in region
+    keepTheseAnchors <- unique(unlist(intsdf[keepTheseLoops, 
+        ], use.names = FALSE))
+    
+    # Go back through the motions
+    
+    # Create mapping from old indices to new indices
+    mapping <- as.data.frame(findOverlaps(dlo@anchors, dlo@anchors[keepTheseAnchors, 
+        ]))
+    intsdf <- as.data.frame(dlo@interactions)
+    
+    # Update interactions indices
+    leftmatch <- t(sapply(intsdf$left, function(x) mapping[mapping[, 
+        1] == x, ]))
+    rightmatch <- t(sapply(intsdf$right, function(x) mapping[mapping[, 
+        1] == x, ]))
+    lm <- suppressWarnings(as.numeric(as.character(leftmatch[, 
+        2])))
+    rm <- suppressWarnings(as.numeric(as.character(rightmatch[, 
+        2])))
+    
+    
+    # Format new indices matrix
+    totalupdate <- cbind(unlist(lm), unlist(rm))
+    cc <- complete.cases(totalupdate)
+    newinteractions <- matrix(totalupdate[cc], ncol = 2)
+    colnames(newinteractions) <- c("left", "right")
+    
+    # Subset rowData
+    newRowData <- as.data.frame(dlo@rowData[cc, ])
+    colnames(newRowData) <- colnames(dlo@rowData)
+    
+    # Grab counts indicies; removes lines that don't map to
+    # anything via making them NAs and then removing them
+    newcounts <- matrix(dlo@counts[cc], ncol = ncol(dlo@counts))
+    colnames(newcounts) <- colnames(dlo@counts)
+    
+    # Update values
+    slot(dlo, "anchors", check = TRUE) <- dlo@anchors[keepTheseAnchors, 
+        ]
+    slot(dlo, "interactions", check = TRUE) <- newinteractions
+    slot(dlo, "counts", check = TRUE) <- newcounts
+    slot(dlo, "rowData", check = TRUE) <- newRowData
+    return(dlo)
 }
 
 .subsetRegion2 <- function(dlo, region) {
-        # Keep only those anchors that are being used
-        newAnchors <- dlo@anchors[findOverlaps(region, dlo@anchors)@to,]
-        
-        # Create mapping from old indices to new indices
-        mapping <- as.data.frame(findOverlaps(dlo@anchors, newAnchors))
-        intsdf <- as.data.frame(dlo@interactions)
-        
-        # Update interactions indices
-        leftmatch <- t(sapply(intsdf$left, function(x) mapping[mapping[, 
-            1] == x, ]))
-        rightmatch <- t(sapply(intsdf$right, function(x) mapping[mapping[, 
-            1] == x, ]))
-        lm <- suppressWarnings(as.numeric(as.character(leftmatch[, 
-            2])))
-        rm <- suppressWarnings(as.numeric(as.character(rightmatch[, 
-            2])))
-        
-        # Format new indices matrix
-        totalupdate <- cbind(unlist(lm), unlist(rm))
-        cc <- complete.cases(totalupdate)
-        newinteractions <- matrix(totalupdate[cc], ncol = 2)
-        colnames(newinteractions) <- c("left", "right")
-        
-        # Grab counts indicies; removes lines that don't map to
-        # anything via making them NAs and then removing them
-        newcounts <- matrix(dlo@counts[cc], ncol = ncol(dlo@counts))
-        colnames(newcounts) <- colnames(dlo@counts)
-        
-        # Subset rowData
-        newRowData <- as.data.frame(dlo@rowData[cc,])
-        colnames(newRowData) <- colnames(dlo@rowData)
-        
-        # Update values
-        slot(dlo, "anchors", check = TRUE) <- newAnchors
-        slot(dlo, "interactions", check = TRUE) <- newinteractions
-        slot(dlo, "counts", check = TRUE) <- newcounts
-        slot(dlo, "rowData", check = TRUE) <- newRowData
-        return(dlo)
+    # Keep only those anchors that are being used
+    newAnchors <- dlo@anchors[findOverlaps(region, dlo@anchors)@to, 
+        ]
+    
+    # Create mapping from old indices to new indices
+    mapping <- as.data.frame(findOverlaps(dlo@anchors, newAnchors))
+    intsdf <- as.data.frame(dlo@interactions)
+    
+    # Update interactions indices
+    leftmatch <- t(sapply(intsdf$left, function(x) mapping[mapping[, 
+        1] == x, ]))
+    rightmatch <- t(sapply(intsdf$right, function(x) mapping[mapping[, 
+        1] == x, ]))
+    lm <- suppressWarnings(as.numeric(as.character(leftmatch[, 
+        2])))
+    rm <- suppressWarnings(as.numeric(as.character(rightmatch[, 
+        2])))
+    
+    # Format new indices matrix
+    totalupdate <- cbind(unlist(lm), unlist(rm))
+    cc <- complete.cases(totalupdate)
+    newinteractions <- matrix(totalupdate[cc], ncol = 2)
+    colnames(newinteractions) <- c("left", "right")
+    
+    # Grab counts indicies; removes lines that don't map to
+    # anything via making them NAs and then removing them
+    newcounts <- matrix(dlo@counts[cc], ncol = ncol(dlo@counts))
+    colnames(newcounts) <- colnames(dlo@counts)
+    
+    # Subset rowData
+    newRowData <- as.data.frame(dlo@rowData[cc, ])
+    colnames(newRowData) <- colnames(dlo@rowData)
+    
+    # Update values
+    slot(dlo, "anchors", check = TRUE) <- newAnchors
+    slot(dlo, "interactions", check = TRUE) <- newinteractions
+    slot(dlo, "counts", check = TRUE) <- newcounts
+    slot(dlo, "rowData", check = TRUE) <- newRowData
+    return(dlo)
 }
 
 #' Get number of anchors in each sample

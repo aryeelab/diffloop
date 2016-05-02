@@ -39,7 +39,8 @@ setGeneric(name = "annotateAnchors", def = function(dlo, features,
     hits <- suppressWarnings(findOverlaps(features, dlo@anchors, 
         maxgap = maxgap))
     idx <- unique(subjectHits(hits))
-    values <- data.frame(matrix(FALSE, ncol = 1, nrow = length(ranges(dlo@anchors))))
+    values <- data.frame(matrix(FALSE, ncol = 1, nrow =
+                                    length(ranges(dlo@anchors))))
     values[idx, ] <- TRUE
     colnames(values) <- featureName
     mcols(dlo@anchors) <- c(mcols(dlo@anchors), values)
@@ -266,7 +267,8 @@ setMethod(f = "annotateLoops", signature = c("loops", "GRanges",
     
     ctcf.loops <- Lvalues.c & Rvalues.c
     ep.loops <- (Lvalues.e & Rvalues.p) | (Lvalues.p & Rvalues.e)
-    loop.types <- as.integer(ctcf.loops) + as.integer(ep.loops)*2
+    loop.types <- as.integer(ctcf.loops) + as.integer(ep.loops) * 
+        2
     loop.types <- gsub("3", "e-p", loop.types)
     loop.types <- gsub("2", "e-p", loop.types)
     loop.types <- gsub("1", "ctcf", loop.types)

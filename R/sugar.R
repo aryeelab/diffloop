@@ -16,13 +16,14 @@ setMethod("[", signature(x = "loops", i = "numeric", j = "numeric",
     slot(x, "interactions", check = TRUE) <- upints
     ucounts <- x@counts[i, ]
     slot(x, "counts", check = TRUE) <- ucounts
-    newRowData <- as.data.frame(x@rowData[i,])
+    newRowData <- as.data.frame(x@rowData[i, ])
     colnames(newRowData) <- colnames(x@rowData)
     slot(x, "rowData", check = TRUE) <- newRowData
     x <- cleanup(x)
     
     slot(x, "counts", check = TRUE) <- x@counts[, j]
-    nonZero <- apply(x@counts, MARGIN = 1, function(t) !all(t == 0))
+    nonZero <- apply(x@counts, MARGIN = 1, function(t) !all(t == 
+        0))
     x <- subsetLoops(x, nonZero)
     slot(x, "colData", check = TRUE) <- x@colData[j, ]
     return(x)
@@ -32,7 +33,8 @@ setMethod("[", signature(x = "loops", i = "numeric", j = "numeric",
 setMethod("[", signature(x = "loops", i = "missing", j = "numeric", 
     drop = "missing"), definition = function(x, i, j, drop) {
     slot(x, "counts", check = TRUE) <- x@counts[, j]
-    nonZero <- apply(x@counts, MARGIN = 1, function(t) !all(t == 0))
+    nonZero <- apply(x@counts, MARGIN = 1, function(t) !all(t == 
+        0))
     x <- subsetLoops(x, nonZero)
     slot(x, "colData", check = TRUE) <- x@colData[j, ]
     return(x)
@@ -45,7 +47,7 @@ setMethod("[", signature(x = "loops", i = "numeric", j = "missing",
     slot(x, "interactions", check = TRUE) <- upints
     ucounts <- x@counts[i, ]
     slot(x, "counts", check = TRUE) <- ucounts
-    newRowData <- as.data.frame(x@rowData[i,])
+    newRowData <- as.data.frame(x@rowData[i, ])
     colnames(newRowData) <- colnames(x@rowData)
     slot(x, "rowData", check = TRUE) <- newRowData
     return(cleanup(x))
@@ -59,9 +61,8 @@ setMethod("[", signature(x = "loops", i = "numeric", j = "missing",
 #' 
 #' @return A loops object
 #' 
-setMethod("head", signature = "loops", function(x, n = 6, 
-    ...) {
-
+setMethod("head", signature = "loops", function(x, n = 6, ...) {
+    
     anchors <- head(x@anchors, n)
     interactions <- as.matrix(head(x@interactions, n))
     counts <- head(x@counts, n)
@@ -89,8 +90,7 @@ setMethod("head", signature = "loops", function(x, n = 6,
 #' 
 #' @return A loops object
 #' 
-setMethod("tail", signature = "loops", function(x, n = 6, 
-    ...) {
+setMethod("tail", signature = "loops", function(x, n = 6, ...) {
     
     anchors <- tail(x@anchors, n)
     interactions <- as.matrix(tail(x@interactions, n))
@@ -122,7 +122,8 @@ setMethod("dim", signature = "loops", function(x) {
     samples <- ncol(x@counts)
     colData <- ncol(x@colData)
     rowData <- ncol(x@rowData)
-    return(data.frame(cbind(anchors, interactions, samples, colData, rowData)))
+    return(data.frame(cbind(anchors, interactions, samples, colData, 
+        rowData)))
 })
 
 #' Remove 'chr' from GRanges seqnames

@@ -10,13 +10,13 @@ NULL
 #' \code{dnaloop} preprocessing pipeline. The preprocessed directory 
 #' contains one subdirectory per sample. The \code{samples} argument specifies
 #' which samples are read. if \code{samples} is not specified all samples will
-#' be read. \code{type} restricts loops whether they are on the same "inter" or
-#' different "intra" chormosome. Default is "all"
+#' be read. \code{type} restricts loops whether they are on the same 'inter' or
+#' different 'intra' chormosome. Default is 'all'
 #'
 #' @param beddir A string. The preprocessed data directory
 #' @param samples A character vector. Optional list of samples to read in
 #' @param mergegap An integer value of the radius to merge anchors; default 0
-#' @param type Specificies "intra", "inter", or "all" looping. Default "all"
+#' @param type Specificies 'intra', 'inter', or 'all' looping. Default 'all'
 #'
 #' @return A loops object
 #'
@@ -28,7 +28,7 @@ NULL
 #' # Reading in a subset of samples, 1kb mergegap, only intrachromosomal
 #' # looping
 #' samples <- c('naive_esc_1', 'naive_esc_2')
-#' naive.intra <- loopsMake(bd, samples, 1000, "intra")
+#' naive.intra <- loopsMake(bd, samples, 1000, 'intra')
 #'
 
 #' @import foreach
@@ -47,10 +47,14 @@ setGeneric(name = "loopsMake", def = function(beddir, samples = NA,
         col_character(), col_integer(), col_integer(), col_character(), 
         col_integer())
     
-    restrictPets <- function(bt){
-        if (type == "intra"){ return(bt[bt$X1 == bt$X4, ])
-        } else if (type == "inter"){ return(bt[bt$X1 != bt$X4, ])
-        } else { return(bt)}
+    restrictPets <- function(bt) {
+        if (type == "intra") {
+            return(bt[bt$X1 == bt$X4, ])
+        } else if (type == "inter") {
+            return(bt[bt$X1 != bt$X4, ])
+        } else {
+            return(bt)
+        }
     }
     
     # Iterate through files to set up anchors
@@ -122,8 +126,9 @@ setGeneric(name = "loopsMake", def = function(beddir, samples = NA,
     rownames(dfcd) <- samples
     
     # Initialize rowData slot (with loop widths)
-    w <- start(anchors[interactions[, 2]]) - end(anchors[interactions[, 1]]) + 1
-    w [ w < 0] <- 0
+    w <- start(anchors[interactions[, 2]]) - end(anchors[interactions[, 
+        1]]) + 1
+    w[w < 0] <- 0
     rowData <- as.data.frame(w)
     colnames(rowData) <- c("loopWidth")
     
@@ -139,10 +144,11 @@ setGeneric(name = "loopsMake", def = function(beddir, samples = NA,
 }
 
 #' @rdname loopsMake
-setMethod(f="loopsMake", def=function(beddir, samples, mergegap = 0, type="all") {
-        if(sum(is.na(samples)) > 0){
-            samples <- dir(beddir, pattern = ".loop_counts.bedpe")
-            samples <- sub(".loop_counts.bedpe", "", samples)
-        }
-        .loopsMake(beddir, samples, mergegap, type)
-    })
+setMethod(f = "loopsMake", def = function(beddir, samples, mergegap = 0, 
+    type = "all") {
+    if (sum(is.na(samples)) > 0) {
+        samples <- dir(beddir, pattern = ".loop_counts.bedpe")
+        samples <- sub(".loop_counts.bedpe", "", samples)
+    }
+    .loopsMake(beddir, samples, mergegap, type)
+})
