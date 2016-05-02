@@ -117,6 +117,60 @@ setMethod(f = "getHumanGenes", signature = c("character"), definition = function
     return(.getHumanGenes(chr))
 })
 
+#' Get Human Transcription Start Sites
+#'
+#' \code{getHumanTSS} returns a \code{GRanges} object of all 
+#' transcription start sites for humans
+#'
+#' This function returns a \code{GRanges} object with the coordinates and
+#' gene TSS. The start and end of the IRanges slot will be the same number,
+#' so consider using the \code{padGRanges} function after calling this function.
+#'
+#' @param chr Specifies what chromosomes are desired for the TSS
+#'  
+#' @return A GRanges object
+#'
+#' @examples
+#' # Grab all transition start sites genome-wide
+#' human.TSS <- getHumanTSS()
+#' @import GenomicRanges
+#' @import biomaRt
+#' @importFrom GenomeInfoDb sortSeqlevels seqlevels seqlevels<- 
+#' @importFrom S4Vectors queryHits subjectHits
+#' 
+#' @export
+setGeneric(name = "getHumanTSS", def = function(chr) standardGeneric("getHumanTSS"))
+
+#' @rdname getHumanTSS
+setMethod(f = "getHumanTSS", signature = c("missing"), definition = function(chr) {
+    chr <- c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", 
+        "11", "12", "13", "14", "15", "16", "17", "18", "19", 
+        "20", "21", "22", "X", "Y")
+    return(.getHumanTSS(chr))
+})
+
+#' @rdname getHumanTSS
+setMethod(f = "getHumanTSS", signature = c("character"), definition = function(chr) {
+    return(.getHumanTSS(chr))
+})
+
+#' @import GenomicRanges
+.getHumanTSS <- function(chr) {
+    vals = list(chr)
+    mart = useMart(biomart = "ensembl", dataset = "hsapiens_gene_ensembl")
+    geneinfo = getBM(attributes = c("chromosome_name", "start_position",
+        "external_gene_name"), filters = c("chromosome_name"),
+        values = vals, mart = mart)
+    colnames(geneinfo) <- c("chr", "start", "id")
+    geneinfo$end <- geneinfo$start
+    raw <- makeGRangesFromDataFrame(geneinfo, keep.extra.columns = TRUE, 
+        ignore.strand = TRUE, seqnames.field = c("chr"), start.field = "start", 
+        end.field = c("end"), starts.in.df.are.0based = FALSE)
+    gr <- sortSeqlevels(raw)
+    gr <- sort(gr)
+    return(gr)
+}
+
 #' Annotate loops as Enhancer-Promoter or CTCF-CTCF
 #'
 #' \code{annotateLoops} adds a column to the results slot of a looptest
