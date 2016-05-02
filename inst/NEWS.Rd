@@ -7,5 +7,7 @@
     \item Initial release to Bioconductor.
     \item Added NEWS file.
     \item Fixes to documentation.
+    \item Improved automated ploting including different colors
+    \item Enhanced loop annotation
   }
 }
