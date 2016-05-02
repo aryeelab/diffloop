@@ -13,7 +13,8 @@ NULL
 #' in the entire plot. If colorLoops is specified at TRUE, then 
 #' the x object must be looptest and it must have a loop.type
 #' column which can be generated from the \code{annotateLoops}
-#' function
+#' function. Blue loops are CTCF loops; black are none; red are 
+#' enhancer-promoter loops. 
 #'
 #' @param x A loopdata or looptest object 
 #' @param y A GRanges object containing region of interest
@@ -217,8 +218,8 @@ setMethod("loopPlot", signature(x = "looptest", y = "GRanges",
     # Setup colors for plotting
     cs <- res$loop.type
     cs <- gsub("e-p", "red", cs)
-    cs <- gsub("ctcf", "black", cs)
-    cs <- gsub("none", "blue", cs)
+    cs <- gsub("ctcf", "blue", cs)
+    cs <- gsub("none", "black", cs)
     
     # Setup Dataframe for Plot
     leftAnchor <- as.data.frame(objReg@anchors[objReg@loops[, 
