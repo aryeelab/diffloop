@@ -350,7 +350,7 @@ setMethod(f = "pcaPlot", signature = c("looptest"), definition = function(dlo) {
 #' jpn.u <- removeSelfLoops(jpn_chr1reg)
 #' jpn_loopfit <- loopFit(jpn.u)
 #' assoc_jn <- loopTest(jpn_loopfit, coef = 2)
-#' plotTopLoops(assoc_jn, n=4)
+#' plotTopLoops(assoc_jn, n=2)
 #' 
 #' @import plyr
 #' @import GenomicRanges

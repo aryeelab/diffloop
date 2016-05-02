@@ -39,9 +39,9 @@ classification for one set.
 \examples{
 rda<-paste(system.file('rda',package='diffloop'),'jpn_chr1reg.rda',sep='/')
 load(rda)
-ctcf_j <- system.file('extdata','Jurkat_CTCF_chr1.narrowPeak',package = 'diffloop')
+ctcf_j <- system.file('extdata','Jurkat_CTCF_chr1.narrowPeak',package='diffloop')
 ctcf <- rmchr(padGRanges(bedToGRanges(ctcf_j), pad = 1000))
-h3k27ac_j <- system.file('extdata','Jurkat_H3K27ac_chr1.narrowPeak',package = 'diffloop')
+h3k27ac_j <- system.file('extdata','Jurkat_H3K27ac_chr1.narrowPeak',package='diffloop')
 h3k27ac <- rmchr(padGRanges(bedToGRanges(h3k27ac_j), pad = 1000))
 promoter <- padGRanges(getHumanTSS(c('1')), pad = 1000)
 jn <- jpn_chr1reg[,c(1,2,5,6)]

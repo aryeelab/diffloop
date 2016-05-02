@@ -196,9 +196,9 @@ setMethod(f = "getHumanTSS", signature = c("character"), definition = function(c
 #' @examples
 #' rda<-paste(system.file('rda',package='diffloop'),'jpn_chr1reg.rda',sep='/')
 #' load(rda)
-#' ctcf_j <- system.file('extdata','Jurkat_CTCF_chr1.narrowPeak',package = 'diffloop')
+#' ctcf_j <- system.file('extdata','Jurkat_CTCF_chr1.narrowPeak',package='diffloop')
 #' ctcf <- rmchr(padGRanges(bedToGRanges(ctcf_j), pad = 1000))
-#' h3k27ac_j <- system.file('extdata','Jurkat_H3K27ac_chr1.narrowPeak',package = 'diffloop')
+#' h3k27ac_j <- system.file('extdata','Jurkat_H3K27ac_chr1.narrowPeak',package='diffloop')
 #' h3k27ac <- rmchr(padGRanges(bedToGRanges(h3k27ac_j), pad = 1000))
 #' promoter <- padGRanges(getHumanTSS(c('1')), pad = 1000)
 #' jn <- jpn_chr1reg[,c(1,2,5,6)]
@@ -266,8 +266,7 @@ setMethod(f = "annotateLoops", signature = c("looptest", "GRanges",
     
     ctcf.loops <- Lvalues.c & Rvalues.c
     ep.loops <- (Lvalues.e & Rvalues.p) | (Lvalues.p & Rvalues.e)
-    loop.types <- as.integer(ctcf.loops) + as.integer(ep.loops) * 
-        2
+    loop.types <- as.integer(ctcf.loops) + as.integer(ep.loops)*2
     loop.types <- gsub("3", "e-p", loop.types)
     loop.types <- gsub("2", "e-p", loop.types)
     loop.types <- gsub("1", "ctcf", loop.types)
