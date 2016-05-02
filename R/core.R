@@ -229,6 +229,7 @@ setMethod(f = "subsetRegion", signature = c("loops", "GRanges",
 })
 
 .subsetRegion1 <- function(dlo, region) {
+    
     # Keep only those anchors that are being used
     newAnchors <- dlo@anchors[findOverlaps(region, dlo@anchors)@to, 
         ]
@@ -259,15 +260,8 @@ setMethod(f = "subsetRegion", signature = c("loops", "GRanges",
     intsdf <- as.data.frame(dlo@interactions)
     
     # Update interactions indices
-    leftmatch <- t(sapply(intsdf$left, function(x) mapping[mapping[, 
-        1] == x, ]))
-    rightmatch <- t(sapply(intsdf$right, function(x) mapping[mapping[, 
-        1] == x, ]))
-    lm <- suppressWarnings(as.numeric(as.character(leftmatch[, 
-        2])))
-    rm <- suppressWarnings(as.numeric(as.character(rightmatch[, 
-        2])))
-    
+    lm <- mapping[match(intsdf$left, mapping$queryHits), 2, drop=F]
+    rm <- mapping[match(intsdf$right,mapping$queryHits), 2, drop=F]
     
     # Format new indices matrix
     totalupdate <- cbind(unlist(lm), unlist(rm))
@@ -295,22 +289,15 @@ setMethod(f = "subsetRegion", signature = c("loops", "GRanges",
 
 .subsetRegion2 <- function(dlo, region) {
     # Keep only those anchors that are being used
-    newAnchors <- dlo@anchors[findOverlaps(region, dlo@anchors)@to, 
-        ]
+    newAnchors <- dlo@anchors[findOverlaps(region, dlo@anchors)@to, ]
     
     # Create mapping from old indices to new indices
     mapping <- as.data.frame(findOverlaps(dlo@anchors, newAnchors))
     intsdf <- as.data.frame(dlo@interactions)
     
-    # Update interactions indices
-    leftmatch <- t(sapply(intsdf$left, function(x) mapping[mapping[, 
-        1] == x, ]))
-    rightmatch <- t(sapply(intsdf$right, function(x) mapping[mapping[, 
-        1] == x, ]))
-    lm <- suppressWarnings(as.numeric(as.character(leftmatch[, 
-        2])))
-    rm <- suppressWarnings(as.numeric(as.character(rightmatch[, 
-        2])))
+    # Update interaction indicies
+    lm <- mapping[match(intsdf$left, mapping$queryHits), 2, drop=F]
+    rm <- mapping[match(intsdf$right,mapping$queryHits), 2, drop=F]
     
     # Format new indices matrix
     totalupdate <- cbind(unlist(lm), unlist(rm))

@@ -110,3 +110,32 @@ setReplaceMethod("sampleNames", c("loops", "ANY"), function(object,
     
     return(object)
 })
+
+
+#' Split samples into their own loops object
+#'
+#' \code{splitSamples} takes a loops object and returns a list of loops
+#' objects where each sample populates its own loops object
+#'
+#' This function splits the colData and counts slots for each sample
+#' but makes copies of the anchors, interactions, and rowdata
+#'
+#' @param dlo A loops object 
+#'
+#' @return A list of loops objects w
+#'
+#' @examples
+#' # Updating groups from all 'group1' to meaningful designations
+#' rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
+#' load(rda)
+#' split <- splitSamples(loops.small)
+#' 
+#' @export
+setGeneric(name = "splitSamples", def = function(dlo) standardGeneric("splitSamples"))
+
+#' @rdname splitSamples
+setMethod("splitSamples", c("loops"), function(dlo) {
+    llo <- lapply(1:as.numeric(dim(dlo)[3]), function(i) { assign(sampleNames(dlo[,i]) , dlo[,i]) })
+    names(llo) <- sampleNames(dlo)
+    return(llo)
+})

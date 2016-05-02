@@ -32,9 +32,10 @@ setMethod("[", signature(x = "loops", i = "numeric", j = "numeric",
 #' @rdname sub-loops-numeric-numeric-missing-method 
 setMethod("[", signature(x = "loops", i = "missing", j = "numeric", 
     drop = "missing"), definition = function(x, i, j, drop) {
-    slot(x, "counts", check = TRUE) <- x@counts[, j]
-    nonZero <- apply(x@counts, MARGIN = 1, function(t) !all(t == 
-        0))
+    ncounts <- as.matrix(x@counts[, j], ncol = j)
+    colnames(ncounts) <- colnames(x@counts)[j]
+    slot(x, "counts", check = TRUE) <- ncounts
+    nonZero <- apply(x@counts, MARGIN = 1, function(t) !all(t == 0))
     x <- subsetLoops(x, nonZero)
     slot(x, "colData", check = TRUE) <- x@colData[j, ]
     return(x)
