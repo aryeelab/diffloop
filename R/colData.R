@@ -75,7 +75,8 @@ setMethod("updateLDGroups", c("loopdata"), function(dlo, groups) {
 #'
 #' The examples show both accession and updating sample names. 
 #'
-#' @param dlo A loopdata object 
+#' @param object A loopdata object 
+#' @param value New names when using set replace
 #'
 #' @return Vector of sample names
 #'

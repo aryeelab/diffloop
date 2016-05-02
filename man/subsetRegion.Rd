@@ -3,17 +3,22 @@
 \docType{methods}
 \name{subsetRegion}
 \alias{subsetRegion}
-\alias{subsetRegion,loopdata,GRanges-method}
+\alias{subsetRegion,loopdata,GRanges,missing-method}
+\alias{subsetRegion,loopdata,GRanges,numeric-method}
 \title{Extract region from loopdata object}
 \usage{
-subsetRegion(dlo, region)
+subsetRegion(dlo, region, nanchors)
 
-\S4method{subsetRegion}{loopdata,GRanges}(dlo, region)
+\S4method{subsetRegion}{loopdata,GRanges,numeric}(dlo, region, nanchors)
+
+\S4method{subsetRegion}{loopdata,GRanges,missing}(dlo, region, nanchors)
 }
 \arguments{
 \item{dlo}{A loopdata object to be summarized}
 
 \item{region}{A GRanges object containing region of interest}
+
+\item{nanchors}{Number of anchors to be contained in GRanges object. Default 2}
 }
 \value{
 A loopdata object
@@ -21,13 +26,15 @@ A loopdata object
 \description{
 \code{subsetRegion} takes a \code{loopdata} object and a \code{GRanges}
 object and returns a \code{loopdata} object where both anchors map inside
-the \code{GRanges} coordinates
+the \code{GRanges} coordinates by default. Once can specify where only
+one anchor is in the region instead.
 }
 \details{
-This function returns a data.frame where the left and right anchors are 
-visualized together along with the loop width, individual counts, and
-any anchor meta-data that has been annotated into the anchors \code{GRanges}
-object.
+By default, \code{nachors = 2}, meaning both anchors need to be in the 
+region for the loop to be preserved when extracting. However, by specifying
+a numeric 1, loops with either the left or right anchor will be extracted.
+Loops with both anchors in the region will be excluded (exclusive \code{or}).
+To get an inclusive \code{or}, take the union of subsetting both with 1 and 2
 }
 \examples{
 # Grab region chr1:36000000-36100000
@@ -35,6 +42,11 @@ library(GenomicRanges)
 regA <- GRanges(c('1'),IRanges(c(36000000),c(36100000)))
 rda<-paste(system.file('rda',package='diffloop'),'jpn_chr1reg.rda',sep='/')
 load(rda)
-jpn_chr1reg.small <- subsetRegion(jpn_chr1reg, regA)
+# Both anchors in region
+jpn_chr1reg.two <- subsetRegion(jpn_chr1reg, regA)
+#Only one anchor in region
+jpn_chr1reg.one <- subsetRegion(jpn_chr1reg, regA, 1)
+#Either one or two anchors in region
+jpn_chr1reg.both <- union(jpn_chr1reg.one, jpn_chr1reg.two)
 }
 

@@ -196,15 +196,18 @@ setMethod(f = "mergeAnchors", signature = c("loopdata", "numeric",
 #'
 #' \code{subsetRegion} takes a \code{loopdata} object and a \code{GRanges}
 #' object and returns a \code{loopdata} object where both anchors map inside
-#' the \code{GRanges} coordinates
+#' the \code{GRanges} coordinates by default. Once can specify where only
+#' one anchor is in the region instead.
 #'
-#' This function returns a data.frame where the left and right anchors are 
-#' visualized together along with the loop width, individual counts, and
-#' any anchor meta-data that has been annotated into the anchors \code{GRanges}
-#' object.
+#' By default, \code{nachors = 2}, meaning both anchors need to be in the 
+#' region for the loop to be preserved when extracting. However, by specifying
+#' a numeric 1, loops with either the left or right anchor will be extracted.
+#' Loops with both anchors in the region will be excluded (exclusive \code{or}).
+#' To get an inclusive \code{or}, take the union of subsetting both with 1 and 2
 #'
 #' @param dlo A loopdata object to be summarized
 #' @param region A GRanges object containing region of interest 
+#' @param nanchors Number of anchors to be contained in GRanges object. Default 2
 #' 
 #' @return A loopdata object
 #'
@@ -214,17 +217,90 @@ setMethod(f = "mergeAnchors", signature = c("loopdata", "numeric",
 #' regA <- GRanges(c('1'),IRanges(c(36000000),c(36100000)))
 #' rda<-paste(system.file('rda',package='diffloop'),'jpn_chr1reg.rda',sep='/')
 #' load(rda)
-#' jpn_chr1reg.small <- subsetRegion(jpn_chr1reg, regA)
+#' # Both anchors in region
+#' jpn_chr1reg.two <- subsetRegion(jpn_chr1reg, regA)
+#' #Only one anchor in region
+#' jpn_chr1reg.one <- subsetRegion(jpn_chr1reg, regA, 1)
+#' #Either one or two anchors in region
+#' jpn_chr1reg.both <- union(jpn_chr1reg.one, jpn_chr1reg.two)
 #' @import GenomicRanges
 #' @export
-setGeneric(name = "subsetRegion", def = function(dlo, region) standardGeneric("subsetRegion"))
+setGeneric(name = "subsetRegion", def = function(dlo, region, nanchors) standardGeneric("subsetRegion"))
 
 #' @rdname subsetRegion
-setMethod(f = "subsetRegion", signature = c("loopdata", "GRanges"), 
-    definition = function(dlo, region) {
+setMethod(f = "subsetRegion", signature = c("loopdata", "GRanges", 
+    "numeric"), definition = function(dlo, region, nanchors) {
+        if(nanchors == "1") { .subsetRegion1(dlo, region)
+        } else if(nanchors == "2"){ .subsetRegion2(dlo, region)
+        } else{ print("Please specify either 1 or 2 anchors in region")
+        }
+})
+
+#' @rdname subsetRegion
+setMethod(f = "subsetRegion", signature = c("loopdata", "GRanges", 
+    "missing"), definition = function(dlo, region, nanchors) {
+    .subsetRegion2(dlo, region)
+})
+
+.subsetRegion1 <- function(dlo, region) {
         # Keep only those anchors that are being used
-        newAnchors <- dlo@anchors[findOverlaps(region, dlo@anchors)@to, 
-            ]
+        newAnchors <- dlo@anchors[findOverlaps(region, dlo@anchors)@to,]
+        
+        # Create mapping from old indices to new indices
+        mapping <- as.data.frame(findOverlaps(dlo@anchors, newAnchors))
+        intsdf <- as.data.frame(dlo@loops)
+        
+        # Update loops indices
+        leftmatch <- t(sapply(intsdf$left, function(x) mapping[mapping[, 
+            1] == x, ]))
+        rightmatch <- t(sapply(intsdf$right, function(x) mapping[mapping[, 
+            1] == x, ]))
+        lm <- suppressWarnings(as.numeric(as.character(leftmatch[, 
+            2])))
+        rm <- suppressWarnings(as.numeric(as.character(rightmatch[, 
+            2])))
+        
+        keepTheseLoops <- xor(!is.na(lm), !is.na(rm)) # only one anchor in region
+        keepTheseAnchors <- unique(unlist(intsdf[keepTheseLoops,], use.names=FALSE))
+        
+        #Go back through the motions
+
+        # Create mapping from old indices to new indices
+        mapping <- as.data.frame(findOverlaps(dlo@anchors, dlo@anchors[keepTheseAnchors,]))
+        intsdf <- as.data.frame(dlo@loops)
+        
+        # Update loops indices
+        leftmatch <- t(sapply(intsdf$left, function(x) mapping[mapping[, 
+            1] == x, ]))
+        rightmatch <- t(sapply(intsdf$right, function(x) mapping[mapping[, 
+            1] == x, ]))
+        lm <- suppressWarnings(as.numeric(as.character(leftmatch[, 
+            2])))
+        rm <- suppressWarnings(as.numeric(as.character(rightmatch[, 
+            2])))
+        
+        
+        # Format new indices matrix
+        totalupdate <- cbind(unlist(lm), unlist(rm))
+        cc <- complete.cases(totalupdate)
+        newloops <- matrix(totalupdate[cc], ncol = 2)
+        colnames(newloops) <- c("left", "right")
+        
+        # Grab counts indicies; removes lines that don't map to
+        # anything via making them NAs and then removing them
+        newcounts <- matrix(dlo@counts[cc], ncol = ncol(dlo@counts))
+        colnames(newcounts) <- colnames(dlo@counts)
+        
+        # Update values
+        slot(dlo, "anchors", check = TRUE) <- dlo@anchors[keepTheseAnchors,]
+        slot(dlo, "loops", check = TRUE) <- newloops
+        slot(dlo, "counts", check = TRUE) <- newcounts
+        return(dlo)
+}
+
+.subsetRegion2 <- function(dlo, region) {
+        # Keep only those anchors that are being used
+        newAnchors <- dlo@anchors[findOverlaps(region, dlo@anchors)@to,]
         
         # Create mapping from old indices to new indices
         mapping <- as.data.frame(findOverlaps(dlo@anchors, newAnchors))
@@ -256,7 +332,7 @@ setMethod(f = "subsetRegion", signature = c("loopdata", "GRanges"),
         slot(dlo, "loops", check = TRUE) <- newloops
         slot(dlo, "counts", check = TRUE) <- newcounts
         return(dlo)
-    })
+}
 
 #' Get number of anchors in each sample
 #'

@@ -11,7 +11,9 @@
 \S4method{sampleNames}{loopdata,ANY}(object) <- value
 }
 \arguments{
-\item{dlo}{A loopdata object}
+\item{object}{A loopdata object}
+
+\item{value}{New names when using set replace}
 }
 \value{
 Vector of sample names
