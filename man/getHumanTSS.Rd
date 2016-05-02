@@ -15,6 +15,8 @@ getHumanTSS(chr, cache = TRUE)
 }
 \arguments{
 \item{chr}{Specifies what chromosomes are desired for the TSS}
+
+\item{cache}{logic variable (default = TRUE) to use TSS from July.2015 freeze}
 }
 \value{
 A GRanges object

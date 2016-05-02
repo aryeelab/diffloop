@@ -148,6 +148,7 @@ setMethod(f = "getHumanGenes", signature = c("character", "ANY"),
 #' so consider using the \code{padGRanges} function after calling this function.
 #'
 #' @param chr Specifies what chromosomes are desired for the TSS
+#' @param cache logic variable (default = TRUE) to use TSS from July.2015 freeze
 #'  
 #' @return A GRanges object
 #'
