@@ -113,7 +113,7 @@ setGeneric(name = "loopdataMake", def = function(beddir, samples,
     # Create loopdata object
     dlo <- loopdata()
     slot(dlo, "anchors", check = TRUE) <- anchors
-    slot(dlo, "loops", check = TRUE) <- loops
+    slot(dlo, "loops", check = TRUE) <- as.matrix(loops)
     slot(dlo, "counts", check = TRUE) <- counts
     slot(dlo, "colData", check = TRUE) <- dfcd
     

@@ -68,22 +68,22 @@ setMethod("updateLDGroups", c("loopdata"), function(dlo, groups) {
 })
 
 #' @importMethodsFrom Biobase sampleNames
+#' @export
 setMethod("sampleNames", "loopdata", function(object) {
     rownames(object@colData)
 })
 
 #' @importMethodsFrom Biobase sampleNames<-
+#' @export
 setReplaceMethod("sampleNames", c("loopdata", "ANY"), function(object, value) {
-    if (length(rownames(dlo@colData)) != length(names)) {
-        stop("Must provide the same number of names as samples in data")
-    }
-    dfcd <- dlo@colData
-    rownames(dfcd) <- names
-    ncounts <- dlo@counts
-    colnames(ncounts) <- names
+
+    dfcd <- object@colData
+    rownames(dfcd) <- value
+    ncounts <- object@counts
+    colnames(ncounts) <- value
+
+    slot(object, "counts", check = TRUE) <- ncounts
+    slot(object, "colData", check = TRUE) <- dfcd
     
-    slot(dlo, "counts", check = TRUE) <- ncounts
-    slot(dlo, "colData", check = TRUE) <- dfcd
-    
-    return(dlo)
+    return(object)
 })
