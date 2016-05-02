@@ -49,7 +49,7 @@ setGeneric(name = "annotateAnchors", def = function(dlo, features,
 #' @rdname annotateAnchors
 setMethod(f = "annotateAnchors", signature = c("loopdata", "GRanges", 
     "character", "missing"), definition = function(dlo, features, 
-    featureName, maxgap=1000) {
+    featureName, maxgap = 1000) {
     maxgap <- 1000
     .annotateAnchors(dlo, features, featureName, maxgap)
 })
@@ -91,7 +91,8 @@ setGeneric(name = "getHumanGenes", def = function(chr) standardGeneric("getHuman
 #' @import GenomicRanges
 .getHumanGenes <- function(chr) {
     vals = list(chr, "protein_coding")
-    mart = useMart(biomart = "ensembl", dataset = "hsapiens_gene_ensembl")
+    mart = useMart(biomart = "ENSEMBL_MART_ENSEMBL", dataset = "hsapiens_gene_ensembl", 
+        host = "jul2015.archive.ensembl.org")
     geneinfo = getBM(attributes = c("chromosome_name", "start_position", 
         "end_position", "external_gene_name"), filters = c("chromosome_name", 
         "biotype"), values = vals, mart = mart)
@@ -157,9 +158,10 @@ setMethod(f = "getHumanTSS", signature = c("character"), definition = function(c
 #' @import GenomicRanges
 .getHumanTSS <- function(chr) {
     vals = list(chr)
-    mart = useMart(biomart = "ensembl", dataset = "hsapiens_gene_ensembl")
-    geneinfo = getBM(attributes = c("chromosome_name", "start_position",
-        "external_gene_name"), filters = c("chromosome_name"),
+    mart = useMart(biomart = "ENSEMBL_MART_ENSEMBL", dataset = "hsapiens_gene_ensembl", 
+        host = "jul2015.archive.ensembl.org")
+    geneinfo = getBM(attributes = c("chromosome_name", "start_position", 
+        "external_gene_name"), filters = c("chromosome_name"), 
         values = vals, mart = mart)
     colnames(geneinfo) <- c("chr", "start", "id")
     geneinfo$end <- geneinfo$start
@@ -189,7 +191,7 @@ setMethod(f = "getHumanTSS", signature = c("character"), definition = function(c
 #' @param enhancer GRanges object corresponding to locations of enhancer peaks
 #' @param promoter GRanges object corresponding to locations of promoter regions
 #'
-#' @return A looptest object with an additional row "loop.type" in the results slot
+#' @return A looptest object with an additional row 'loop.type' in the results slot
 #'
 #' @examples
 #' rda<-paste(system.file('rda',package='diffloop'),'jpn_chr1reg.rda',sep='/')
@@ -211,57 +213,66 @@ setGeneric(name = "annotateLoops", def = function(lto, ctcf,
 
 #' @rdname annotateLoops
 setMethod(f = "annotateLoops", signature = c("looptest", "GRanges", 
-    "GRanges", "GRanges"), definition = function(lto, ctcf, 
-    enhancer, promoter) {
-        
-        lto.df <- summary(lto)
-        Ranchors <- GRanges(lto.df[, 1], IRanges(lto.df[, 2], lto.df[, 3]))
-        Lanchors <- GRanges(lto.df[, 4], IRanges(lto.df[, 5], lto.df[, 6]))
+    "GRanges", "GRanges"), definition = function(lto, ctcf, enhancer, 
+    promoter) {
     
-        # Determine if right anchor is near CTCF peak
-        Rhits.c <- suppressWarnings(findOverlaps(ctcf, Ranchors, maxgap = 0))
-        Rvalues.c <- rep(FALSE, dim(lto.df)[1])
-        Rvalues.c[unique(subjectHits(Rhits.c))] <- TRUE
-        
-        # Determine if left anchor is near CTCF peak
-        Lhits.c <- suppressWarnings(findOverlaps(ctcf, Lanchors, maxgap = 0))
-        Lvalues.c <- rep(FALSE, dim(lto.df)[1])
-        Lvalues.c[unique(subjectHits(Lhits.c))] <- TRUE
-        
-        #######
-        
-        # Determine if right anchor is near promoter region
-        Rhits.p <- suppressWarnings(findOverlaps(promoter, Ranchors, maxgap = 0))
-        Rvalues.p <- rep(FALSE, dim(lto.df)[1])
-        Rvalues.p[unique(subjectHits(Rhits.p))] <- TRUE
-        
-        # Determine if left anchor is near promoter region
-        Lhits.p <- suppressWarnings(findOverlaps(promoter, Lanchors, maxgap = 0))
-        Lvalues.p <- rep(FALSE, dim(lto.df)[1])
-        Lvalues.p[unique(subjectHits(Lhits.p))] <- TRUE
-        
-        #######
-        
-        # Determine if right anchor is near enhancer peak
-        Rhits.e <- suppressWarnings(findOverlaps(ctcf, Ranchors, maxgap = 0))
-        Rvalues.e <- rep(FALSE, dim(lto.df)[1])
-        Rvalues.e[unique(subjectHits(Rhits.e))] <- TRUE
-        
-        # Determine if left anchor is near enhancer peak
-        Lhits.e <- suppressWarnings(findOverlaps(ctcf, Lanchors, maxgap = 0))
-        Lvalues.e <- rep(FALSE, dim(lto.df)[1])
-        Lvalues.e[unique(subjectHits(Lhits.e))] <- TRUE
-        
-        #######
-        
-        ctcf.loops <- Lvalues.c & Rvalues.c
-        ep.loops <- (Lvalues.e & Rvalues.p) | (Lvalues.p & Rvalues.e)
-        loop.types <- as.integer(ctcf.loops) + as.integer(ep.loops)*2
-        loop.types <- gsub("3", "e-p", loop.types)
-        loop.types <- gsub("2", "e-p", loop.types)
-        loop.types <- gsub("1", "ctcf", loop.types)
-        loop.types <- gsub("0", "none", loop.types)
-        
-        lto@results$loop.type <- loop.types
-        return(lto)
+    lto.df <- summary(lto)
+    Ranchors <- GRanges(lto.df[, 1], IRanges(lto.df[, 2], lto.df[, 
+        3]))
+    Lanchors <- GRanges(lto.df[, 4], IRanges(lto.df[, 5], lto.df[, 
+        6]))
+    
+    # Determine if right anchor is near CTCF peak
+    Rhits.c <- suppressWarnings(findOverlaps(ctcf, Ranchors, 
+        maxgap = 0))
+    Rvalues.c <- rep(FALSE, dim(lto.df)[1])
+    Rvalues.c[unique(subjectHits(Rhits.c))] <- TRUE
+    
+    # Determine if left anchor is near CTCF peak
+    Lhits.c <- suppressWarnings(findOverlaps(ctcf, Lanchors, 
+        maxgap = 0))
+    Lvalues.c <- rep(FALSE, dim(lto.df)[1])
+    Lvalues.c[unique(subjectHits(Lhits.c))] <- TRUE
+    
+    ####### 
+    
+    # Determine if right anchor is near promoter region
+    Rhits.p <- suppressWarnings(findOverlaps(promoter, Ranchors, 
+        maxgap = 0))
+    Rvalues.p <- rep(FALSE, dim(lto.df)[1])
+    Rvalues.p[unique(subjectHits(Rhits.p))] <- TRUE
+    
+    # Determine if left anchor is near promoter region
+    Lhits.p <- suppressWarnings(findOverlaps(promoter, Lanchors, 
+        maxgap = 0))
+    Lvalues.p <- rep(FALSE, dim(lto.df)[1])
+    Lvalues.p[unique(subjectHits(Lhits.p))] <- TRUE
+    
+    ####### 
+    
+    # Determine if right anchor is near enhancer peak
+    Rhits.e <- suppressWarnings(findOverlaps(ctcf, Ranchors, 
+        maxgap = 0))
+    Rvalues.e <- rep(FALSE, dim(lto.df)[1])
+    Rvalues.e[unique(subjectHits(Rhits.e))] <- TRUE
+    
+    # Determine if left anchor is near enhancer peak
+    Lhits.e <- suppressWarnings(findOverlaps(ctcf, Lanchors, 
+        maxgap = 0))
+    Lvalues.e <- rep(FALSE, dim(lto.df)[1])
+    Lvalues.e[unique(subjectHits(Lhits.e))] <- TRUE
+    
+    ####### 
+    
+    ctcf.loops <- Lvalues.c & Rvalues.c
+    ep.loops <- (Lvalues.e & Rvalues.p) | (Lvalues.p & Rvalues.e)
+    loop.types <- as.integer(ctcf.loops) + as.integer(ep.loops) * 
+        2
+    loop.types <- gsub("3", "e-p", loop.types)
+    loop.types <- gsub("2", "e-p", loop.types)
+    loop.types <- gsub("1", "ctcf", loop.types)
+    loop.types <- gsub("0", "none", loop.types)
+    
+    lto@results$loop.type <- loop.types
+    return(lto)
 })

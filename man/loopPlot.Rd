@@ -49,7 +49,8 @@ observed for the particular loop relative to the other loops
 in the entire plot. If colorLoops is specified at TRUE, then 
 the x object must be looptest and it must have a loop.type
 column which can be generated from the \code{annotateLoops}
-function
+function. Blue loops are CTCF loops; black are none; red are 
+enhancer-promoter loops.
 }
 \examples{
 # Print loops in region chr1:36000000-36300000

@@ -21,7 +21,7 @@ annotateLoops(lto, ctcf, enhancer, promoter)
 \item{promoter}{GRanges object corresponding to locations of promoter regions}
 }
 \value{
-A looptest object with an additional row "loop.type" in the results slot
+A looptest object with an additional row 'loop.type' in the results slot
 }
 \description{
 \code{annotateLoops} adds a column to the results slot of a looptest

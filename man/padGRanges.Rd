@@ -32,7 +32,7 @@ pad or upstream/downstream when using
 #Read in CTCF Jurkat peaks in
 ctcf_j <- system.file('extdata','Jurkat_CTCF_chr1.narrowPeak',package = 'diffloop')
 ctcf <- bedToGRanges(ctcf_j)
-ctcf.pad <- padGranges(ctcf, pad = 1000)
+ctcf.pad <- padGRanges(ctcf, pad = 1000)
 
 
 }

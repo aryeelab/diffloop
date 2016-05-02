@@ -42,40 +42,44 @@ NULL
 #' 
 #' @export
 setGeneric(name = "loopPlot", def = function(x, y, organism = "h", 
-    geneinfo="NA", colorLoops = FALSE) standardGeneric("loopPlot"))
+    geneinfo = "NA", colorLoops = FALSE) standardGeneric("loopPlot"))
 
 #' @rdname loopPlot
 setMethod("loopPlot", signature(x = "loopdata", y = "GRanges", 
-    organism = "missing", geneinfo = "missing", colorLoops = "missing"),
+    organism = "missing", geneinfo = "missing", colorLoops = "missing"), 
     definition = function(x, y, organism, geneinfo) {
-    return(.loopPlot(x, y, "h", "NA"))
-})
+        return(.loopPlot(x, y, "h", "NA"))
+    })
 
 #' @rdname loopPlot
 setMethod("loopPlot", signature(x = "loopdata", y = "GRanges", 
-    organism = "character", geneinfo = "missing", colorLoops = "missing"),
+    organism = "character", geneinfo = "missing", colorLoops = "missing"), 
     definition = function(x, y, organism, geneinfo) {
-    return(.loopPlot(x, y, organism, "NA"))
-})
+        return(.loopPlot(x, y, organism, "NA"))
+    })
 
 #' @rdname loopPlot
 setMethod("loopPlot", signature(x = "loopdata", y = "GRanges", 
-    organism = "missing", geneinfo = "data.frame", colorLoops = "missing"),
+    organism = "missing", geneinfo = "data.frame", colorLoops = "missing"), 
     definition = function(x, y, organism, geneinfo) {
-    return(.loopPlot(x, y, "", geneinfo))
-})
+        return(.loopPlot(x, y, "", geneinfo))
+    })
 
 #' @rdname loopPlot
-setMethod("loopPlot", signature(x = "looptest", y = "GRanges",
-    organism = "ANY", geneinfo = "ANY", colorLoops = "ANY"),
-    definition = function(x, y, organism="h", geneinfo="NA", colorLoops = FALSE) {
-        if(!colorLoops) {return(.loopPlot(x@loopdata, y, "h", "NA"))
-        } else { return(.loopPlotcolor(x, y, organism, geneinfo))}
-})
+setMethod("loopPlot", signature(x = "looptest", y = "GRanges", 
+    organism = "ANY", geneinfo = "ANY", colorLoops = "ANY"), 
+    definition = function(x, y, organism = "h", geneinfo = "NA", 
+        colorLoops = FALSE) {
+        if (!colorLoops) {
+            return(.loopPlot(x@loopdata, y, "h", "NA"))
+        } else {
+            return(.loopPlotcolor(x, y, organism, geneinfo))
+        }
+    })
 
 .loopPlot <- function(x, y, organism = "h", geneinfo = "NA") {
     
-    # Immediately restrict the loopdata object to the region 
+    # Immediately restrict the loopdata object to the region
     objReg <- removeSelfLoops(subsetRegion(x, y))
     
     # Grab Regional Coordinates
@@ -87,7 +91,8 @@ setMethod("loopPlot", signature(x = "looptest", y = "GRanges",
     if (geneinfo == "NA") {
         # Get gene annotation from bioMart
         if (organism == "h") {
-            mart = useMart(biomart = "ensembl", dataset = "hsapiens_gene_ensembl")
+            mart = useMart(biomart = "ENSEMBL_MART_ENSEMBL", 
+                dataset = "hsapiens_gene_ensembl", host = "jul2015.archive.ensembl.org")
             chrom_biomart = gsub("chr", "", chrom)
             geneinfo = getBM(attributes = c("chromosome_name", 
                 "exon_chrom_start", "exon_chrom_end", "external_gene_name", 
@@ -95,7 +100,8 @@ setMethod("loopPlot", signature(x = "looptest", y = "GRanges",
                 "end"), values = list(chrom_biomart, start, end), 
                 mart = mart)
         } else if (organism == "m") {
-            mart = useMart(biomart = "ensembl", dataset = "mmusculus_gene_ensembl")
+            mart = useMart(biomart = "ENSEMBL_MART_ENSEMBL", 
+                dataset = "mmusculus_gene_ensembl", host = "jul2015.archive.ensembl.org")
             chrom_biomart = gsub("chr", "", chrom)
             geneinfo = getBM(attributes = c("chromosome_name", 
                 "start_position", "end_position", "external_gene_name", 
@@ -172,7 +178,7 @@ setMethod("loopPlot", signature(x = "looptest", y = "GRanges",
 
 .loopPlotcolor <- function(x, y, organism = "h", geneinfo = "NA") {
     
-    # Immediately restrict the loopdata object to the region 
+    # Immediately restrict the loopdata object to the region
     objReg <- removeSelfLoops(subsetRegion(x, y))
     res <- x@results
     objReg <- x@loopdata
@@ -260,9 +266,9 @@ setMethod("loopPlot", signature(x = "looptest", y = "GRanges",
     }
     sample = samples[m]
     idx <- which(bedPE$sample_id == sample)
-    plotBedpe(bedPE[idx, ], chrom, start, end, color = cs, 
-        lwd = lwd[idx], plottype = "loops", heights = h, 
-        lwdrange = c(0, 5), main = sample)
+    plotBedpe(bedPE[idx, ], chrom, start, end, color = cs, lwd = lwd[idx], 
+        plottype = "loops", heights = h, lwdrange = c(0, 5), 
+        main = sample)
     labelgenome(chromchr, start, end, side = 1, scipen = 20, 
         n = 3, scale = "Mb", line = 0.18, chromline = 0.5, scaleline = 0.5)
     
@@ -357,8 +363,8 @@ setGeneric(name = "plotTopLoops", def = function(lto, n = 0,
 
 #' @rdname plotTopLoops
 setMethod(f = "plotTopLoops", signature = c("looptest", "ANY", 
-    "ANY", "ANY", "ANY", "ANY"), definition = function(lto, n = 0, PValue = 1, 
-    FDR = 1, organism = "h", colorLoops = FALSE) {
+    "ANY", "ANY", "ANY", "ANY"), definition = function(lto, n = 0, 
+    PValue = 1, FDR = 1, organism = "h", colorLoops = FALSE) {
     if (n > 0) {
         if (n > dim(lto)[2]) {
             stop("Too many loops to print; there aren't that many in the data!")
@@ -380,7 +386,8 @@ setMethod(f = "plotTopLoops", signature = c("looptest", "ANY",
     for (i in 1:n) {
         one <- subsetLoops(tl, i)
         lw <- loopWidth(one)
-        regPlot <- GRanges(c(one@anchors[1]@seqnames),IRanges(c(start(one@anchors[1]@ranges)), 
+        regPlot <- GRanges(c(one@anchors[1]@seqnames),
+            IRanges(c(start(one@anchors[1]@ranges)), 
             c(end(one@anchors[1]@ranges))))
         regPlot <- padGRanges(regPlot, pad = lw * 1.5)
         loopPlot(lto, regPlot, organism = organism, colorLoops = colorLoops)
