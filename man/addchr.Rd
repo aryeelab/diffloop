@@ -4,23 +4,23 @@
 \name{addchr}
 \alias{addchr}
 \alias{addchr,GRanges-method}
-\alias{addchr,loopdata-method}
+\alias{addchr,loops-method}
 \title{Add 'chr' to GRanges seqnames}
 \usage{
 addchr(dlo)
 
-\S4method{addchr}{loopdata}(dlo)
+\S4method{addchr}{loops}(dlo)
 
 \S4method{addchr}{GRanges}(dlo)
 }
 \arguments{
-\item{dlo}{A loopdata object or GRanges object}
+\item{dlo}{A loops object or GRanges object}
 }
 \value{
-An identical loopdata object or GRanges object 'chr' added
+An identical loops object or GRanges object 'chr' added
 }
 \description{
-\code{addchr} takes a loopdata object or GRanges object and 
+\code{addchr} takes a loops object or GRanges object and 
 simply adds 'chr' to seqnames
 }
 \details{

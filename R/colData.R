@@ -3,30 +3,30 @@ NULL
 
 #' Compute normalizing factors for each sample
 #'
-#' \code{calcLDSizeFactors} takes a loopdata object computes size 
+#' \code{calcLDSizeFactors} takes a loops object computes size 
 #' factors based for each sample
 #'
-#' This function updates the \code{loopdata} object with new
+#' This function updates the \code{loops} object with new
 #' \code{sizeFactor} values for
 #' each sample in the \code{colData} slot using a method identical to that
 #' employed in \code{DESeq2.} 
 #'
-#' @param dlo A loopdata object with unnormalized size factors
+#' @param dlo A loops object with unnormalized size factors
 #'
-#' @return A loopdata object with new size factors in \code{colData}
+#' @return A loops object with new size factors in \code{colData}
 #'
 #' @examples
 #' # Computing normalizing factors from the full ChIA-PET Data
-#' rda<-paste(system.file('rda',package='diffloop'),'jpn_chr1reg.rda',sep='/')
+#' rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
 #' load(rda)
-#' jpn_chr1reg <- calcLDSizeFactors(jpn_chr1reg)
+#' loops.small <- calcLDSizeFactors(loops.small)
 
 #' @importMethodsFrom matrixStats colMedians
 #' @export
 setGeneric(name = "calcLDSizeFactors", def = function(dlo) standardGeneric("calcLDSizeFactors"))
 
 #' @rdname calcLDSizeFactors
-setMethod("calcLDSizeFactors", c("loopdata"), function(dlo) {
+setMethod("calcLDSizeFactors", c("loops"), function(dlo) {
     lc <- log2(dlo@counts)
     keep <- rowSums(dlo@counts > 0) == ncol(lc)
     lc <- lc[keep, ]
@@ -37,67 +37,67 @@ setMethod("calcLDSizeFactors", c("loopdata"), function(dlo) {
     return(dlo)
 })
 
-#' Update groups in colData for loopdata object
+#' Update groups in colData for loops object
 #'
 #' \code{updateLDGroups} changes the \code{groups} column in \code{colData} for
-#' a \code{loopdata} object
+#' a \code{loops} object
 #'
 #' This function updates the \code{groups} column in \code{colData} for
-#' a \code{loopdata} object. Make sure that the length of \code{groups}
+#' a \code{loops} object. Make sure that the length of \code{groups}
 #' the number of samples in \code{colData}!
 #'
-#' @param dlo A loopdata object 
+#' @param dlo A loops object 
 #' @param groups A character vector. Lists the groups each sample belongs in
 #'
-#' @return A loopdata object with new groups in \code{colData}
+#' @return A loops object with new groups in \code{colData}
 #'
 #' @examples
 #' # Updating groups from all 'group1' to meaningful designations
-#' rda<-paste(system.file('rda',package='diffloop'),'jpn_chr1reg.rda',sep='/')
+#' rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
 #' load(rda)
 #' celltypes <- c('naive1','naive1','primed2','primed2','jurkat3','jurkat3')
-#' jpn_chr1reg <- updateLDGroups(jpn_chr1reg, celltypes)
+#' loops.small <- updateLDGroups(loops.small, celltypes)
 #' 
 #' @export
 setGeneric(name = "updateLDGroups", def = function(dlo, groups) standardGeneric("updateLDGroups"))
 
 #' @rdname updateLDGroups
-setMethod("updateLDGroups", c("loopdata"), function(dlo, groups) {
+setMethod("updateLDGroups", c("loops"), function(dlo, groups) {
     dlo@colData$groups <- groups
     return(dlo)
 })
 
 #' Grab/Update Sample Names
 #'
-#' \code{sampleNames} takes a loopdata object returns the names of 
+#' \code{sampleNames} takes a loops object returns the names of 
 #' the samples in the structure. One can also update the names using
 #' set replace.
 #'
 #' The examples show both accession and updating sample names. 
 #'
-#' @param object A loopdata object 
+#' @param object A loops object 
 #' @param value New names when using set replace
 #'
 #' @return Vector of sample names
 #'
 #' @examples
-#' rda<-paste(system.file('rda',package='diffloop'),'jpn_chr1reg.rda',sep='/')
+#' rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
 #' load(rda)
-#' sampleNames(jpn_chr1reg)
+#' sampleNames(loops.small)
 #' nnames <- c("one", "two", "three", "four", "five", "six")
-#' sampleNames(jpn_chr1reg) <- nnames
+#' sampleNames(loops.small) <- nnames
 
 #' @importMethodsFrom Biobase sampleNames
 #' @export
-setMethod("sampleNames", "loopdata", function(object) {
+setMethod("sampleNames", "loops", function(object) {
     rownames(object@colData)
 })
 
 
 #' @importMethodsFrom Biobase sampleNames<-
-#' @rdname sampleNames-loopdata-method
+#' @rdname sampleNames-loops-method
 #' @export
-setReplaceMethod("sampleNames", c("loopdata", "ANY"), function(object, value) {
+setReplaceMethod("sampleNames", c("loops", "ANY"), function(object, value) {
 
     dfcd <- object@colData
     rownames(dfcd) <- value

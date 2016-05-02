@@ -3,32 +3,32 @@
 \docType{methods}
 \name{numAnchors}
 \alias{numAnchors}
-\alias{numAnchors,loopdata-method}
+\alias{numAnchors,loops-method}
 \title{Get number of anchors in each sample}
 \usage{
 numAnchors(x)
 
-\S4method{numAnchors}{loopdata}(x)
+\S4method{numAnchors}{loops}(x)
 }
 \arguments{
-\item{x}{A loopdata object to be summarized}
+\item{x}{A loops object to be summarized}
 }
 \value{
 A data.frame of each sample and the number of anchors
 }
 \description{
-\code{numAnchors} takes a \code{loopdata} object and a summarizes the
-number of anchors that support all the loops (count >= 1) in the object
+\code{numAnchors} takes a \code{loops} object and a summarizes the
+number of anchors that support all the interactions (count >= 1) in the object
 }
 \details{
 This function returns a data.frame where the column names specify the
-sample in the original \code{loopdata} object and the only row shows
+sample in the original \code{loops} object and the only row shows
 the number of anchors used to support that sample
 }
 \examples{
 # Show number of anchors each sample is supported by
-rda<-paste(system.file('rda',package='diffloop'),'jpn_chr1reg.rda',sep='/')
+rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
 load(rda)
-numAnchors(jpn_chr1reg)
+numAnchors(loops.small)
 }
 

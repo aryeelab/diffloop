@@ -3,34 +3,31 @@
 \docType{methods}
 \name{removeSelfLoops}
 \alias{removeSelfLoops}
-\alias{removeSelfLoops,loopdata-method}
-\alias{removeSelfLoops,looptest-method}
+\alias{removeSelfLoops,loops-method}
 \title{Remove self loops}
 \usage{
 removeSelfLoops(dlo)
 
-\S4method{removeSelfLoops}{loopdata}(dlo)
-
-\S4method{removeSelfLoops}{looptest}(dlo)
+\S4method{removeSelfLoops}{loops}(dlo)
 }
 \arguments{
-\item{dlo}{A loopdata/looptest object}
+\item{dlo}{A loops object}
 }
 \value{
-A loopdata/looptest object
+A loops object
 }
 \description{
 \code{removeSelfLoops} removes instances where a loop is observed
 between the same anchor
 }
 \details{
-This function removes loops from the \code{loops} slot that reference
+This function removes loops from the \code{interactions} slot that reference
 the same index of the \code{anchors} slot.
 }
 \examples{
-rda<-paste(system.file('rda',package='diffloop'),'jpn_chr1reg.rda',sep='/')
+rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
 load(rda)
-jpn_unique <- removeSelfLoops(jpn_chr1reg)
+jpn_unique <- removeSelfLoops(loops.small)
 
 }
 

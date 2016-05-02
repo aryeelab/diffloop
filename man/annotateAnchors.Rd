@@ -3,20 +3,20 @@
 \docType{methods}
 \name{annotateAnchors}
 \alias{annotateAnchors}
-\alias{annotateAnchors,loopdata,GRanges,character,missing-method}
-\alias{annotateAnchors,loopdata,GRanges,character,numeric-method}
+\alias{annotateAnchors,loops,GRanges,character,missing-method}
+\alias{annotateAnchors,loops,GRanges,character,numeric-method}
 \title{Add meta data column to anchors based on .bed file}
 \usage{
 annotateAnchors(dlo, features, featureName, maxgap)
 
-\S4method{annotateAnchors}{loopdata,GRanges,character,missing}(dlo, features,
+\S4method{annotateAnchors}{loops,GRanges,character,missing}(dlo, features,
   featureName, maxgap = 1000)
 
-\S4method{annotateAnchors}{loopdata,GRanges,character,numeric}(dlo, features,
+\S4method{annotateAnchors}{loops,GRanges,character,numeric}(dlo, features,
   featureName, maxgap)
 }
 \arguments{
-\item{dlo}{A loopdata object whose anchors will be annotated}
+\item{dlo}{A loops object whose anchors will be annotated}
 
 \item{features}{A Granges object corresponding to locations of interest}
 
@@ -25,14 +25,14 @@ annotateAnchors(dlo, features, featureName, maxgap)
 \item{maxgap}{A value of max permissible gap between a feature and anchor}
 }
 \value{
-A loopdata object with new meta data column in anchors
+A loops object with new meta data column in anchors
 }
 \description{
 \code{annotateAnchors} adds a logical variable to meta data columns in the
 anchors based on a GRanges object of features' genomic coordinates
 }
 \details{
-This function adds column of TRUE/FALSE values on the loopdata object
+This function adds column of TRUE/FALSE values on the loops object
 anchors whether a feature is observed nearby in \code{features}. The name
 of this column that will be in the anchors GRanges object is specified by
 a user defined string \code{featureName}. Gap tolerance between a feature
@@ -40,13 +40,13 @@ and an anchor is specified by \code{maxgap}, where the default is 1,000bp.
 }
 \examples{
 # Annotate whether anchors are near a gene body; within 1kb
-rda<-paste(system.file('rda',package='diffloop'),'jpn_chr1reg.rda',sep='/')
+rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
 load(rda)
 gb <-getHumanGenes()
-jpn_chr1reg <- annotateAnchors(jpn_chr1reg,gb,'nearGeneBody')
+loops.small <- annotateAnchors(loops.small,gb,'nearGeneBody')
 
 # Adding close to gene bodies with no gap tolerance
-jpn_chr1reg <- annotateAnchors(jpn_chr1reg,gb,'inGeneBody',0)
+loops.small <- annotateAnchors(loops.small,gb,'inGeneBody',0)
 
 }
 

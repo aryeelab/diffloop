@@ -3,35 +3,32 @@
 \docType{methods}
 \name{pcaPlot}
 \alias{pcaPlot}
-\alias{pcaPlot,loopdata-method}
-\alias{pcaPlot,looptest-method}
+\alias{pcaPlot,loops-method}
 \title{Visualize sample relationships}
 \usage{
 pcaPlot(dlo)
 
-\S4method{pcaPlot}{loopdata}(dlo)
-
-\S4method{pcaPlot}{looptest}(dlo)
+\S4method{pcaPlot}{loops}(dlo)
 }
 \arguments{
-\item{dlo}{A loopdata/looptest object}
+\item{dlo}{A loops object}
 }
 \value{
 A ggplot2 plot
 }
 \description{
-\code{pcaPlot} takes a loopdata object plots the individual samples
+\code{pcaPlot} takes a loops object plots the individual samples
 based on the principal components of the loop counts matrix
 }
 \details{
 Groups for the principal component plots are derived from \code{colData}
 and the normalizing factors are also taken from \code{colData}. While some
-loopdata objects may have non-informative groups or size factors, they 
+loops objects may have non-informative groups or size factors, they 
 should always be present.
 }
 \examples{
-rda<-paste(system.file('rda',package='diffloop'),'jpn_chr1reg.rda',sep='/')
+rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
 load(rda)
-p1 <- pcaPlot(jpn_chr1reg)
+p1 <- pcaPlot(loops.small)
 }
 

@@ -3,20 +3,20 @@
 \docType{methods}
 \name{numLoops}
 \alias{numLoops}
-\alias{numLoops,loopdata,missing-method}
-\alias{numLoops,loopdata,numeric-method}
+\alias{numLoops,loops,missing-method}
+\alias{numLoops,loops,numeric-method}
 \title{Per-sample loop quantities}
 \usage{
 numLoops(dlo, nloops = 1:10)
 
-\S4method{numLoops}{loopdata,numeric}(dlo, nloops = 1:10)
+\S4method{numLoops}{loops,numeric}(dlo, nloops = 1:10)
 
-\S4method{numLoops}{loopdata,missing}(dlo, nloops = 1:10)
+\S4method{numLoops}{loops,missing}(dlo, nloops = 1:10)
 }
 \arguments{
-\item{dlo}{A loopdata object}
+\item{dlo}{A loops object}
 
-\item{nloops}{A numeric vector of loops to be considered}
+\item{nloops}{A numeric vector of counts to be considered}
 }
 \value{
 A data.frame
@@ -32,11 +32,11 @@ sequencing depth between samples
 }
 \examples{
 # Determine what samples have loops with 1-20 counts
-rda<-paste(system.file('rda',package='diffloop'),'jpn_chr1reg.rda',sep='/')
+rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
 load(rda)
-nLoops <- numLoops(jpn_chr1reg, 1:20)
+nLoops <- numLoops(loops.small, 1:20)
 
 # Determine what samples loops with 1-10 counts by default
-nLoops <- numLoops(jpn_chr1reg)
+nLoops <- numLoops(loops.small)
 }
 

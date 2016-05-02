@@ -3,33 +3,33 @@
 \docType{methods}
 \name{calcLDSizeFactors}
 \alias{calcLDSizeFactors}
-\alias{calcLDSizeFactors,loopdata-method}
+\alias{calcLDSizeFactors,loops-method}
 \title{Compute normalizing factors for each sample}
 \usage{
 calcLDSizeFactors(dlo)
 
-\S4method{calcLDSizeFactors}{loopdata}(dlo)
+\S4method{calcLDSizeFactors}{loops}(dlo)
 }
 \arguments{
-\item{dlo}{A loopdata object with unnormalized size factors}
+\item{dlo}{A loops object with unnormalized size factors}
 }
 \value{
-A loopdata object with new size factors in \code{colData}
+A loops object with new size factors in \code{colData}
 }
 \description{
-\code{calcLDSizeFactors} takes a loopdata object computes size 
+\code{calcLDSizeFactors} takes a loops object computes size 
 factors based for each sample
 }
 \details{
-This function updates the \code{loopdata} object with new
+This function updates the \code{loops} object with new
 \code{sizeFactor} values for
 each sample in the \code{colData} slot using a method identical to that
 employed in \code{DESeq2.}
 }
 \examples{
 # Computing normalizing factors from the full ChIA-PET Data
-rda<-paste(system.file('rda',package='diffloop'),'jpn_chr1reg.rda',sep='/')
+rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
 load(rda)
-jpn_chr1reg <- calcLDSizeFactors(jpn_chr1reg)
+loops.small <- calcLDSizeFactors(loops.small)
 }
 

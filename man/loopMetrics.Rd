@@ -3,15 +3,15 @@
 \docType{methods}
 \name{loopMetrics}
 \alias{loopMetrics}
-\alias{loopMetrics,loopdata-method}
+\alias{loopMetrics,loops-method}
 \title{Types of loops}
 \usage{
 loopMetrics(dlo)
 
-\S4method{loopMetrics}{loopdata}(dlo)
+\S4method{loopMetrics}{loops}(dlo)
 }
 \arguments{
-\item{dlo}{A loopdata object}
+\item{dlo}{A loops object}
 }
 \value{
 A data.frame
@@ -23,14 +23,14 @@ whether they are single, self, unique, or none
 \details{
 This function shows the number of loops for each sample based on four
 types. Single refers to having only one anchor for a the loop whereas
-none has no unique anchors. If using the \code{loopdataMake} pipeline, only
+none has no unique anchors. If using the \code{loopsMake} pipeline, only
 self and unique loops will be observed when running this function
 }
 \examples{
 # Return loop metrics for number of each type for each sample 
-rda<-paste(system.file('rda',package='diffloop'),'jpn_chr1reg.rda',sep='/')
+rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
 load(rda)
-loopMetrics(jpn_chr1reg)
+loopMetrics(loops.small)
 
 }
 

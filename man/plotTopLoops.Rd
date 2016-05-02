@@ -3,17 +3,17 @@
 \docType{methods}
 \name{plotTopLoops}
 \alias{plotTopLoops}
-\alias{plotTopLoops,looptest-method}
+\alias{plotTopLoops,loops-method}
 \title{Plot the most significant loops}
 \usage{
 plotTopLoops(lto, n = 0, PValue = 1, FDR = 1, organism = "h",
   colorLoops = FALSE)
 
-\S4method{plotTopLoops}{looptest}(lto, n = 0, PValue = 1, FDR = 1,
+\S4method{plotTopLoops}{loops}(lto, n = 0, PValue = 1, FDR = 1,
   organism = "h", colorLoops = FALSE)
 }
 \arguments{
-\item{lto}{looptest object}
+\item{lto}{loops object}
 
 \item{n}{number of loops to print (can remain 0 to specify from other parameters)
 determined by PValue}
@@ -24,7 +24,7 @@ determined by PValue}
 
 \item{organism}{Either 'm' for mouse or 'h' for human.}
 
-\item{colorLoops}{Default FALSE; specify true if results slot contains
+\item{colorLoops}{Default FALSE; specify true if rowData slot contains
 loop.type from annotateLoops to visualize plots with varying colors for
 CTCF looping and enhancer-promoter looping}
 }
@@ -32,19 +32,19 @@ CTCF looping and enhancer-promoter looping}
 Prints a time stamped .pdf file of top loops
 }
 \description{
-\code{plotTopLoops} takes a looptest object and creates a time-stamped .pdf
+\code{plotTopLoops} takes a loops object and creates a time-stamped .pdf
 file with loop plots (one per page) of the top loops.
 }
 \details{
 Each plot will show the region +/- 1 loopwidth of the loop with annotation specified
-for either human or mouse. Assumes columns Pvalue and FDR are specified in the looptest
+for either human or mouse. Assumes columns Pvalue and FDR are specified in the loops
 object. We recommend removing self loops before using this function (and in reality, 
 before any association testing was called.)
 }
 \examples{
-rda<-paste(system.file('rda',package='diffloop'),'jpn_chr1reg.rda',sep='/')
+rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
 load(rda)
-jpn.u <- removeSelfLoops(jpn_chr1reg)
+jpn.u <- removeSelfLoops(loops.small)
 jpn_loopfit <- loopFit(jpn.u)
 assoc_jn <- loopTest(jpn_loopfit, coef = 2)
 plotTopLoops(assoc_jn, n=2)

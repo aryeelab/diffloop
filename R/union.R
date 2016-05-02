@@ -1,37 +1,38 @@
 #' @include sugar.R
 NULL
 
-#' Combine two loopdata objects
+#' Combine two loops objects
 #'
-#' \code{union} combines two loopdata objects' loops and anchors and 
+#' \code{union} combines two loops objects' interactions and anchors and 
 #' populates the \code{colData} matrix where available
 #'
-#' This function returns a single loopdata object that has all the 
-#' anchors and loops contained in the two loopdata objects that were
+#' This function returns a single loops object that has all the 
+#' anchors and interactions contained in the two loops objects that were
 #' part of the input. However, when the two objects have different samples,
 #' the counts matrix will contain missing values (e.g. when loop counts
-#' in x are not in y, those values are unknown). While the number of loops,
+#' in x are not in y, those values are unknown). While the number of interactions,
 #' colData, and anchors should be correct, we need to correct the counts
-#' using a subsetting function.
+#' using a subsetting function. The row data gets re-initialized here to only
+#' the loop widths
 #'
-#' @param x A loopdata object 
-#' @param y A loopdata object
+#' @param x A loops object 
+#' @param y A loops object
 #'
-#' @return A loopdata obect
+#' @return A loops obect
 #'
 #' @examples
 #' # divide and recombine samples
-#' rda<-paste(system.file('rda',package='diffloop'),'jpn_chr1reg.rda',sep='/')
+#' rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
 #' load(rda)
-#' naive <- jpn_chr1reg[,1:2]
-#' primed <- jpn_chr1reg[,3:4]
+#' naive <- loops.small[,1:2]
+#' primed <- loops.small[,3:4]
 #' np <- union(naive, primed)
 #' # Subset from full to get correct counts
-#' c.np <- loopdataSubset(np, jpn_chr1reg)
+#' c.np <- loopsSubset(np, loops.small)
 
 #' @import plyr
 #' @export
-setMethod(f = "union", signature = c("loopdata", "loopdata"), 
+setMethod(f = "union", signature = c("loops", "loops"), 
     definition = function(x, y) {
         o1df <- summary(x)
         o2df <- summary(y)
@@ -54,7 +55,7 @@ setMethod(f = "union", signature = c("loopdata", "loopdata"),
             start.field = "X2", end.field = "X3")
         anchors <- reduce(anchors)
         
-        # Index loops in df1
+        # Index interactions in df1
         int1 <- apply(data.frame(a1, a3), 1, function(t) {
             i1 <- which(as.list(seqnames(anchors)) == t[1] & 
                 as.integer(start(ranges(anchors))) == as.integer(t[2]) & 
@@ -65,7 +66,7 @@ setMethod(f = "union", signature = c("loopdata", "loopdata"),
             cbind(i1, i2)
         })
         
-        # Index loops in df2
+        # Index interactions in df2
         int2 <- apply(data.frame(a2, a4), 1, function(t) {
             i1 <- which(as.list(seqnames(anchors)) == t[1] & 
                 as.integer(start(ranges(anchors))) == as.integer(t[2]) & 
@@ -103,54 +104,58 @@ setMethod(f = "union", signature = c("loopdata", "loopdata"),
         base <- unique(ldply(list(d1, d2), data.frame))
         bigTab <- suppressWarnings(dcast(base, left + right ~ 
             variable, max))
-        newloops <- matrix(c(bigTab$left, bigTab$right), ncol = 2)
-        colnames(newloops) <- c("left", "right")
+        newinteractions <- matrix(c(bigTab$left, bigTab$right), ncol = 2)
+        colnames(newinteractions) <- c("left", "right")
         newCounts <- data.matrix(bigTab[, -1:-2])
         
         # Update colData
-        
         unsorted <- rbind(x@colData, y@colData)
-        newcolData <- unsorted[match(colnames(newCounts), rownames(unsorted)), 
-            ]
-        
+        newcolData <- unsorted[match(colnames(newCounts), rownames(unsorted)), ]
         cat("Check for NAs; Subset this object from  more comprehensive object\n")
-        return(loopdata(anchors = anchors, loops = newloops, 
-            counts = newCounts, colData = newcolData))
+        
+        # Initialize rowData slot (with loop widths)
+        w <- start(anchors[newinteractions[, 2]]) - end(anchors[newinteractions[, 1]]) + 1
+        w [ w < 0] <- 0
+        rowData <- as.data.frame(w)
+        colnames(rowData) <- c("loopWidth")
+        
+        return(loops(anchors = anchors, interactions = newinteractions, 
+            counts = newCounts, colData = newcolData, rowData = rowData))
     })
 
 
 #' Subset two difloop objects
 #'
-#' \code{loopdataSubset} takes the loops and anchors present in dlo1
+#' \code{loopsSubset} takes the interactions and anchors present in dlo1
 #' and uses the counts and samples from dlo2. 
 #'
 #' This function plays nice with \code{union} to ensure counts are correct
-#' after taking the union of two loopdata objects. The subset function simply
-#' returns the anchors and loops of dlo1 and the counts and colData of dlo2.
+#' after taking the union of two loops objects. The subset function simply
+#' returns the anchors and interactions of dlo1 and the counts and colData of dlo2.
 #'
-#' @param dlo1 A loopdata object 
-#' @param dlo2 A loopdata object
+#' @param dlo1 A loops object 
+#' @param dlo2 A loops object
 #'
-#' @return A loopdata obect
+#' @return A loops obect
 #'
 #' @examples
 #' # divide and recombine samples
-#' rda<-paste(system.file('rda',package='diffloop'),'jpn_chr1reg.rda',sep='/')
+#' rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
 #' load(rda)
-#' naive <- jpn_chr1reg[,1:2]
-#' primed <- jpn_chr1reg[,3:4]
+#' naive <- loops.small[,1:2]
+#' primed <- loops.small[,3:4]
 #' np <- union(naive, primed)
 #' # Subset from full to get correct counts
-#' c.np <- loopdataSubset(np, jpn_chr1reg)
+#' c.np <- loopsSubset(np, loops.small)
 
 #' @export
-setGeneric(name = "loopdataSubset", def = function(dlo1, dlo2) standardGeneric("loopdataSubset"))
+setGeneric(name = "loopsSubset", def = function(dlo1, dlo2) standardGeneric("loopsSubset"))
 
-#' @rdname loopdataSubset
-setMethod(f = "loopdataSubset", signature = c("loopdata", "loopdata"), 
+#' @rdname loopsSubset
+setMethod(f = "loopsSubset", signature = c("loops", "loops"), 
     definition = function(dlo1, dlo2) {
         va <- as.integer(findOverlaps(dlo1@anchors, dlo2@anchors)@from)
-        idd <- apply(dlo2@loops, 1, function(t) {
+        idd <- apply(dlo2@interactions, 1, function(t) {
             ta <- (is.element(as.integer(t[1]), va))
             tb <- (is.element(as.integer(t[2]), va))
             ta & tb

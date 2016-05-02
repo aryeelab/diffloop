@@ -6,7 +6,7 @@
 \alias{loopTest,loopfit,missing,missing,missing-method}
 \alias{loopTest,loopfit,missing,numeric,missing-method}
 \alias{loopTest,loopfit,numeric,missing,missing-method}
-\title{Compute looptest object}
+\title{Differential Loop Calling}
 \usage{
 loopTest(y, coef = 2, contrast, method = "QLF")
 
@@ -29,15 +29,16 @@ loopTest(y, coef = 2, contrast, method = "QLF")
 \item{method}{Specifies association method; only QLF is currently supported}
 }
 \value{
-A looptest object
+A loops object with additional columns in rowData
 }
 \description{
 \code{loopTest} takes a \code{loopfit} object from the 
-\code{loopFit} function and creates a \code{looptest} object.
+\code{loopFit} function and creates a \code{loops} object with additional
+columns in the \code{rowData}
 }
 \details{
-This function returns a \code{looptest} object, which combines the results
-from an association with the \code{loopdata}. The default association is
+This function returns a \code{loops} object, which contains the results
+from an association in the rowData slot. The default association is
 using coefficient 2 from the model matrix (e.g. good for pair
 comparisons) but the user may specify a different coefficient. Currently, 
 'QLF' is the only supported method, but new features may be added in
@@ -46,9 +47,9 @@ in the design matrix as used in \code{edgeR}.
 }
 \examples{
 # Differential loop fit
-rda<-paste(system.file('rda',package='diffloop'),'jpn_chr1reg.rda',sep='/')
+rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
 load(rda)
-jpn_loopfit <- loopFit(jpn_chr1reg)
+jpn_loopfit <- loopFit(loops.small)
 # Differential loop calling between naive and jurkat
 assoc_jn <- loopTest(jpn_loopfit, coef = 2)
 }

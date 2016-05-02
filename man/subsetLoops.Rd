@@ -3,42 +3,42 @@
 \docType{methods}
 \name{subsetLoops}
 \alias{subsetLoops}
-\alias{subsetLoops,loopdata,logical-method}
-\alias{subsetLoops,loopdata,numeric-method}
+\alias{subsetLoops,loops,logical-method}
+\alias{subsetLoops,loops,numeric-method}
 \title{Subset loops}
 \usage{
 subsetLoops(dlo, idxa)
 
-\S4method{subsetLoops}{loopdata,logical}(dlo, idxa)
+\S4method{subsetLoops}{loops,logical}(dlo, idxa)
 
-\S4method{subsetLoops}{loopdata,numeric}(dlo, idxa)
+\S4method{subsetLoops}{loops,numeric}(dlo, idxa)
 }
 \arguments{
-\item{dlo}{A loopdata object}
+\item{dlo}{A loops object}
 
 \item{idxa}{A numeric vector or logical vector}
 }
 \value{
-A loopdata object
+A loops object
 }
 \description{
 \code{subsetLoops} restricts the loops and counts matrix to only those 
 specified by \code{idxa}, either numerically or logically
 }
 \details{
-This function returns a loopdata object where the loops are retained only
+This function returns a loops object where the loops are retained only
 if they meet a logical criteria or are included in the numeric vector of
 \code{idxa}. Only the anchors that reference a loop in the subsetted 
-loopdata object are retained.
+loops object are retained.
 }
 \examples{
 # Return the first 10 loops
-rda<-paste(system.file('rda',package='diffloop'),'jpn_chr1reg.rda',sep='/')
+rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
 load(rda)
-#' ten <- subsetLoops(jpn_chr1reg, 1:10)
+#' ten <- subsetLoops(loops.small, 1:10)
 
 # Subset loops with widths greater than 10000
-big <- subsetLoops(jpn_chr1reg, loopWidth(jpn_chr1reg) >= 10000)
+big <- subsetLoops(loops.small, loopWidth(loops.small) >= 10000)
 
 }
 

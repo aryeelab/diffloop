@@ -3,16 +3,16 @@
 \docType{methods}
 \name{annotateLoops}
 \alias{annotateLoops}
-\alias{annotateLoops,looptest,GRanges,GRanges,GRanges-method}
+\alias{annotateLoops,loops,GRanges,GRanges,GRanges-method}
 \title{Annotate loops as Enhancer-Promoter or CTCF-CTCF}
 \usage{
 annotateLoops(lto, ctcf, enhancer, promoter)
 
-\S4method{annotateLoops}{looptest,GRanges,GRanges,GRanges}(lto, ctcf, enhancer,
+\S4method{annotateLoops}{loops,GRanges,GRanges,GRanges}(lto, ctcf, enhancer,
   promoter)
 }
 \arguments{
-\item{lto}{A looptest object whose loops will be annotated}
+\item{lto}{A loops object whose loops will be annotated}
 
 \item{ctcf}{GRanges object corresponding to locations of CTCF peaks}
 
@@ -21,10 +21,10 @@ annotateLoops(lto, ctcf, enhancer, promoter)
 \item{promoter}{GRanges object corresponding to locations of promoter regions}
 }
 \value{
-A looptest object with an additional row 'loop.type' in the results slot
+A loops object with an additional row 'loop.type' in the results slot
 }
 \description{
-\code{annotateLoops} adds a column to the results slot of a looptest
+\code{annotateLoops} adds a column to the results slot of a loops
 object categorizing loops as either e-p (enhancer-promoter), ctcf 
 (CTCF-CTCF) or none (no biological annotation). If both ctcf and e-p,
 then categorized as e-p.
@@ -37,14 +37,14 @@ when setting up the 3 GRanges inputs. Provide a blank GRanges objects to ignore
 classification for one set.
 }
 \examples{
-rda<-paste(system.file('rda',package='diffloop'),'jpn_chr1reg.rda',sep='/')
+rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
 load(rda)
 ctcf_j <- system.file('extdata','Jurkat_CTCF_chr1.narrowPeak',package='diffloop')
 ctcf <- rmchr(padGRanges(bedToGRanges(ctcf_j), pad = 1000))
 h3k27ac_j <- system.file('extdata','Jurkat_H3K27ac_chr1.narrowPeak',package='diffloop')
 h3k27ac <- rmchr(padGRanges(bedToGRanges(h3k27ac_j), pad = 1000))
 promoter <- padGRanges(getHumanTSS(c('1')), pad = 1000)
-jn <- jpn_chr1reg[,c(1,2,5,6)]
+jn <- loops.small[,c(1,2,5,6)]
 assoc_jn <- quickAssoc(jn)
 assoc_jn <- removeSelfLoops(assoc_jn)
 annotated_jn <- annotateLoops(assoc_jn, ctcf, h3k27ac, promoter)

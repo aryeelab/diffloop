@@ -3,15 +3,15 @@
 \docType{methods}
 \name{featureTest}
 \alias{featureTest}
-\alias{featureTest,looptest,GRanges-method}
+\alias{featureTest,loops,GRanges-method}
 \title{Combined association test for all loops in a defined region}
 \usage{
 featureTest(x, features)
 
-\S4method{featureTest}{looptest,GRanges}(x, features)
+\S4method{featureTest}{loops,GRanges}(x, features)
 }
 \arguments{
-\item{x}{A looptest object}
+\item{x}{A loops object}
 
 \item{features}{A GRanges object defining regions for a combined test}
 }
@@ -19,7 +19,7 @@ featureTest(x, features)
 A data.frame sorted by FDR
 }
 \description{
-\code{featureTest} takes a \code{looptest} and 
+\code{featureTest} takes a \code{loops} and 
 genomic coordinates of regions and computes combined significance 
 metrics for each region using the Simes procedure
 }
@@ -33,9 +33,9 @@ interest.
 }
 \examples{
 # Human genes chromosome 1 regional association
-rda<-paste(system.file('rda',package='diffloop'),'jpn_chr1reg.rda',sep='/')
+rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
 load(rda)
-jpn_loopfit <- loopFit(jpn_chr1reg)
+jpn_loopfit <- loopFit(loops.small)
 # Differential loop calling between naive and jurkat
 assoc_jn <- loopTest(jpn_loopfit, coef = 2)
 # Gene based association

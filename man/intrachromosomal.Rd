@@ -3,34 +3,34 @@
 \docType{methods}
 \name{intrachromosomal}
 \alias{intrachromosomal}
-\alias{intrachromosomal,loopdata-method}
+\alias{intrachromosomal,loops-method}
 \title{Loops within chromosomes}
 \usage{
 intrachromosomal(dlo)
 
-\S4method{intrachromosomal}{loopdata}(dlo)
+\S4method{intrachromosomal}{loops}(dlo)
 }
 \arguments{
-\item{dlo}{A loopdata object}
+\item{dlo}{A loops object}
 }
 \value{
-A loopdata object where all loops are on the same chromosome.
+A loops object where all loops are on the same chromosome.
 }
 \description{
-\code{intrachromosomal} restricts loops to those where anchors are observed
+\code{intrachromosomal} restricts interactions to those where anchors are observed
 on the same chromosomes
 }
 \details{
-This function subsets the \code{loopdata} object into only those loops that
+This function subsets the \code{loops} object into only those interactions that
 have both anchors on the same chromosome
 }
 \examples{
-rda<-paste(system.file('rda',package='diffloop'),'jpn_chr1reg.rda',sep='/')
+rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
 load(rda)
 
-# Compute number of loops on same chromosome
-dim(intrachromosomal(jpn_chr1reg))
-samechromo <- intrachromosomal(jpn_chr1reg)
+# Compute number of interactions on same chromosome
+dim(intrachromosomal(loops.small))
+samechromo <- intrachromosomal(loops.small)
 
 }
 

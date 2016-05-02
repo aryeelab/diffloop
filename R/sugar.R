@@ -1,161 +1,133 @@
 #' @include loopFunctions.R
 NULL
 
-#' Extract parts of a loopdata object
+#' Extract parts of a loops object
 #' 
-#' @param x A loopdata object for subsetting
+#' @param x A loops object for subsetting
 #' @param i Loops to be subsetted
 #' @param j Samples to be subsetted 
 #' @param drop Other non-essential parameters needed for sub
 #' 
-#' @return A loopdata object
+#' @return A loops object
 #' 
-setMethod("[", signature(x = "loopdata", i = "numeric", j = "numeric", 
+setMethod("[", signature(x = "loops", i = "numeric", j = "numeric", 
     drop = "missing"), definition = function(x, i, j, drop) {
-    upints <- x@loops[i, ]
-    slot(x, "loops", check = TRUE) <- upints
+    upints <- x@interactions[i, ]
+    slot(x, "interactions", check = TRUE) <- upints
     ucounts <- x@counts[i, ]
     slot(x, "counts", check = TRUE) <- ucounts
+    newRowData <- as.data.frame(x@rowData[i,])
+    colnames(newRowData) <- colnames(x@rowData)
+    slot(x, "rowData", check = TRUE) <- newRowData
     x <- cleanup(x)
     
     slot(x, "counts", check = TRUE) <- x@counts[, j]
-    nonZero <- apply(x@counts, MARGIN = 1, function(t) !all(t == 
-        0))
+    nonZero <- apply(x@counts, MARGIN = 1, function(t) !all(t == 0))
     x <- subsetLoops(x, nonZero)
     slot(x, "colData", check = TRUE) <- x@colData[j, ]
     return(x)
 })
 
-#' @rdname sub-loopdata-numeric-numeric-missing-method 
-setMethod("[", signature(x = "loopdata", i = "missing", j = "numeric", 
+#' @rdname sub-loops-numeric-numeric-missing-method 
+setMethod("[", signature(x = "loops", i = "missing", j = "numeric", 
     drop = "missing"), definition = function(x, i, j, drop) {
     slot(x, "counts", check = TRUE) <- x@counts[, j]
-    nonZero <- apply(x@counts, MARGIN = 1, function(t) !all(t == 
-        0))
+    nonZero <- apply(x@counts, MARGIN = 1, function(t) !all(t == 0))
     x <- subsetLoops(x, nonZero)
     slot(x, "colData", check = TRUE) <- x@colData[j, ]
     return(x)
 })
 
-#' @rdname sub-loopdata-numeric-numeric-missing-method 
-setMethod("[", signature(x = "loopdata", i = "numeric", j = "missing", 
+#' @rdname sub-loops-numeric-numeric-missing-method 
+setMethod("[", signature(x = "loops", i = "numeric", j = "missing", 
     drop = "missing"), definition = function(x, i, j, drop) {
-    upints <- x@loops[i, ]
-    slot(x, "loops", check = TRUE) <- upints
+    upints <- x@interactions[i, ]
+    slot(x, "interactions", check = TRUE) <- upints
     ucounts <- x@counts[i, ]
     slot(x, "counts", check = TRUE) <- ucounts
+    newRowData <- as.data.frame(x@rowData[i,])
+    colnames(newRowData) <- colnames(x@rowData)
+    slot(x, "rowData", check = TRUE) <- newRowData
     return(cleanup(x))
 })
 
-#' Extract parts of looptest
-#' 
-#' Can only subsample loops, so only the i parameter can be handled
-#'
-#' @param x A looptest object for subsetting
-#' @param i Loops to be subsetted
-#' @param j NULL 
-#' @param drop NULL
-#' 
-#' @return A looptest object
-#' 
-setMethod("[", signature(x = "looptest", i = "numeric", j = "missing", 
-    drop = "missing"), definition = function(x, i, j, drop) {
-    slot(x, "loopdata", check = TRUE) <- x@loopdata[i, ]
-    slot(x, "results", check = TRUE) <- x@results[i, ]
-    return(x)
-})
-
-#' Extract first part of loopdata
+#' Extract first part of loops object
 #'
 #' @param x A looptest object
 #' @param n Number of lines to view
 #' @param ... Other non-essential params
 #' 
-#' @return A loopdata object
+#' @return A loops object
 #' 
-setMethod("head", signature = "loopdata", function(x, n = 6, 
+setMethod("head", signature = "loops", function(x, n = 6, 
     ...) {
-    return(loopdata(anchors = head(x@anchors, n), loops = head(x@loops, 
-        n), counts = head(x@counts, n), colData = x@colData))
+
+    anchors <- head(x@anchors, n)
+    interactions <- as.matrix(head(x@interactions, n))
+    counts <- head(x@counts, n)
+    colData <- x@colData
+    rowData <- head(x@rowData, n)
+    
+    dlo <- loops()
+    slot(dlo, "anchors", check = TRUE) <- anchors
+    slot(dlo, "interactions", check = TRUE) <- interactions
+    slot(dlo, "counts", check = TRUE) <- counts
+    slot(dlo, "colData", check = TRUE) <- colData
+    slot(dlo, "rowData", check = TRUE) <- rowData
+    
+    return(dlo)
+    
+    
 })
 
-#' Extract first part of looptest
+
+#' Extract last part of loops object
 #' 
-#' @param x A looptest object
+#' @param x A loops object
 #' @param n Number of lines to view
 #' @param ... Other non-essential params
 #' 
-#' @return A looptest object
+#' @return A loops object
 #' 
-setMethod("head", signature = "looptest", function(x, n = 6, 
+setMethod("tail", signature = "loops", function(x, n = 6, 
     ...) {
-    return(looptest(loopdata = head(x@loopdata), results = head(x@results)))
+    
+    anchors <- tail(x@anchors, n)
+    interactions <- as.matrix(tail(x@interactions, n))
+    counts <- tail(x@counts, n)
+    colData <- x@colData
+    rowData <- tail(x@rowData, n)
+    
+    dlo <- loops()
+    slot(dlo, "anchors", check = TRUE) <- anchors
+    slot(dlo, "interactions", check = TRUE) <- interactions
+    slot(dlo, "counts", check = TRUE) <- counts
+    slot(dlo, "colData", check = TRUE) <- colData
+    slot(dlo, "rowData", check = TRUE) <- rowData
+    
+    return(dlo)
 })
 
-#' Extract last part of loopdata
+#' See dimensions of loops object
 #' 
-#' @param x A loopdata object
-#' @param n Number of lines to view
-#' @param ... Other non-essential params
+#' @param x A loops object
 #' 
-#' @return A loopdata object
-#' 
-setMethod("tail", signature = "loopdata", function(x, n = 6, 
-    ...) {
-    return(loopdata(anchors = tail(x@anchors, n), loops = tail(x@loops, 
-        n), counts = tail(x@counts, n), colData = x@colData))
-})
-
-#' Extract last part of looptest
-#' 
-#' @param x A looptest object
-#' @param n Number of lines to view
-#' @param ... Other non-essential params
-#' 
-#' @return A looptest object
-#'
-setMethod("tail", signature = "looptest", function(x, n = 6, 
-    ...) {
-    return(looptest(loopdata = tail(x@loopdata), results = tail(x@results)))
-})
-
-#' See dimensions of loopdata
-#' 
-#' @param x A loopdata object
-#' 
-#' @return A data.frame of dimensions of the loopdata object,
-#' including number of anchors, loops, samples, and column data
+#' @return A data.frame of dimensions of the loops object,
+#' including number of anchors, interactions, samples, and column data
 #' attributes 
 #'
-setMethod("dim", signature = "loopdata", function(x) {
+setMethod("dim", signature = "loops", function(x) {
     anchors <- length(x@anchors)
-    loops <- nrow(x@loops)
+    interactions <- nrow(x@interactions)
     samples <- ncol(x@counts)
     colData <- ncol(x@colData)
-    return(data.frame(cbind(anchors, loops, samples, colData)))
-})
-
-#' See dimensions of looptest
-#' 
-#' @param x A looptest object
-#' 
-#' @return A data.frame of dimensons of the looptest object,
-#' including number of anchors, loops, samples, column data
-#' attributes, and columns in the results subobject
-#'
-setMethod("dim", signature = "looptest", function(x) {
-    anchors <- length(x@loopdata@anchors)
-    loops <- nrow(x@loopdata@loops)
-    samples <- ncol(x@loopdata@counts)
-    colData <- ncol(x@loopdata@colData)
-    results <- dim(x@results)[2]
-    return(data.frame(cbind(anchors, loops, samples, colData, 
-        results)))
+    rowData <- ncol(x@rowData)
+    return(data.frame(cbind(anchors, interactions, samples, colData, rowData)))
 })
 
 #' Remove 'chr' from GRanges seqnames
 #'
-#' \code{rmchr} takes a loopdata object or GRanges object and 
+#' \code{rmchr} takes a loops object or GRanges object and 
 #' simply removes the 'chr' from seqnames, if is present
 #'
 #' Often times, performing functions on GRanges objects can go awry 
@@ -163,9 +135,9 @@ setMethod("dim", signature = "looptest", function(x) {
 #' this is when some GRanges objects has the format of 'chr1' 
 #' while the other has '1'. We can remove 'chr' from the first object 
 #'
-#' @param dlo A loopdata object or GRanges object
+#' @param dlo A loops object or GRanges object
 #'
-#' @return An identical loopdata/GRanges object except 'chr' removed
+#' @return An identical loops/GRanges object except 'chr' removed
 #'
 #' @examples
 #' library(GenomicRanges)
@@ -181,7 +153,7 @@ setMethod("dim", signature = "looptest", function(x) {
 setGeneric(name = "rmchr", def = function(dlo) standardGeneric("rmchr"))
 
 #' @rdname rmchr
-setMethod(f = "rmchr", signature = c("loopdata"), definition = function(dlo) {
+setMethod(f = "rmchr", signature = c("loops"), definition = function(dlo) {
     seqlevels(dlo@anchors) <- gsub("^chr(.*)$", "\\1", seqlevels(dlo@anchors))
     return(dlo)
 })
@@ -194,7 +166,7 @@ setMethod(f = "rmchr", signature = c("GRanges"), definition = function(dlo) {
 
 #' Add 'chr' to GRanges seqnames
 #'
-#' \code{addchr} takes a loopdata object or GRanges object and 
+#' \code{addchr} takes a loops object or GRanges object and 
 #' simply adds 'chr' to seqnames
 #'
 #' Often times, performing functions on GRanges objects can go awry 
@@ -202,9 +174,9 @@ setMethod(f = "rmchr", signature = c("GRanges"), definition = function(dlo) {
 #' this is when some GRanges objects has the format of 'chr1' 
 #' while the other has '1'. We can add 'chr' to the first object 
 #'
-#' @param dlo A loopdata object or GRanges object
+#' @param dlo A loops object or GRanges object
 #'
-#' @return An identical loopdata object or GRanges object 'chr' added 
+#' @return An identical loops object or GRanges object 'chr' added 
 #'
 #' @examples
 #' library(GenomicRanges)
@@ -218,7 +190,7 @@ setMethod(f = "rmchr", signature = c("GRanges"), definition = function(dlo) {
 setGeneric(name = "addchr", def = function(dlo) standardGeneric("addchr"))
 
 #' @rdname addchr
-setMethod(f = "addchr", signature = c("loopdata"), definition = function(dlo) {
+setMethod(f = "addchr", signature = c("loops"), definition = function(dlo) {
     seqlevels(dlo@anchors) <- gsub("^(.*)$", "chr\\1", seqlevels(dlo@anchors))
     return(dlo)
 })

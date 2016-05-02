@@ -3,26 +3,26 @@
 \docType{methods}
 \name{quickAssoc}
 \alias{quickAssoc}
-\alias{quickAssoc,loopdata-method}
+\alias{quickAssoc,loops-method}
 \title{Perform quick differential loop calling}
 \usage{
 quickAssoc(y)
 
-\S4method{quickAssoc}{loopdata}(y)
+\S4method{quickAssoc}{loops}(y)
 }
 \arguments{
-\item{y}{A loopdata object for association}
+\item{y}{A loops object for association}
 }
 \value{
-A looptest object
+A loops object
 }
 \description{
-\code{quickAssoc} takes a loopdata object and performs a basic
+\code{quickAssoc} takes a loops object and performs a basic
 \code{edgeR} association on the counts matrix and groups from \code{colData}
 }
 \details{
 This function returns the output of fitting an edgeR model using
-the groups defined in \code{colData} for the specific loopdata
+the groups defined in \code{colData} for the specific loops
 object. The factor normalization is based on the \code{edgeR} model.
 For quick association, the number of groups is restricted to two. If
 a more complex group structure exists, consider using the \code{loopFit}
@@ -30,9 +30,9 @@ and \code{loopTest} functions
 }
 \examples{
 # Differential loop calling between naive and primed
-rda<-paste(system.file('rda',package='diffloop'),'jpn_chr1reg.rda',sep='/')
+rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
 load(rda)
-np <- jpn_chr1reg[,1:4]
+np <- loops.small[,1:4]
 assoc_np <- quickAssoc(np)
 }
 

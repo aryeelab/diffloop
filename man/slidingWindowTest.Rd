@@ -3,15 +3,15 @@
 \docType{methods}
 \name{slidingWindowTest}
 \alias{slidingWindowTest}
-\alias{slidingWindowTest,looptest,numeric,numeric-method}
+\alias{slidingWindowTest,loops,numeric,numeric-method}
 \title{Combined association test for all loops in a defined region}
 \usage{
 slidingWindowTest(x, window, step)
 
-\S4method{slidingWindowTest}{looptest,numeric,numeric}(x, window, step)
+\S4method{slidingWindowTest}{loops,numeric,numeric}(x, window, step)
 }
 \arguments{
-\item{x}{A looptest object}
+\item{x}{A loops object with PValue column (from association testing)}
 
 \item{window}{The length a window will be for combined association}
 
@@ -21,7 +21,7 @@ slidingWindowTest(x, window, step)
 A data.frame sorted by FDR
 }
 \description{
-\code{slidingWindowTest} takes a \code{looptest} object and 
+\code{slidingWindowTest} takes a \code{loops} object and 
 integer values of the association window and the distance between 
 consecutive windows.
 }
@@ -32,13 +32,13 @@ loop and slides the window right until no more loops are present in \code{x}
 Each region is determined from a sliding window of fixed length.
 The combined significance measure per feature is computed via the Simes 
 method for intrachromosomal loops where at least one anchor from the loop
-overlaps with the region.
+overlaps with the region. Requires PValue column in the rowData slot.
 }
 \examples{
 # Sliding window test 100kb at a time between naive and jurkat
-rda<-paste(system.file('rda',package='diffloop'),'jpn_chr1reg.rda',sep='/')
+rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
 load(rda)
-jpn_loopfit <- loopFit(jpn_chr1reg)
+jpn_loopfit <- loopFit(loops.small)
 # Differential loop calling between naive and jurkat
 assoc_jn <- loopTest(jpn_loopfit, coef = 2)
 sw_jn <- slidingWindowTest(assoc_jn, 100000, 100000)

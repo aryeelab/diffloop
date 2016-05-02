@@ -4,23 +4,23 @@
 \name{rmchr}
 \alias{rmchr}
 \alias{rmchr,GRanges-method}
-\alias{rmchr,loopdata-method}
+\alias{rmchr,loops-method}
 \title{Remove 'chr' from GRanges seqnames}
 \usage{
 rmchr(dlo)
 
-\S4method{rmchr}{loopdata}(dlo)
+\S4method{rmchr}{loops}(dlo)
 
 \S4method{rmchr}{GRanges}(dlo)
 }
 \arguments{
-\item{dlo}{A loopdata object or GRanges object}
+\item{dlo}{A loops object or GRanges object}
 }
 \value{
-An identical loopdata/GRanges object except 'chr' removed
+An identical loops/GRanges object except 'chr' removed
 }
 \description{
-\code{rmchr} takes a loopdata object or GRanges object and 
+\code{rmchr} takes a loops object or GRanges object and 
 simply removes the 'chr' from seqnames, if is present
 }
 \details{

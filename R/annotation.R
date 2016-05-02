@@ -6,28 +6,28 @@ NULL
 #' \code{annotateAnchors} adds a logical variable to meta data columns in the
 #' anchors based on a GRanges object of features' genomic coordinates
 #'
-#' This function adds column of TRUE/FALSE values on the loopdata object
+#' This function adds column of TRUE/FALSE values on the loops object
 #' anchors whether a feature is observed nearby in \code{features}. The name
 #' of this column that will be in the anchors GRanges object is specified by
 #' a user defined string \code{featureName}. Gap tolerance between a feature
 #' and an anchor is specified by \code{maxgap}, where the default is 1,000bp.
 #'
-#' @param dlo A loopdata object whose anchors will be annotated
+#' @param dlo A loops object whose anchors will be annotated
 #' @param features A Granges object corresponding to locations of interest
 #' @param featureName A string that will be the mcol name in anchors
 #' @param maxgap A value of max permissible gap between a feature and anchor
 #'
-#' @return A loopdata object with new meta data column in anchors
+#' @return A loops object with new meta data column in anchors
 #'
 #' @examples
 #' # Annotate whether anchors are near a gene body; within 1kb
-#' rda<-paste(system.file('rda',package='diffloop'),'jpn_chr1reg.rda',sep='/')
+#' rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
 #' load(rda)
 #' gb <-getHumanGenes()
-#' jpn_chr1reg <- annotateAnchors(jpn_chr1reg,gb,'nearGeneBody')
+#' loops.small <- annotateAnchors(loops.small,gb,'nearGeneBody')
 #'
 #' # Adding close to gene bodies with no gap tolerance
-#' jpn_chr1reg <- annotateAnchors(jpn_chr1reg,gb,'inGeneBody',0)
+#' loops.small <- annotateAnchors(loops.small,gb,'inGeneBody',0)
 #'
 #' @import GenomicRanges
 #' 
@@ -47,7 +47,7 @@ setGeneric(name = "annotateAnchors", def = function(dlo, features,
 }
 
 #' @rdname annotateAnchors
-setMethod(f = "annotateAnchors", signature = c("loopdata", "GRanges", 
+setMethod(f = "annotateAnchors", signature = c("loops", "GRanges", 
     "character", "missing"), definition = function(dlo, features, 
     featureName, maxgap = 1000) {
     maxgap <- 1000
@@ -55,7 +55,7 @@ setMethod(f = "annotateAnchors", signature = c("loopdata", "GRanges",
 })
 
 #' @rdname annotateAnchors
-setMethod(f = "annotateAnchors", signature = c("loopdata", "GRanges", 
+setMethod(f = "annotateAnchors", signature = c("loops", "GRanges", 
     "character", "numeric"), definition = function(dlo, features, 
     featureName, maxgap) {
     .annotateAnchors(dlo, features, featureName, maxgap)
@@ -175,7 +175,7 @@ setMethod(f = "getHumanTSS", signature = c("character"), definition = function(c
 
 #' Annotate loops as Enhancer-Promoter or CTCF-CTCF
 #'
-#' \code{annotateLoops} adds a column to the results slot of a looptest
+#' \code{annotateLoops} adds a column to the results slot of a loops
 #' object categorizing loops as either e-p (enhancer-promoter), ctcf 
 #' (CTCF-CTCF) or none (no biological annotation). If both ctcf and e-p,
 #' then categorized as e-p. 
@@ -186,22 +186,22 @@ setMethod(f = "getHumanTSS", signature = c("character"), definition = function(c
 #' when setting up the 3 GRanges inputs. Provide a blank GRanges objects to ignore
 #' classification for one set. 
 #'
-#' @param lto A looptest object whose loops will be annotated
+#' @param lto A loops object whose loops will be annotated
 #' @param ctcf GRanges object corresponding to locations of CTCF peaks
 #' @param enhancer GRanges object corresponding to locations of enhancer peaks
 #' @param promoter GRanges object corresponding to locations of promoter regions
 #'
-#' @return A looptest object with an additional row 'loop.type' in the results slot
+#' @return A loops object with an additional row 'loop.type' in the results slot
 #'
 #' @examples
-#' rda<-paste(system.file('rda',package='diffloop'),'jpn_chr1reg.rda',sep='/')
+#' rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
 #' load(rda)
 #' ctcf_j <- system.file('extdata','Jurkat_CTCF_chr1.narrowPeak',package='diffloop')
 #' ctcf <- rmchr(padGRanges(bedToGRanges(ctcf_j), pad = 1000))
 #' h3k27ac_j <- system.file('extdata','Jurkat_H3K27ac_chr1.narrowPeak',package='diffloop')
 #' h3k27ac <- rmchr(padGRanges(bedToGRanges(h3k27ac_j), pad = 1000))
 #' promoter <- padGRanges(getHumanTSS(c('1')), pad = 1000)
-#' jn <- jpn_chr1reg[,c(1,2,5,6)]
+#' jn <- loops.small[,c(1,2,5,6)]
 #' assoc_jn <- quickAssoc(jn)
 #' assoc_jn <- removeSelfLoops(assoc_jn)
 #' annotated_jn <- annotateLoops(assoc_jn, ctcf, h3k27ac, promoter)
@@ -212,7 +212,7 @@ setGeneric(name = "annotateLoops", def = function(lto, ctcf,
     enhancer, promoter) standardGeneric("annotateLoops"))
 
 #' @rdname annotateLoops
-setMethod(f = "annotateLoops", signature = c("looptest", "GRanges", 
+setMethod(f = "annotateLoops", signature = c("loops", "GRanges", 
     "GRanges", "GRanges"), definition = function(lto, ctcf, enhancer, 
     promoter) {
     
@@ -272,6 +272,6 @@ setMethod(f = "annotateLoops", signature = c("looptest", "GRanges",
     loop.types <- gsub("1", "ctcf", loop.types)
     loop.types <- gsub("0", "none", loop.types)
     
-    lto@results$loop.type <- loop.types
+    lto@rowData$loop.type <- loop.types
     return(lto)
 })

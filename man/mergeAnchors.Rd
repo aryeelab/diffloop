@@ -3,20 +3,20 @@
 \docType{methods}
 \name{mergeAnchors}
 \alias{mergeAnchors}
-\alias{mergeAnchors,loopdata,numeric,logical-method}
-\alias{mergeAnchors,loopdata,numeric,missing-method}
+\alias{mergeAnchors,loops,numeric,logical-method}
+\alias{mergeAnchors,loops,numeric,missing-method}
 \title{Combine nearby anchors into one peak}
 \usage{
 mergeAnchors(dlo, mergegap, selfloops = FALSE)
 
-\S4method{mergeAnchors}{loopdata,numeric,missing}(dlo, mergegap,
+\S4method{mergeAnchors}{loops,numeric,missing}(dlo, mergegap,
   selfloops = FALSE)
 
-\S4method{mergeAnchors}{loopdata,numeric,logical}(dlo, mergegap,
+\S4method{mergeAnchors}{loops,numeric,logical}(dlo, mergegap,
   selfloops = FALSE)
 }
 \arguments{
-\item{dlo}{A loopdata object whose anchors will be merged}
+\item{dlo}{A loops object whose anchors will be merged}
 
 \item{mergegap}{An integer value of the bp between anchors to be merged}
 
@@ -24,24 +24,24 @@ mergeAnchors(dlo, mergegap, selfloops = FALSE)
 resulting self-loops after merging anchors}
 }
 \value{
-A loopdata object
+A loops object
 }
 \description{
 \code{mergeAnchors} combines anchors that are within a user-defined radius
 }
 \details{
-This function takes a loopdata object and combines nearby anchors, up to
+This function takes a loops object and combines nearby anchors, up to
 a distance specified by the \code{mergegap}. This likely will cause self
 loops to form (loop where the left and right anchor are the same), which
 can either be removed (by default) or retained with \code{selfloops}
 }
 \examples{
 # Merge anchors within 1kb of each other, keeping self loops 
-rda<-paste(system.file('rda',package='diffloop'),'jpn_chr1reg.rda',sep='/')
+rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
 load(rda)
-m1kb <- mergeAnchors(jpn_chr1reg, 1000, FALSE)
+m1kb <- mergeAnchors(loops.small, 1000, FALSE)
 
 # Merge anchors within 1kb of each other, removing self loops by default
-m1kb_unique <- mergeAnchors(jpn_chr1reg, 1000)
+m1kb_unique <- mergeAnchors(loops.small, 1000)
 }
 

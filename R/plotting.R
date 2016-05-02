@@ -3,7 +3,7 @@ NULL
 
 #' Visualize looping
 #'
-#' \code{loopPlot} takes a \code{loopdata/looptest} object 
+#' \code{loopPlot} takes a \code{loops} object 
 #' and a \code{GRanges} objectand shows all loops in region
 #' (where both anchors are present)
 #'
@@ -11,26 +11,26 @@ NULL
 #' intensity of the color is proportional to the number of counts
 #' observed for the particular loop relative to the other loops
 #' in the entire plot. If colorLoops is specified at TRUE, then 
-#' the x object must be looptest and it must have a loop.type
+#' the x object must be loops and it must have a loop.type
 #' column which can be generated from the \code{annotateLoops}
 #' function. Blue loops are CTCF loops; black are none; red are 
 #' enhancer-promoter loops. 
 #'
-#' @param x A loopdata or looptest object 
+#' @param x A loops object 
 #' @param y A GRanges object containing region of interest
 #' @param organism 'h' for human or 'm' for mouse supported
 #' @param geneinfo A data.frame manually specifying annotation (see Examples)
-#' @param colorLoops Differentiates loops based on loop.type in looptest object
+#' @param colorLoops Differentiates loops based on loop.type in loops object
 #'
 #' @return A plot object
 #'
 #' @examples
 #' # Print loops in region chr1:36000000-36300000
 #' library(GenomicRanges)
-#' rda<-paste(system.file('rda',package='diffloop'),'jpn_chr1reg.rda',sep='/')
+#' rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
 #' load(rda)
 #' regA <- GRanges(c('1'),IRanges(start=c(36000000),end=c(36300000)))
-#' plot1 <- subsetRegion(jpn_chr1reg, regA)
+#' plot1 <- subsetRegion(loops.small, regA)
 #' #Example of \code{geneinfo} table
 #' geneinfo <- data.frame(1,359345,359681,'RP5-8572K21.15','.',-1)
 #' names(geneinfo) <- c('chrom','start','stop','gene','strand')
@@ -45,33 +45,12 @@ setGeneric(name = "loopPlot", def = function(x, y, organism = "h",
     geneinfo = "NA", colorLoops = FALSE) standardGeneric("loopPlot"))
 
 #' @rdname loopPlot
-setMethod("loopPlot", signature(x = "loopdata", y = "GRanges", 
-    organism = "missing", geneinfo = "missing", colorLoops = "missing"), 
-    definition = function(x, y, organism, geneinfo) {
-        return(.loopPlot(x, y, "h", "NA"))
-    })
-
-#' @rdname loopPlot
-setMethod("loopPlot", signature(x = "loopdata", y = "GRanges", 
-    organism = "character", geneinfo = "missing", colorLoops = "missing"), 
-    definition = function(x, y, organism, geneinfo) {
-        return(.loopPlot(x, y, organism, "NA"))
-    })
-
-#' @rdname loopPlot
-setMethod("loopPlot", signature(x = "loopdata", y = "GRanges", 
-    organism = "missing", geneinfo = "data.frame", colorLoops = "missing"), 
-    definition = function(x, y, organism, geneinfo) {
-        return(.loopPlot(x, y, "", geneinfo))
-    })
-
-#' @rdname loopPlot
-setMethod("loopPlot", signature(x = "looptest", y = "GRanges", 
+setMethod("loopPlot", signature(x = "loops", y = "GRanges", 
     organism = "ANY", geneinfo = "ANY", colorLoops = "ANY"), 
     definition = function(x, y, organism = "h", geneinfo = "NA", 
         colorLoops = FALSE) {
         if (!colorLoops) {
-            return(.loopPlot(x@loopdata, y, "h", "NA"))
+            return(.loopPlot(x, y, organism, geneinfo))
         } else {
             return(.loopPlotcolor(x, y, organism, geneinfo))
         }
@@ -79,7 +58,7 @@ setMethod("loopPlot", signature(x = "looptest", y = "GRanges",
 
 .loopPlot <- function(x, y, organism = "h", geneinfo = "NA") {
     
-    # Immediately restrict the loopdata object to the region
+    # Immediately restrict the loops object to the region
     objReg <- removeSelfLoops(subsetRegion(x, y))
     
     # Grab Regional Coordinates
@@ -119,14 +98,14 @@ setMethod("loopPlot", signature(x = "looptest", y = "GRanges",
     }
     
     # Dimensions of dataframe
-    n <- dim(objReg@loops)[1]  #number of loops
+    n <- dim(objReg@interactions)[1]  #number of interactions
     m <- dim(objReg@counts)[2]  #number of samples
     
     # Setup Dataframe for Plot
-    leftAnchor <- as.data.frame(objReg@anchors[objReg@loops[, 
+    leftAnchor <- as.data.frame(objReg@anchors[objReg@interactions[, 
         1]])[c(1, 2, 3)]
     LA <- do.call("rbind", replicate(m, leftAnchor, simplify = FALSE))
-    rightAnchor <- as.data.frame(objReg@anchors[objReg@loops[, 
+    rightAnchor <- as.data.frame(objReg@anchors[objReg@interactions[, 
         2]])[c(1, 2, 3)]
     RA <- do.call("rbind", replicate(m, rightAnchor, simplify = FALSE))
     colnames(LA) <- c("chr_1", "start_1", "end_1")
@@ -178,11 +157,10 @@ setMethod("loopPlot", signature(x = "looptest", y = "GRanges",
 
 .loopPlotcolor <- function(x, y, organism = "h", geneinfo = "NA") {
     
-    # Immediately restrict the loopdata object to the region
+    # Immediately restrict the loops object to the region
     objReg <- removeSelfLoops(subsetRegion(x, y))
-    res <- x@results
-    objReg <- x@loopdata
-    
+    res <- x@rowDat
+
     # Grab Regional Coordinates
     chrom <- as.character(seqnames(y))
     chromchr <- paste(c("chr", as.character(chrom)), collapse = "")
@@ -218,7 +196,7 @@ setMethod("loopPlot", signature(x = "looptest", y = "GRanges",
     }
     
     # Dimensions of dataframe
-    n <- dim(objReg@loops)[1]  #number of loops
+    n <- dim(objReg@interactions)[1]  #number of interactions
     m <- dim(objReg@counts)[2]  #number of samples
     
     # Setup colors for plotting
@@ -228,10 +206,10 @@ setMethod("loopPlot", signature(x = "looptest", y = "GRanges",
     cs <- gsub("none", "black", cs)
     
     # Setup Dataframe for Plot
-    leftAnchor <- as.data.frame(objReg@anchors[objReg@loops[, 
+    leftAnchor <- as.data.frame(objReg@anchors[objReg@interactions[, 
         1]])[c(1, 2, 3)]
     LA <- do.call("rbind", replicate(m, leftAnchor, simplify = FALSE))
-    rightAnchor <- as.data.frame(objReg@anchors[objReg@loops[, 
+    rightAnchor <- as.data.frame(objReg@anchors[objReg@interactions[, 
         2]])[c(1, 2, 3)]
     RA <- do.call("rbind", replicate(m, rightAnchor, simplify = FALSE))
     colnames(LA) <- c("chr_1", "start_1", "end_1")
@@ -284,29 +262,29 @@ setMethod("loopPlot", signature(x = "looptest", y = "GRanges",
 
 #' Visualize sample relationships
 #'
-#' \code{pcaPlot} takes a loopdata object plots the individual samples
+#' \code{pcaPlot} takes a loops object plots the individual samples
 #' based on the principal components of the loop counts matrix
 #'
 #' Groups for the principal component plots are derived from \code{colData}
 #' and the normalizing factors are also taken from \code{colData}. While some
-#' loopdata objects may have non-informative groups or size factors, they 
+#' loops objects may have non-informative groups or size factors, they 
 #' should always be present. 
 #'
-#' @param dlo A loopdata/looptest object 
+#' @param dlo A loops object 
 #'
 #' @return A ggplot2 plot
 #'
 #' @examples
-#' rda<-paste(system.file('rda',package='diffloop'),'jpn_chr1reg.rda',sep='/')
+#' rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
 #' load(rda)
-#' p1 <- pcaPlot(jpn_chr1reg)
+#' p1 <- pcaPlot(loops.small)
 #' @import ggplot2
 #' 
 #' @export
 setGeneric(name = "pcaPlot", def = function(dlo) standardGeneric("pcaPlot"))
 
 #' @rdname pcaPlot
-setMethod(f = "pcaPlot", signature = c("loopdata"), definition = function(dlo) {
+setMethod(f = "pcaPlot", signature = c("loops"), definition = function(dlo) {
     pca <- prcomp(t(log2(1 + sweep(dlo@counts, 2, dlo@colData$sizeFactor, 
         FUN = "/"))))
     groups <- dlo@colData$groups
@@ -314,40 +292,33 @@ setMethod(f = "pcaPlot", signature = c("loopdata"), definition = function(dlo) {
         ylab = "Principal Component 2", col = groups) + theme_bw()
 })
 
-#' @rdname pcaPlot
-setMethod(f = "pcaPlot", signature = c("looptest"), definition = function(dlo) {
-    pcaPlot(dlo@loopdata)
-})
-
-
-
 
 #' Plot the most significant loops
 #'
-#' \code{plotTopLoops} takes a looptest object and creates a time-stamped .pdf
+#' \code{plotTopLoops} takes a loops object and creates a time-stamped .pdf
 #' file with loop plots (one per page) of the top loops. 
 #'
 #' Each plot will show the region +/- 1 loopwidth of the loop with annotation specified
-#' for either human or mouse. Assumes columns Pvalue and FDR are specified in the looptest
+#' for either human or mouse. Assumes columns Pvalue and FDR are specified in the loops
 #' object. We recommend removing self loops before using this function (and in reality, 
 #' before any association testing was called.)
 #'
-#' @param lto looptest object 
+#' @param lto loops object 
 #' @param n number of loops to print (can remain 0 to specify from other parameters)
 #' determined by PValue
 #' @param PValue Maximum pvalue threshold for loop inclusion when printing loop plot
 #' @param FDR False discovery rate threshold for inclusion
 #' @param organism Either 'm' for mouse or 'h' for human. 
-#' @param colorLoops Default FALSE; specify true if results slot contains
+#' @param colorLoops Default FALSE; specify true if rowData slot contains
 #' loop.type from annotateLoops to visualize plots with varying colors for
 #' CTCF looping and enhancer-promoter looping
 #'
 #' @return Prints a time stamped .pdf file of top loops
 #'
 #' @examples
-#' rda<-paste(system.file('rda',package='diffloop'),'jpn_chr1reg.rda',sep='/')
+#' rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
 #' load(rda)
-#' jpn.u <- removeSelfLoops(jpn_chr1reg)
+#' jpn.u <- removeSelfLoops(loops.small)
 #' jpn_loopfit <- loopFit(jpn.u)
 #' assoc_jn <- loopTest(jpn_loopfit, coef = 2)
 #' plotTopLoops(assoc_jn, n=2)
@@ -362,18 +333,18 @@ setGeneric(name = "plotTopLoops", def = function(lto, n = 0,
     PValue = 1, FDR = 1, organism = "h", colorLoops = FALSE) standardGeneric("plotTopLoops"))
 
 #' @rdname plotTopLoops
-setMethod(f = "plotTopLoops", signature = c("looptest", "ANY", 
+setMethod(f = "plotTopLoops", signature = c("loops", "ANY", 
     "ANY", "ANY", "ANY", "ANY"), definition = function(lto, n = 0, 
     PValue = 1, FDR = 1, organism = "h", colorLoops = FALSE) {
     if (n > 0) {
         if (n > dim(lto)[2]) {
             stop("Too many loops to print; there aren't that many in the data!")
         }
-        d <- lto@results
-        tl <- subsetLoops(lto@loopdata, as.integer(rownames(head(d[order(d$PValue), 
+        d <- lto@rowData
+        tl <- subsetLoops(lto, as.integer(rownames(head(d[order(d$PValue), 
             , drop = FALSE], n = n))))
     } else if (FDR < 1 | PValue < 1) {
-        tl <- topLoops(lto, FDR = FDR, PValue = PValue)@loopdata
+        tl <- topLoops(lto, FDR = FDR, PValue = PValue)
         n <- dim(tl)[2]
     } else {
         stop("Specify valid parameters (either n > 0 or PValue/FDR < 1")

@@ -3,18 +3,18 @@
 \docType{methods}
 \name{loopFit}
 \alias{loopFit}
-\alias{loopFit,loopdata,matrix,missing-method}
-\alias{loopFit,loopdata,missing,missing-method}
+\alias{loopFit,loops,matrix,missing-method}
+\alias{loopFit,loops,missing,missing-method}
 \title{Fit model for association testing}
 \usage{
 loopFit(y, design, method = "QLF")
 
-\S4method{loopFit}{loopdata,missing,missing}(y, design, method = "QLF")
+\S4method{loopFit}{loops,missing,missing}(y, design, method = "QLF")
 
-\S4method{loopFit}{loopdata,matrix,missing}(y, design, method = "QLF")
+\S4method{loopFit}{loops,matrix,missing}(y, design, method = "QLF")
 }
 \arguments{
-\item{y}{A loopdata object for association}
+\item{y}{A loops object for association}
 
 \item{design}{A design matrix (optional)}
 
@@ -24,23 +24,23 @@ loopFit(y, design, method = "QLF")
 A loopfit object
 }
 \description{
-\code{loopFit} takes a \code{loopdata} object and prepares it for the
+\code{loopFit} takes a \code{loops} object and prepares it for the
 \code{loopTest} function.
 }
 \details{
 This function returns a \code{loopfit} object, which combines
-the \code{loopdata} object in the input with a \code{DGEGLM} object
+the \code{loops} object in the input with a \code{DGEGLM} object
 that is the normal output of an \code{edgeR glmQLFit}. To set up a 
 different design matrix, pass that parameter through the function. 
 Otherwise, the default is to generate a new matrix from
-\code{loopdata@colData$groups}. Currently, 'QLF' is the only supported
-method, but new features may be added in later developments
+\code{loops@colData$groups}. Currently, 'QLF' is the only supported
+method, but new association tests may be added in later developments
 }
 \examples{
 # Differential loop fit
-rda<-paste(system.file('rda',package='diffloop'),'jpn_chr1reg.rda',sep='/')
+rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
 load(rda)
-jpn_loopfit <- loopFit(jpn_chr1reg)
+jpn_loopfit <- loopFit(loops.small)
 # Differential loop calling between naive and jurkat
 assoc_jn <- loopTest(jpn_loopfit, coef = 2)
 }

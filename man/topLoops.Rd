@@ -3,43 +3,43 @@
 \docType{methods}
 \name{topLoops}
 \alias{topLoops}
-\alias{topLoops,looptest,missing,numeric-method}
-\alias{topLoops,looptest,numeric,missing-method}
-\alias{topLoops,looptest,numeric,numeric-method}
+\alias{topLoops,loops,missing,numeric-method}
+\alias{topLoops,loops,numeric,missing-method}
+\alias{topLoops,loops,numeric,numeric-method}
 \title{Grab top loops}
 \usage{
 topLoops(dlo, FDR, PValue)
 
-\S4method{topLoops}{looptest,numeric,numeric}(dlo, FDR, PValue)
+\S4method{topLoops}{loops,numeric,numeric}(dlo, FDR, PValue)
 
-\S4method{topLoops}{looptest,numeric,missing}(dlo, FDR, PValue)
+\S4method{topLoops}{loops,numeric,missing}(dlo, FDR, PValue)
 
-\S4method{topLoops}{looptest,missing,numeric}(dlo, FDR, PValue)
+\S4method{topLoops}{loops,missing,numeric}(dlo, FDR, PValue)
 }
 \arguments{
-\item{dlo}{A looptest object}
+\item{dlo}{A loops object}
 
 \item{FDR}{Maximum threshold for False Discovery Rate; default = 1}
 
 \item{PValue}{Maximum threshold for P-value; default = 1}
 }
 \value{
-A looptest object subsetted by specified parameters
+A loops object subsetted by specified parameters
 }
 \description{
-\code{topLoops} takes a looptest object and performs basic filtering
+\code{topLoops} takes a loops object and performs basic filtering
 for \code{FDR} or \code{PValue}
 }
 \details{
-This function returns a subsetted \code{looptest} object where all
+This function returns a subsetted \code{loops} object where all
 loops meet the significance threshold specificed by the parameters
 in the function call
 }
 \examples{
 # Differential loop calling between naive and primed
-rda<-paste(system.file('rda',package='diffloop'),'jpn_chr1reg.rda',sep='/')
+rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
 load(rda)
-np <- jpn_chr1reg[,1:4]
+np <- loops.small[,1:4]
 assoc_np <- quickAssoc(np)
 top_np <- topLoops(assoc_np, FDR = 0.3)
 }

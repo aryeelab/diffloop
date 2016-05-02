@@ -3,15 +3,15 @@
 \docType{methods}
 \name{loopWidth}
 \alias{loopWidth}
-\alias{loopWidth,loopdata-method}
+\alias{loopWidth,loops-method}
 \title{Loop widths}
 \usage{
 loopWidth(dlo)
 
-\S4method{loopWidth}{loopdata}(dlo)
+\S4method{loopWidth}{loops}(dlo)
 }
 \arguments{
-\item{dlo}{A loopdata object}
+\item{dlo}{A loops object}
 }
 \value{
 An integer vector
@@ -24,13 +24,15 @@ distance between the anchors containing a loop
 This function returns a positive integer value of the number of basepairs
 that separate two loops. If they are on separate chromosomes, it still
 returns a value, but it will be non-sensical, so consider subsetting to
-only intrachromosomal loops.
+only intrachromosomal loops. Also, self-loops will return a postive number
+that is the inter-anchor width. These loops should be handled using the 
+removeSelfLoops() function.
 }
 \examples{
 # Return the width for loops 
-rda<-paste(system.file('rda',package='diffloop'),'jpn_chr1reg.rda',sep='/')
+rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
 load(rda)
-w <- loopWidth(jpn_chr1reg)
+w <- loopWidth(loops.small)
 
 }
 

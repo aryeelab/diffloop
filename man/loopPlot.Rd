@@ -3,28 +3,16 @@
 \docType{methods}
 \name{loopPlot}
 \alias{loopPlot}
-\alias{loopPlot,loopdata,GRanges,character,missing,missing-method}
-\alias{loopPlot,loopdata,GRanges,missing,data.frame,missing-method}
-\alias{loopPlot,loopdata,GRanges,missing,missing,missing-method}
-\alias{loopPlot,looptest,GRanges,ANY,ANY,ANY-method}
+\alias{loopPlot,loops,GRanges-method}
 \title{Visualize looping}
 \usage{
 loopPlot(x, y, organism = "h", geneinfo = "NA", colorLoops = FALSE)
 
-\S4method{loopPlot}{loopdata,GRanges,missing,missing,missing}(x, y, organism,
-  geneinfo)
-
-\S4method{loopPlot}{loopdata,GRanges,character,missing,missing}(x, y, organism,
-  geneinfo)
-
-\S4method{loopPlot}{loopdata,GRanges,missing,data.frame,missing}(x, y, organism,
-  geneinfo)
-
-\S4method{loopPlot}{looptest,GRanges,ANY,ANY,ANY}(x, y, organism = "h",
-  geneinfo = "NA", colorLoops = FALSE)
+\S4method{loopPlot}{loops,GRanges}(x, y, organism = "h", geneinfo = "NA",
+  colorLoops = FALSE)
 }
 \arguments{
-\item{x}{A loopdata or looptest object}
+\item{x}{A loops object}
 
 \item{y}{A GRanges object containing region of interest}
 
@@ -32,13 +20,13 @@ loopPlot(x, y, organism = "h", geneinfo = "NA", colorLoops = FALSE)
 
 \item{geneinfo}{A data.frame manually specifying annotation (see Examples)}
 
-\item{colorLoops}{Differentiates loops based on loop.type in looptest object}
+\item{colorLoops}{Differentiates loops based on loop.type in loops object}
 }
 \value{
 A plot object
 }
 \description{
-\code{loopPlot} takes a \code{loopdata/looptest} object 
+\code{loopPlot} takes a \code{loops} object 
 and a \code{GRanges} objectand shows all loops in region
 (where both anchors are present)
 }
@@ -47,7 +35,7 @@ Basic plot function shows the looping in each sample. The
 intensity of the color is proportional to the number of counts
 observed for the particular loop relative to the other loops
 in the entire plot. If colorLoops is specified at TRUE, then 
-the x object must be looptest and it must have a loop.type
+the x object must be loops and it must have a loop.type
 column which can be generated from the \code{annotateLoops}
 function. Blue loops are CTCF loops; black are none; red are 
 enhancer-promoter loops.
@@ -55,10 +43,10 @@ enhancer-promoter loops.
 \examples{
 # Print loops in region chr1:36000000-36300000
 library(GenomicRanges)
-rda<-paste(system.file('rda',package='diffloop'),'jpn_chr1reg.rda',sep='/')
+rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
 load(rda)
 regA <- GRanges(c('1'),IRanges(start=c(36000000),end=c(36300000)))
-plot1 <- subsetRegion(jpn_chr1reg, regA)
+plot1 <- subsetRegion(loops.small, regA)
 #Example of \\code{geneinfo} table
 geneinfo <- data.frame(1,359345,359681,'RP5-8572K21.15','.',-1)
 names(geneinfo) <- c('chrom','start','stop','gene','strand')

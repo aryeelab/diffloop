@@ -3,8 +3,8 @@ NULL
 
 #' Read preprocessed ChiA-PET data
 #'
-#' \code{loopdataMake} reads in a data directory created by the
-#' \code{dnaloop} preprocessing pipeline and returns a loopdata object
+#' \code{loopsMake} reads in a data directory created by the
+#' \code{dnaloop} preprocessing pipeline and returns a loops object
 #'
 #' This function reads in preprocessed ChIA-PET data produced by the
 #' \code{dnaloop} preprocessing pipeline. The preprocessed directory 
@@ -18,17 +18,17 @@ NULL
 #' @param mergegap An integer value of the radius to merge anchors; default 0
 #' @param type Specificies "intra", "inter", or "all" looping. Default "all"
 #'
-#' @return A loopdata object
+#' @return A loops object
 #'
 #' @examples
 #' # Reading in all samples, no mergegap, all loops
 #' bd<- system.file('extdata', 'esc_jurkat', package='diffloopdata')
-#' loops <- loopdataMake(bd)
+#' # loops <- loopsMake(bd) #standard call
 #'
 #' # Reading in a subset of samples, 1kb mergegap, only intrachromosomal
 #' # looping
 #' samples <- c('naive_esc_1', 'naive_esc_2')
-#' naive.intra <- loopdataMake(bd, samples, 1000, "intra")
+#' naive.intra <- loopsMake(bd, samples, 1000, "intra")
 #'
 
 #' @import foreach
@@ -37,11 +37,11 @@ NULL
 #' @import readr
 
 #' @export
-setGeneric(name = "loopdataMake", def = function(beddir, samples = NA, 
-    mergegap = 0, type = "all") standardGeneric("loopdataMake"))
+setGeneric(name = "loopsMake", def = function(beddir, samples = NA, 
+    mergegap = 0, type = "all") standardGeneric("loopsMake"))
 
 #' @import GenomicRanges
-.loopdataMake <- function(beddir, samples, mergegap, type) {
+.loopsMake <- function(beddir, samples, mergegap, type) {
     
     ct <- list(col_character(), col_integer(), col_integer(), 
         col_character(), col_integer(), col_integer(), col_character(), 
@@ -109,8 +109,8 @@ setGeneric(name = "loopdataMake", def = function(beddir, samples = NA,
             x[c(2, 1)]
         }
     }))
-    loops <- iraw[order(iraw[, 1], iraw[, 2]), ]
-    colnames(loops) <- c("left", "right")
+    interactions <- iraw[order(iraw[, 1], iraw[, 2]), ]
+    colnames(interactions) <- c("left", "right")
     counts <- as.matrix(pets[, -c(1:2)])[order(iraw[, 1], iraw[, 
         2]), ]
     counts[is.na(counts)] <- 0
@@ -121,21 +121,28 @@ setGeneric(name = "loopdataMake", def = function(beddir, samples = NA,
     dfcd <- data.frame(sizeFactor, groups)
     rownames(dfcd) <- samples
     
-    # Create loopdata object
-    dlo <- loopdata()
+    # Initialize rowData slot (with loop widths)
+    w <- start(anchors[interactions[, 2]]) - end(anchors[interactions[, 1]]) + 1
+    w [ w < 0] <- 0
+    rowData <- as.data.frame(w)
+    colnames(rowData) <- c("loopWidth")
+    
+    # Create loops object
+    dlo <- loops()
     slot(dlo, "anchors", check = TRUE) <- anchors
-    slot(dlo, "loops", check = TRUE) <- as.matrix(loops)
+    slot(dlo, "interactions", check = TRUE) <- as.matrix(interactions)
     slot(dlo, "counts", check = TRUE) <- counts
     slot(dlo, "colData", check = TRUE) <- dfcd
+    slot(dlo, "rowData", check = TRUE) <- rowData
     
     return(dlo)
 }
 
-#' @rdname loopdataMake
-setMethod(f="loopdataMake", def=function(beddir, samples, mergegap = 0, type="all") {
+#' @rdname loopsMake
+setMethod(f="loopsMake", def=function(beddir, samples, mergegap = 0, type="all") {
         if(sum(is.na(samples)) > 0){
             samples <- dir(beddir, pattern = ".loop_counts.bedpe")
             samples <- sub(".loop_counts.bedpe", "", samples)
         }
-        .loopdataMake(beddir, samples, mergegap, type)
+        .loopsMake(beddir, samples, mergegap, type)
     })

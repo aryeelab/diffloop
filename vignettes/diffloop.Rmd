@@ -25,7 +25,7 @@ The raw FASTQ read files were preprocessed with the `dnaloop`
 on `samtools`, `bedtools`, `cutadapt`, and `MACS2` to align reads,
 call anchor peaks, and summarize PETs per sample in the ChIA-PET experiment.
 <br> <br>
-To use the `looptestMake` function from a different preprocessing step,
+To use the `loopsMake` function from a different preprocessing step,
 have files `X.loop_counts.bedpe`,`Y.loop_counts.bedpe`, 
 `Z.loop_counts.bedpe` in `bed_dir` for `samples = (X,Y,Z)` where the 
 first lines should resemble: <br> <br>
@@ -39,7 +39,7 @@ the first anchor, the second three columns specify the position
 column is the number of paired-end reads support that particular PET.
 
 ## Loading data
-We read in data from the preprocessing pipeline using the `loopdataMake`
+We read in data from the preprocessing pipeline using the `loopsMake`
 function. The example below uses sample data included in the `diffloopdata`
 package. It contains interactions involving chromosome 1 from a set of six
 Cohesin ChIA-PET samples.$^{1,2}$ You would normally set `bed_dir` to your 
@@ -52,16 +52,16 @@ samples <- c("naive_esc_1", "naive_esc_2", "primed_esc_1", "primed_esc_2",
             "jurkat_1", "jurkat_2")
 ```
 Here, we use 1500 bp as a value to merge nearby anchors into
-a single peak. In the `loopdataMake` function, the default is zero and should
+a single peak. In the `loopsMake` function, the default is zero and should
 be parameterized based on the resolution of the ChIA-PET Experiment.
 ```{r read_data}
-full <- loopdataMake(bed_dir, samples, 1500)
+full <- loopsMake(bed_dir, samples, 1500)
 celltypes <- c("naive", "naive", "primed", "primed", "jurkat", "jurkat")
 full <- updateLDGroups(full, celltypes)
 head(full, 3)
 ```
-Alternatively, one could run `full <- loopdataMake(bed_dir)` and the `samples`
-would be inferred from the directory contents. The default call to `loopdataMake` 
+Alternatively, one could run `full <- loopsMake(bed_dir)` and the `samples`
+would be inferred from the directory contents. The default call to `loopsMake` 
 does not merge nearby anchors but instead keeps them distinct. If we want to 
 group nearby anchors after the initial data read, one can run the `mergeAnchors`
 command with the appropriate gap value. <br><br>
@@ -73,10 +73,10 @@ From this initial PCA plot, it's not clear how the samples separate based on
 their topologies, suggesting some quality control may be warranted.
 
 ## QC
-First, we normalize the `loopdata` object, which updates the
+First, we normalize the `loops` object, which updates the
 `sizeFactor` of each sample by the number of reads identical to the
 normalization technique employed in `DESeq2`. We recommend computing
-the size factors on the original `loopdata` object to generate the best
+the size factors on the original `loops` object to generate the best
 normalization factors. 
 
 ```{r sizeFactors}
@@ -109,7 +109,7 @@ Finally, we can determine the number of anchors supported by each sample
 as well as the loops with different thresholds of counts.
 ```{r qc4}
 numLoops(valid_full,1:5)
-head(valid_full)
+numAnchors(valid_full)
 ```
 
 ## Post-Normalization
@@ -137,7 +137,7 @@ head(np_res)
 ```
 
 We could also have computed pairwise associations by subsetting the data and
-using quickAssoc, which only allows loopdata objects with two group classes.
+using quickAssoc, which only allows loops objects with two group classes.
 
 ```{r quickAssoc}
 np <- valid_full[,1:4]
@@ -152,8 +152,6 @@ significantly different between all of these conditions:
 ```{r assocResults}
 jnp_res <- loopTest(fit,coef=2:3)
 head(jnp_res)
-#Can also directly subset diffloop objects
-jnp_res[100:101,]
 ```
 
 
@@ -185,9 +183,9 @@ dim(topLoops(jp_res, FDR = 0.2))
 dim(topLoops(jn_res, FDR = 0.2))
 summary(np_sig_res)
 ```
-At FDR < 0.2, only 6 loops are significantly different from the naive and
+At FDR < 0.2, only 7 loops are significantly different from the naive and
 primed stem cells whereas the jurkat differs between the primed stem cells
-by 177 significant loops and the naive by 211 significant loops on chromosome 1.
+by 169 significant loops and the naive by 208 significant loops on chromosome 1.
 These results are in line with the underlying biology of these cell types. 
 \newline \newline
 Now we can visualize a PC plot using only loops that are significantly

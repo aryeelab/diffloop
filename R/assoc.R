@@ -3,18 +3,18 @@ NULL
 
 #' Fit model for association testing
 #'
-#' \code{loopFit} takes a \code{loopdata} object and prepares it for the
+#' \code{loopFit} takes a \code{loops} object and prepares it for the
 #' \code{loopTest} function. 
 #'
 #' This function returns a \code{loopfit} object, which combines
-#' the \code{loopdata} object in the input with a \code{DGEGLM} object
+#' the \code{loops} object in the input with a \code{DGEGLM} object
 #' that is the normal output of an \code{edgeR glmQLFit}. To set up a 
 #' different design matrix, pass that parameter through the function. 
 #' Otherwise, the default is to generate a new matrix from
-#' \code{loopdata@colData$groups}. Currently, 'QLF' is the only supported
-#' method, but new features may be added in later developments
+#' \code{loops@colData$groups}. Currently, 'QLF' is the only supported
+#' method, but new association tests may be added in later developments
 #'
-#' @param y A loopdata object for association
+#' @param y A loops object for association
 #' @param design A design matrix (optional)
 #' @param method Specifies association; currently only 'QLF' is supported
 #'
@@ -22,9 +22,9 @@ NULL
 #'
 #' @examples
 #' # Differential loop fit
-#' rda<-paste(system.file('rda',package='diffloop'),'jpn_chr1reg.rda',sep='/')
+#' rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
 #' load(rda)
-#' jpn_loopfit <- loopFit(jpn_chr1reg)
+#' jpn_loopfit <- loopFit(loops.small)
 #' # Differential loop calling between naive and jurkat
 #' assoc_jn <- loopTest(jpn_loopfit, coef = 2)
 
@@ -35,7 +35,7 @@ NULL
 setGeneric(name = "loopFit", def = function(y, design, method = "QLF") standardGeneric("loopFit"))
 
 #' @rdname loopFit
-setMethod(f = "loopFit", signature = c("loopdata", "missing", 
+setMethod(f = "loopFit", signature = c("loops", "missing", 
     "missing"), definition = function(y, design, method) {
     groups <- y@colData$groups
     z <- DGEList(counts = y@counts, group = groups)
@@ -45,27 +45,28 @@ setMethod(f = "loopFit", signature = c("loopdata", "missing",
     cat(colnames(model.matrix(~groups)))
     yy <- estimateDisp(z, design)
     fit <- glmQLFit(yy, design, robust = TRUE)
-    return(loopfit(loopdata = y, fit = fit))
+    return(loopfit(loops = y, fit = fit))
 })
 
 #' @rdname loopFit
-setMethod(f = "loopFit", signature = c("loopdata", "matrix", 
+setMethod(f = "loopFit", signature = c("loops", "matrix", 
     "missing"), definition = function(y, design, method) {
     groups <- y@colData$groups
     z <- DGEList(counts = y@counts, group = groups)
     z <- calcNormFactors(z)
     yy <- estimateDisp(z, design)
     fit <- glmQLFit(yy, design, robust = TRUE)
-    return(loopfit(loopdata = y, fit = fit))
+    return(loopfit(loops = y, fit = fit))
 })
 
-#' Compute looptest object
+#' Differential Loop Calling
 #'
 #' \code{loopTest} takes a \code{loopfit} object from the 
-#' \code{loopFit} function and creates a \code{looptest} object.
+#' \code{loopFit} function and creates a \code{loops} object with additional
+#' columns in the \code{rowData}
 #'
-#' This function returns a \code{looptest} object, which combines the results
-#' from an association with the \code{loopdata}. The default association is
+#' This function returns a \code{loops} object, which contains the results
+#' from an association in the rowData slot. The default association is
 #' using coefficient 2 from the model matrix (e.g. good for pair
 #' comparisons) but the user may specify a different coefficient. Currently, 
 #' 'QLF' is the only supported method, but new features may be added in
@@ -77,13 +78,13 @@ setMethod(f = "loopFit", signature = c("loopdata", "matrix",
 #' @param contrast Specifies comparison of groups from design matrix
 #' @param method Specifies association method; only QLF is currently supported
 #'
-#' @return A looptest object
+#' @return A loops object with additional columns in rowData
 #'
 #' @examples
 #' # Differential loop fit
-#' rda<-paste(system.file('rda',package='diffloop'),'jpn_chr1reg.rda',sep='/')
+#' rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
 #' load(rda)
-#' jpn_loopfit <- loopFit(jpn_chr1reg)
+#' jpn_loopfit <- loopFit(loops.small)
 #' # Differential loop calling between naive and jurkat
 #' assoc_jn <- loopTest(jpn_loopfit, coef = 2)
 
@@ -97,8 +98,11 @@ setMethod(f = "loopTest", signature = c("loopfit", "missing",
     "missing", "missing"), definition = function(y, coef, contrast, 
     method) {
     qlf <- glmQLFTest(y@fit, coef = 2)
-    return(looptest(loopdata = y@loopdata, results = as.data.frame(topTags(qlf, 
-        n = nrow(y@loopdata@counts), sort.by = "none"))))
+    results <- as.data.frame(topTags(qlf, n = nrow(y@loops@counts), sort.by = "none"))
+    newRowData <- as.data.frame(cbind(y@loops@rowData, results))
+    row.names(newRowData) <- NULL
+    y@loops@rowData <- newRowData
+    return(y@loops)
 })
 
 #' @rdname loopTest
@@ -106,8 +110,11 @@ setMethod(f = "loopTest", signature = c("loopfit", "numeric",
     "missing", "missing"), definition = function(y, coef, contrast, 
     method) {
     qlf <- glmQLFTest(y@fit, coef)
-    return(looptest(loopdata = y@loopdata, results = as.data.frame(topTags(qlf, 
-        n = nrow(y@loopdata@counts), sort.by = "none"))))
+    results <- as.data.frame(topTags(qlf, n = nrow(y@loops@counts), sort.by = "none"))
+    newRowData <- as.data.frame(cbind(y@loops@rowData, results))
+    row.names(newRowData) <- NULL
+    y@loops@rowData <- newRowData
+    return(y@loops)
 })
 
 #' @rdname loopTest
@@ -115,13 +122,16 @@ setMethod(f = "loopTest", signature = c("loopfit", "missing",
     "numeric", "missing"), definition = function(y, coef, contrast, 
     method) {
     qlf <- glmQLFTest(y@fit, contrast = contrast)
-    return(looptest(loopdata = y@loopdata, results = as.data.frame(topTags(qlf, 
-        n = nrow(y@loopdata@counts), sort.by = "none"))))
+    results <- as.data.frame(topTags(qlf, n = nrow(y@loops@counts), sort.by = "none"))
+    newRowData <- as.data.frame(cbind(y@loops@rowData, results))
+    row.names(newRowData) <- NULL
+    y@loops@rowData <- newRowData
+    return(y@loops)
 })
 
 #' Combined association test for all loops in a defined region 
 #'
-#' \code{slidingWindowTest} takes a \code{looptest} object and 
+#' \code{slidingWindowTest} takes a \code{loops} object and 
 #' integer values of the association window and the distance between 
 #' consecutive windows. 
 #'
@@ -131,9 +141,9 @@ setMethod(f = "loopTest", signature = c("loopfit", "missing",
 #' Each region is determined from a sliding window of fixed length.
 #' The combined significance measure per feature is computed via the Simes 
 #' method for intrachromosomal loops where at least one anchor from the loop
-#' overlaps with the region.
+#' overlaps with the region. Requires PValue column in the rowData slot.
 #' 
-#' @param x A looptest object 
+#' @param x A loops object with PValue column (from association testing)
 #' @param window The length a window will be for combined association
 #' @param step The size that the window will shift for each association
 #'
@@ -141,9 +151,9 @@ setMethod(f = "loopTest", signature = c("loopfit", "missing",
 #'
 #' @examples
 #' # Sliding window test 100kb at a time between naive and jurkat
-#' rda<-paste(system.file('rda',package='diffloop'),'jpn_chr1reg.rda',sep='/')
+#' rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
 #' load(rda)
-#' jpn_loopfit <- loopFit(jpn_chr1reg)
+#' jpn_loopfit <- loopFit(loops.small)
 #' # Differential loop calling between naive and jurkat
 #' assoc_jn <- loopTest(jpn_loopfit, coef = 2)
 #' sw_jn <- slidingWindowTest(assoc_jn, 100000, 100000)
@@ -155,10 +165,10 @@ setGeneric(name = "slidingWindowTest", def = function(x, window,
     step) standardGeneric("slidingWindowTest"))
 
 #' @rdname slidingWindowTest
-setMethod(f = "slidingWindowTest", signature = c("looptest", 
+setMethod(f = "slidingWindowTest", signature = c("loops", 
     "numeric", "numeric"), definition = function(x, window, step) {
-    dlo <- x@loopdata
-    pvals <- x@results$PValue
+    dlo <- x
+    pvals <- x@rowData$PValue
     
     # Generate data.frame of anchor locations and pvalues for
     # loops
@@ -233,7 +243,7 @@ setMethod(f = "slidingWindowTest", signature = c("looptest",
 
 #' Combined association test for all loops in a defined region 
 #'
-#' \code{featureTest} takes a \code{looptest} and 
+#' \code{featureTest} takes a \code{loops} and 
 #' genomic coordinates of regions and computes combined significance 
 #' metrics for each region using the Simes procedure
 #'
@@ -244,16 +254,16 @@ setMethod(f = "slidingWindowTest", signature = c("looptest",
 #' loops where at least one anchor from the loop overlaps with the region of 
 #' interest.
 #' 
-#' @param x A looptest object 
+#' @param x A loops object 
 #' @param features A GRanges object defining regions for a combined test
 #'
 #' @return A data.frame sorted by FDR
 #'
 #' @examples
 #' # Human genes chromosome 1 regional association
-#' rda<-paste(system.file('rda',package='diffloop'),'jpn_chr1reg.rda',sep='/')
+#' rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
 #' load(rda)
-#' jpn_loopfit <- loopFit(jpn_chr1reg)
+#' jpn_loopfit <- loopFit(loops.small)
 #' # Differential loop calling between naive and jurkat
 #' assoc_jn <- loopTest(jpn_loopfit, coef = 2)
 #' # Gene based association
@@ -265,10 +275,10 @@ setMethod(f = "slidingWindowTest", signature = c("looptest",
 setGeneric(name = "featureTest", def = function(x, features) standardGeneric("featureTest"))
 
 #' @rdname featureTest
-setMethod(f = "featureTest", signature = c("looptest", "GRanges"), 
+setMethod(f = "featureTest", signature = c("loops", "GRanges"), 
     definition = function(x, features) {
-        dlo <- x@loopdata
-        pvals <- x@results$PValue
+        dlo <- x
+        pvals <- x@rowData$PValue
         
         # Generate data.frame of anchor locations and pvalues for
         # loops
@@ -323,25 +333,25 @@ setMethod(f = "featureTest", signature = c("looptest", "GRanges"),
 
 #' Perform quick differential loop calling
 #'
-#' \code{quickAssoc} takes a loopdata object and performs a basic
+#' \code{quickAssoc} takes a loops object and performs a basic
 #' \code{edgeR} association on the counts matrix and groups from \code{colData}
 #'
 #' This function returns the output of fitting an edgeR model using
-#' the groups defined in \code{colData} for the specific loopdata
+#' the groups defined in \code{colData} for the specific loops
 #' object. The factor normalization is based on the \code{edgeR} model.
 #' For quick association, the number of groups is restricted to two. If
 #' a more complex group structure exists, consider using the \code{loopFit}
 #' and \code{loopTest} functions
 #'
-#' @param y A loopdata object for association
+#' @param y A loops object for association
 #'
-#' @return A looptest object
+#' @return A loops object
 #'
 #' @examples
 #' # Differential loop calling between naive and primed
-#' rda<-paste(system.file('rda',package='diffloop'),'jpn_chr1reg.rda',sep='/')
+#' rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
 #' load(rda)
-#' np <- jpn_chr1reg[,1:4]
+#' np <- loops.small[,1:4]
 #' assoc_np <- quickAssoc(np)
 
 #' @import edgeR
@@ -349,7 +359,7 @@ setMethod(f = "featureTest", signature = c("looptest", "GRanges"),
 setGeneric(name = "quickAssoc", def = function(y) standardGeneric("quickAssoc"))
 
 #' @rdname quickAssoc
-setMethod(f = "quickAssoc", signature = c("loopdata"), definition = function(y) {
+setMethod(f = "quickAssoc", signature = c("loops"), definition = function(y) {
     # Check that there's only two groups, if not, escape
     if (length(unique(y@colData$groups)) != 2) {
         stop("Must be two groups for quickAssoc; use loopFit instead!")
@@ -361,30 +371,33 @@ setMethod(f = "quickAssoc", signature = c("loopdata"), definition = function(y) 
     yy <- estimateDisp(z, design)
     fit <- glmQLFit(yy, design, robust = TRUE)
     qlf <- glmQLFTest(fit, coef = 2)
-    return(looptest(loopdata = y, results = as.data.frame(topTags(qlf, 
-        n = nrow(y@counts), sort.by = "none"))))
+    results <- as.data.frame(topTags(qlf, n = nrow(y@counts), sort.by = "none"))
+    newRowData <- as.data.frame(cbind(y@rowData, results))
+    row.names(newRowData) <- NULL
+    y@rowData <- newRowData
+    return(y)
 })
 
 #' Grab top loops
 #'
-#' \code{topLoops} takes a looptest object and performs basic filtering
+#' \code{topLoops} takes a loops object and performs basic filtering
 #' for \code{FDR} or \code{PValue}
 #'
-#' This function returns a subsetted \code{looptest} object where all
+#' This function returns a subsetted \code{loops} object where all
 #' loops meet the significance threshold specificed by the parameters
 #' in the function call
 #'
-#' @param dlo A looptest object 
+#' @param dlo A loops object 
 #' @param FDR Maximum threshold for False Discovery Rate; default = 1
 #' @param PValue Maximum threshold for P-value; default = 1 
 #'
-#' @return A looptest object subsetted by specified parameters
+#' @return A loops object subsetted by specified parameters
 #'
 #' @examples
 #' # Differential loop calling between naive and primed
-#' rda<-paste(system.file('rda',package='diffloop'),'jpn_chr1reg.rda',sep='/')
+#' rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
 #' load(rda)
-#' np <- jpn_chr1reg[,1:4]
+#' np <- loops.small[,1:4]
 #' assoc_np <- quickAssoc(np)
 #' top_np <- topLoops(assoc_np, FDR = 0.3)
 
@@ -392,30 +405,27 @@ setMethod(f = "quickAssoc", signature = c("loopdata"), definition = function(y) 
 setGeneric(name = "topLoops", def = function(dlo, FDR, PValue) standardGeneric("topLoops"))
 
 .topLoops <- function(dlo, FDR, PValue) {
-    idxF <- dlo@results$FDR <= FDR
-    idxP <- dlo@results$PValue <= PValue
+    idxF <- dlo@rowData$FDR <= FDR
+    idxP <- dlo@rowData$PValue <= PValue
     idxA <- idxF & idxP
     
-    slot(dlo, "loopdata", check = TRUE) <- subsetLoops(dlo@loopdata, 
-        idxA)
-    slot(dlo, "results", check = TRUE) <- dlo@results[idxA, ]
-    return(dlo)
+    return(subsetLoops(dlo,idxA))
 }
 
 #' @rdname topLoops
-setMethod(f = "topLoops", signature = c("looptest", "numeric", 
+setMethod(f = "topLoops", signature = c("loops", "numeric", 
     "numeric"), definition = function(dlo, FDR, PValue) {
     .topLoops(dlo, FDR, PValue)
 })
 
 #' @rdname topLoops
-setMethod(f = "topLoops", signature = c("looptest", "numeric", 
+setMethod(f = "topLoops", signature = c("loops", "numeric", 
     "missing"), definition = function(dlo, FDR, PValue) {
     .topLoops(dlo, FDR, 1)
 })
 
 #' @rdname topLoops
-setMethod(f = "topLoops", signature = c("looptest", "missing", 
+setMethod(f = "topLoops", signature = c("loops", "missing", 
     "numeric"), definition = function(dlo, FDR, PValue) {
     .topLoops(dlo, 1, PValue)
 })

@@ -3,15 +3,15 @@
 \docType{methods}
 \name{loopGenes}
 \alias{loopGenes}
-\alias{loopGenes,loopdata,GRanges-method}
+\alias{loopGenes,loops,GRanges-method}
 \title{Determine genes contained within loops}
 \usage{
 loopGenes(dlo, genesGR)
 
-\S4method{loopGenes}{loopdata,GRanges}(dlo, genesGR)
+\S4method{loopGenes}{loops,GRanges}(dlo, genesGR)
 }
 \arguments{
-\item{dlo}{A loopdata object}
+\item{dlo}{A loops object}
 
 \item{genesGR}{A GRanges object of genes with mcol 'id'}
 }
@@ -32,9 +32,9 @@ should be the same length as the number of rows in the \code{loops} slot.
 \examples{
 # Determine the genes housed in the loops from our example
 genes <- getHumanGenes()
-rda<-paste(system.file('rda',package='diffloop'),'jpn_chr1reg.rda',sep='/')
+rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
 load(rda)
-jpn_chr1reg <- loopGenes(jpn_chr1reg,genes)
+loops.small <- loopGenes(loops.small,genes)
 
 }
 
