@@ -55,7 +55,7 @@ setMethod("[", signature(x = "loops", i = "numeric", j = "missing",
 
 #' Extract first part of loops object
 #'
-#' @param x A looptest object
+#' @param x A loops object
 #' @param n Number of lines to view
 #' @param ... Other non-essential params
 #' 

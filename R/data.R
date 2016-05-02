@@ -6,7 +6,7 @@ NULL
 #' A loops object containing unique 108 loops with 27 anchors
 #' for 6 samples and corresponding colData/rowData
 #'
-#' @format A small loopdata object 
+#' @format A small loops object 
 #' \describe{
 #'   \item{anchors}{GRanges object of anchor locations}
 #'   \item{loops}{indexes of interactions }

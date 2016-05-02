@@ -186,8 +186,6 @@ setMethod(f = "mergeAnchors", signature = c("loops", "numeric",
 #' a numeric 1, interactions with either the left or right anchor will be extracted.
 #' Loops with both anchors in the region will be excluded (exclusive \code{or}).
 #' To get an inclusive \code{or}, take the union of subsetting both with 1 and 2.
-#' For looptest objects, can currently only subset regions where both anchors are 
-#' present
 #'
 #' @param dlo A loops object to be subsetted
 #' @param region A GRanges object containing region of interest 
