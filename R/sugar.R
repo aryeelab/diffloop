@@ -45,7 +45,7 @@ setMethod("[", signature(x = "loops", i = "missing", j = "numeric",
 setMethod("[", signature(x = "loops", i = "numeric", j = "missing", 
     drop = "missing"), definition = function(x, i, j, drop) {
     upints <- x@interactions[i, ]
-    slot(x, "interactions", check = TRUE) <- upints
+    slot(x, "interactions", check = TRUE) <- as.matrix(upints)
     ucounts <- x@counts[i, ]
     slot(x, "counts", check = TRUE) <- ucounts
     newRowData <- as.data.frame(x@rowData[i, ])
