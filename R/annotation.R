@@ -147,10 +147,9 @@ setMethod(f = "getHumanGenes", signature = c("character"), definition = function
 #' promoter_rs <- system.file('extdata','chr1-TSS.bed',package = 'diffloop')
 #' promoter <- rmchr(bedToGRanges(promoter_rs))
 #' jn <- jpn_chr1reg[,c(1,2,5,6)]
-#' jn <- removeSelfLoops(jn)
 #' assoc_jn <- quickAssoc(jn)
+#' assoc_jn <- removeSelfLoops(assoc_jn)
 #' annotated_jn <- annotateLoops(assoc_jn, ctcf, h3k27ac, promoter)
-#' head(annotated_jn)
 #' 
 #' @import GenomicRanges
 #' @export

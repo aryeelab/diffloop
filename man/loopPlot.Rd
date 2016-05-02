@@ -3,31 +3,25 @@
 \docType{methods}
 \name{loopPlot}
 \alias{loopPlot}
-\alias{loopPlot,loopdata,GRanges,character,missing-method}
-\alias{loopPlot,loopdata,GRanges,missing,data.frame-method}
-\alias{loopPlot,loopdata,GRanges,missing,missing-method}
-\alias{loopPlot,looptest,GRanges,character,missing-method}
-\alias{loopPlot,looptest,GRanges,missing,data.frame-method}
-\alias{loopPlot,looptest,GRanges,missing,missing-method}
+\alias{loopPlot,loopdata,GRanges,character,missing,missing-method}
+\alias{loopPlot,loopdata,GRanges,missing,data.frame,missing-method}
+\alias{loopPlot,loopdata,GRanges,missing,missing,missing-method}
+\alias{loopPlot,looptest,GRanges,ANY,ANY,ANY-method}
 \title{Visualize looping}
 \usage{
-loopPlot(x, y, organism, geneinfo)
+loopPlot(x, y, organism = "h", geneinfo = "NA", colorLoops = FALSE)
 
-\S4method{loopPlot}{loopdata,GRanges,missing,missing}(x, y, organism, geneinfo)
-
-\S4method{loopPlot}{loopdata,GRanges,character,missing}(x, y, organism,
+\S4method{loopPlot}{loopdata,GRanges,missing,missing,missing}(x, y, organism,
   geneinfo)
 
-\S4method{loopPlot}{loopdata,GRanges,missing,data.frame}(x, y, organism,
+\S4method{loopPlot}{loopdata,GRanges,character,missing,missing}(x, y, organism,
   geneinfo)
 
-\S4method{loopPlot}{looptest,GRanges,missing,missing}(x, y, organism, geneinfo)
-
-\S4method{loopPlot}{looptest,GRanges,character,missing}(x, y, organism,
+\S4method{loopPlot}{loopdata,GRanges,missing,data.frame,missing}(x, y, organism,
   geneinfo)
 
-\S4method{loopPlot}{looptest,GRanges,missing,data.frame}(x, y, organism,
-  geneinfo)
+\S4method{loopPlot}{looptest,GRanges,ANY,ANY,ANY}(x, y, organism = "h",
+  geneinfo = "NA", colorLoops = FALSE)
 }
 \arguments{
 \item{x}{A loopdata or looptest object}
@@ -37,6 +31,8 @@ loopPlot(x, y, organism, geneinfo)
 \item{organism}{'h' for human or 'm' for mouse supported}
 
 \item{geneinfo}{A data.frame manually specifying annotation (see Examples)}
+
+\item{colorLoops}{Differentiates loops based on loop.type in looptest object}
 }
 \value{
 A plot object
@@ -50,7 +46,10 @@ and a \code{GRanges} objectand shows all loops in region
 Basic plot function shows the looping in each sample. The 
 intensity of the color is proportional to the number of counts
 observed for the particular loop relative to the other loops
-in the entire plot.
+in the entire plot. If colorLoops is specified at TRUE, then 
+the x object must be looptest and it must have a loop.type
+column which can be generated from the \code{annotateLoops}
+function
 }
 \examples{
 # Print loops in region chr1:36000000-36300000

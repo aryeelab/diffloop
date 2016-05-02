@@ -10,12 +10,16 @@ NULL
 #' Basic plot function shows the looping in each sample. The 
 #' intensity of the color is proportional to the number of counts
 #' observed for the particular loop relative to the other loops
-#' in the entire plot.
+#' in the entire plot. If colorLoops is specified at TRUE, then 
+#' the x object must be looptest and it must have a loop.type
+#' column which can be generated from the \code{annotateLoops}
+#' function
 #'
 #' @param x A loopdata or looptest object 
 #' @param y A GRanges object containing region of interest
 #' @param organism 'h' for human or 'm' for mouse supported
 #' @param geneinfo A data.frame manually specifying annotation (see Examples)
+#' @param colorLoops Differentiates loops based on loop.type in looptest object
 #'
 #' @return A plot object
 #'
@@ -36,55 +40,41 @@ NULL
 #' @importFrom graphics mtext par
 #' 
 #' @export
-setGeneric(name = "loopPlot", def = function(x, y, organism, 
-    geneinfo) standardGeneric("loopPlot"))
+setGeneric(name = "loopPlot", def = function(x, y, organism = "h", 
+    geneinfo="NA", colorLoops = FALSE) standardGeneric("loopPlot"))
 
 #' @rdname loopPlot
 setMethod("loopPlot", signature(x = "loopdata", y = "GRanges", 
-    organism = "missing", geneinfo = "missing"), definition = function(x, 
-    y, organism, geneinfo) {
+    organism = "missing", geneinfo = "missing", colorLoops = "missing"),
+    definition = function(x, y, organism, geneinfo) {
     return(.loopPlot(x, y, "h", "NA"))
 })
 
 #' @rdname loopPlot
 setMethod("loopPlot", signature(x = "loopdata", y = "GRanges", 
-    organism = "character", geneinfo = "missing"), definition = function(x, 
-    y, organism, geneinfo) {
+    organism = "character", geneinfo = "missing", colorLoops = "missing"),
+    definition = function(x, y, organism, geneinfo) {
     return(.loopPlot(x, y, organism, "NA"))
 })
 
 #' @rdname loopPlot
 setMethod("loopPlot", signature(x = "loopdata", y = "GRanges", 
-    organism = "missing", geneinfo = "data.frame"), definition = function(x, 
-    y, organism, geneinfo) {
+    organism = "missing", geneinfo = "data.frame", colorLoops = "missing"),
+    definition = function(x, y, organism, geneinfo) {
     return(.loopPlot(x, y, "", geneinfo))
 })
 
 #' @rdname loopPlot
-setMethod("loopPlot", signature(x = "looptest", y = "GRanges", 
-    organism = "missing", geneinfo = "missing"), definition = function(x, 
-    y, organism, geneinfo) {
-    return(.loopPlot(x@loopdata, y, "h", "NA"))
-})
-
-#' @rdname loopPlot
-setMethod("loopPlot", signature(x = "looptest", y = "GRanges", 
-    organism = "character", geneinfo = "missing"), definition = function(x, 
-    y, organism, geneinfo) {
-    return(.loopPlot(x@loopdata, y, organism, "NA"))
-})
-
-#' @rdname loopPlot
-setMethod("loopPlot", signature(x = "looptest", y = "GRanges", 
-    organism = "missing", geneinfo = "data.frame"), definition = function(x, 
-    y, organism, geneinfo) {
-    return(.loopPlot(x@loopdata, y, "", geneinfo))
+setMethod("loopPlot", signature(x = "looptest", y = "GRanges",
+    organism = "ANY", geneinfo = "ANY", colorLoops = "ANY"),
+    definition = function(x, y, organism="h", geneinfo="NA", colorLoops = FALSE) {
+        if(!colorLoops) {return(.loopPlot(x@loopdata, y, "h", "NA"))
+        } else { return(.loopPlotcolor(x, y, organism, geneinfo))}
 })
 
 .loopPlot <- function(x, y, organism = "h", geneinfo = "NA") {
     
-    # Immediately restrict the loopdata object to the region of
-    # interest
+    # Immediately restrict the loopdata object to the region 
     objReg <- removeSelfLoops(subsetRegion(x, y))
     
     # Grab Regional Coordinates
@@ -179,6 +169,111 @@ setMethod("loopPlot", signature(x = "looptest", y = "GRanges",
     return(loplot)
 }
 
+.loopPlotcolor <- function(x, y, organism = "h", geneinfo = "NA") {
+    
+    # Immediately restrict the loopdata object to the region 
+    objReg <- removeSelfLoops(subsetRegion(x, y))
+    res <- x@results
+    objReg <- x@loopdata
+    
+    # Grab Regional Coordinates
+    chrom <- as.character(seqnames(y))
+    chromchr <- paste(c("chr", as.character(chrom)), collapse = "")
+    start <- as.integer(start(ranges(range(y))))
+    end <- as.integer(end(ranges(range(y))))
+    
+    if (geneinfo == "NA") {
+        # Get gene annotation from bioMart
+        if (organism == "h") {
+            mart = useMart(biomart = "ensembl", dataset = "hsapiens_gene_ensembl")
+            chrom_biomart = gsub("chr", "", chrom)
+            geneinfo = getBM(attributes = c("chromosome_name", 
+                "exon_chrom_start", "exon_chrom_end", "external_gene_name", 
+                "strand"), filters = c("chromosome_name", "start", 
+                "end"), values = list(chrom_biomart, start, end), 
+                mart = mart)
+        } else if (organism == "m") {
+            mart = useMart(biomart = "ensembl", dataset = "mmusculus_gene_ensembl")
+            chrom_biomart = gsub("chr", "", chrom)
+            geneinfo = getBM(attributes = c("chromosome_name", 
+                "start_position", "end_position", "external_gene_name", 
+                "strand"), filters = c("chromosome_name", "start", 
+                "end"), values = list(chrom_biomart, start, end), 
+                mart = mart)
+        }
+        # make names the same
+        names(geneinfo) = c("chrom", "start", "stop", "gene", 
+            "strand")
+        
+        # reorder and make proper bed format
+        geneinfo$score = "."
+        geneinfo = geneinfo[, c(1, 2, 3, 4, 6, 5)]
+    }
+    
+    # Dimensions of dataframe
+    n <- dim(objReg@loops)[1]  #number of loops
+    m <- dim(objReg@counts)[2]  #number of samples
+    
+    # Setup colors for plotting
+    cs <- res$loop.type
+    cs <- gsub("e-p", "red", cs)
+    cs <- gsub("ctcf", "black", cs)
+    cs <- gsub("none", "blue", cs)
+    
+    # Setup Dataframe for Plot
+    leftAnchor <- as.data.frame(objReg@anchors[objReg@loops[, 
+        1]])[c(1, 2, 3)]
+    LA <- do.call("rbind", replicate(m, leftAnchor, simplify = FALSE))
+    rightAnchor <- as.data.frame(objReg@anchors[objReg@loops[, 
+        2]])[c(1, 2, 3)]
+    RA <- do.call("rbind", replicate(m, rightAnchor, simplify = FALSE))
+    colnames(LA) <- c("chr_1", "start_1", "end_1")
+    colnames(RA) <- c("chr_2", "start_2", "end_2")
+    name <- rep(NA, n)
+    strand_1 <- rep(".", n * m)
+    strand_2 <- rep(".", n * m)
+    score <- matrix(objReg@counts, ncol = 1)
+    sample_id <- matrix(sapply(colnames(objReg@counts), function(x) rep(x, 
+        n)), ncol = 1)
+    bedPE <- data.frame(LA, RA, name, score, strand_1, strand_2, 
+        sample_id)
+    
+    # Plot
+    w <- loopWidth(objReg)
+    h <- sqrt(w/max(w))
+    
+    samples <- colnames(objReg@counts)
+    lwd <- 5 * (bedPE$score/max(bedPE$score))
+    
+    loplot <- recordPlot()
+    par(mfrow = c(m + 1, 1), mar = c(3, 1, 1, 1), oma = c(0, 
+        0, 3, 0))
+    for (sample in samples[-m]) {
+        idx <- which(bedPE$sample_id == sample)
+        plotBedpe(bedPE[idx, ], chrom, start, end, color = cs, 
+            lwd = lwd[idx], plottype = "loops", heights = h, 
+            lwdrange = c(0, 5), main = sample)
+        labelgenome(chromchr, start, end, side = 1, scipen = 20, 
+            n = 3, scale = "Mb", line = 0.18, chromline = 0.5, 
+            scaleline = 0.5)
+    }
+    sample = samples[m]
+    idx <- which(bedPE$sample_id == sample)
+    plotBedpe(bedPE[idx, ], chrom, start, end, color = cs, 
+        lwd = lwd[idx], plottype = "loops", heights = h, 
+        lwdrange = c(0, 5), main = sample)
+    labelgenome(chromchr, start, end, side = 1, scipen = 20, 
+        n = 3, scale = "Mb", line = 0.18, chromline = 0.5, scaleline = 0.5)
+    
+    pg = plotGenes(geneinfo = geneinfo, chrom = chromchr, chromstart = start, 
+        chromend = end, bheight = 0.1, plotgenetype = "box", 
+        bentline = FALSE, labeloffset = 0.4, fontsize = 1, arrowlength = 0.025, 
+        labeltext = TRUE)
+    mtext(paste0("Region: ", chrom, ":", start, "-", end), outer = TRUE, 
+        line = 1)
+    return(loplot)
+}
+
 
 #' Visualize sample relationships
 #'
@@ -236,6 +331,9 @@ setMethod(f = "pcaPlot", signature = c("looptest"), definition = function(dlo) {
 #' @param PValue Maximum pvalue threshold for loop inclusion when printing loop plot
 #' @param FDR False discovery rate threshold for inclusion
 #' @param organism Either 'm' for mouse or 'h' for human. 
+#' @param colorLoops Default FALSE; specify true if results slot contains
+#' loop.type from annotateLoops to visualize plots with varying colors for
+#' CTCF looping and enhancer-promoter looping
 #'
 #' @return Prints a time stamped .pdf file of top loops
 #'
@@ -249,14 +347,17 @@ setMethod(f = "pcaPlot", signature = c("looptest"), definition = function(dlo) {
 #' 
 #' @import plyr
 #' @import GenomicRanges
+#' @import grDevices  
+#' @import utils 
+#' 
 #' @export
 setGeneric(name = "plotTopLoops", def = function(lto, n = 0, 
-    PValue = 1, FDR = 1, organism = "h") standardGeneric("plotTopLoops"))
+    PValue = 1, FDR = 1, organism = "h", colorLoops = FALSE) standardGeneric("plotTopLoops"))
 
 #' @rdname plotTopLoops
 setMethod(f = "plotTopLoops", signature = c("looptest", "ANY", 
-    "ANY", "ANY", "ANY"), definition = function(lto, n = 0, PValue = 1, 
-    FDR = 1, organism = "h") {
+    "ANY", "ANY", "ANY", "ANY"), definition = function(lto, n = 0, PValue = 1, 
+    FDR = 1, organism = "h", colorLoops = FALSE) {
     if (n > 0) {
         if (n > dim(lto)[2]) {
             stop("Too many loops to print; there aren't that many in the data!")
@@ -274,13 +375,14 @@ setMethod(f = "plotTopLoops", signature = c("looptest", "ANY",
         "loops-", Sys.time(), ".pdf", sep = ""), fixed = TRUE))
     pdf(file = fname)
     pb <- txtProgressBar(min = 0, max = n, style = 3)
+    
     for (i in 1:n) {
         one <- subsetLoops(tl, i)
         lw <- loopWidth(one)
         regPlot <- GRanges(c(one@anchors[1]@seqnames),IRanges(c(start(one@anchors[1]@ranges)), 
             c(end(one@anchors[1]@ranges))))
         regPlot <- padGRanges(regPlot, pad = lw * 1.5)
-        loopPlot(lto, regPlot)
+        loopPlot(lto, regPlot, organism = organism, colorLoops = colorLoops)
         setTxtProgressBar(pb, i)
     }
     dev.off()

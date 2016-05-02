@@ -4,17 +4,20 @@
 \name{removeSelfLoops}
 \alias{removeSelfLoops}
 \alias{removeSelfLoops,loopdata-method}
+\alias{removeSelfLoops,looptest-method}
 \title{Remove self loops}
 \usage{
 removeSelfLoops(dlo)
 
 \S4method{removeSelfLoops}{loopdata}(dlo)
+
+\S4method{removeSelfLoops}{looptest}(dlo)
 }
 \arguments{
-\item{dlo}{A loopdata object}
+\item{dlo}{A loopdata/looptest object}
 }
 \value{
-A loopdata object
+A loopdata/looptest object
 }
 \description{
 \code{removeSelfLoops} removes instances where a loop is observed

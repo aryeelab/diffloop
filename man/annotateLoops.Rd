@@ -37,7 +37,6 @@ when setting up the 3 GRanges inputs. Provide a blank GRanges objects to ignore
 classification for one set.
 }
 \examples{
-# Annotate whether anchors are near a gene body; within 1kb
 rda<-paste(system.file('rda',package='diffloop'),'jpn_chr1reg.rda',sep='/')
 load(rda)
 ctcf_j <- system.file('extdata','Jurkat_CTCF_chr1.narrowPeak',package = 'diffloop')
@@ -47,8 +46,8 @@ h3k27ac <- rmchr(padGRanges(bedToGRanges(h3k27ac_j), pad = 1000))
 promoter_rs <- system.file('extdata','chr1-TSS.bed',package = 'diffloop')
 promoter <- rmchr(bedToGRanges(promoter_rs))
 jn <- jpn_chr1reg[,c(1,2,5,6)]
-jn <- removeSelfLoops(jn)
 assoc_jn <- quickAssoc(jn)
+assoc_jn <- removeSelfLoops(assoc_jn)
 annotated_jn <- annotateLoops(assoc_jn, ctcf, h3k27ac, promoter)
 
 }

@@ -204,13 +204,15 @@ setMethod(f = "mergeAnchors", signature = c("loopdata", "numeric",
 #' region for the loop to be preserved when extracting. However, by specifying
 #' a numeric 1, loops with either the left or right anchor will be extracted.
 #' Loops with both anchors in the region will be excluded (exclusive \code{or}).
-#' To get an inclusive \code{or}, take the union of subsetting both with 1 and 2
+#' To get an inclusive \code{or}, take the union of subsetting both with 1 and 2.
+#' For looptest objects, can currently only subset regions where both anchors are 
+#' present
 #'
-#' @param dlo A loopdata object to be summarized
+#' @param dlo A loopdata/looptest object to be subsetted
 #' @param region A GRanges object containing region of interest 
 #' @param nanchors Number of anchors to be contained in GRanges object. Default 2
 #' 
-#' @return A loopdata object
+#' @return A loopdata/looptest object
 #'
 #' @examples
 #' # Grab region chr1:36000000-36100000
@@ -241,6 +243,55 @@ setMethod(f = "subsetRegion", signature = c("loopdata", "GRanges",
 setMethod(f = "subsetRegion", signature = c("loopdata", "GRanges", 
     "missing"), definition = function(dlo, region, nanchors) {
     .subsetRegion2(dlo, region)
+})
+
+#' @rdname subsetRegion
+setMethod(f = "subsetRegion", signature = c("looptest", "GRanges", 
+    "ANY"), definition = function(dlo, region, nanchors) {
+        res <- dlo@results
+        dlo <- dlo@loopdata
+        
+        # Keep only those anchors that are being used
+        newAnchors <- dlo@anchors[findOverlaps(region, dlo@anchors)@to,]
+        
+        # Create mapping from old indices to new indices
+        mapping <- as.data.frame(findOverlaps(dlo@anchors, newAnchors))
+        intsdf <- as.data.frame(dlo@loops)
+        
+        # Update loops indices
+        leftmatch <- t(sapply(intsdf$left, function(x) mapping[mapping[, 
+            1] == x, ]))
+        rightmatch <- t(sapply(intsdf$right, function(x) mapping[mapping[, 
+            1] == x, ]))
+        lm <- suppressWarnings(as.numeric(as.character(leftmatch[, 
+            2])))
+        rm <- suppressWarnings(as.numeric(as.character(rightmatch[, 
+            2])))
+        
+        # Format new indices matrix
+        totalupdate <- cbind(unlist(lm), unlist(rm))
+        cc <- complete.cases(totalupdate)
+        newloops <- matrix(totalupdate[cc], ncol = 2)
+        colnames(newloops) <- c("left", "right")
+        
+        # Subset results
+        newresults <- res[cc,]
+        
+        # Grab counts indicies; removes lines that don't map to
+        # anything via making them NAs and then removing them
+        newcounts <- matrix(dlo@counts[cc], ncol = ncol(dlo@counts))
+        colnames(newcounts) <- colnames(dlo@counts)
+        
+        # Update values
+        dlo <- loopdata()
+        lto <- looptest()
+        slot(dlo, "anchors", check = TRUE) <- newAnchors
+        slot(dlo, "loops", check = TRUE) <- newloops
+        slot(dlo, "counts", check = TRUE) <- newcounts
+        slot(lto, "loopdata", check = TRUE) <- dlo
+        slot(lto, "results", check = TRUE) <- newresults
+        return(lto)
+        
 })
 
 .subsetRegion1 <- function(dlo, region) {

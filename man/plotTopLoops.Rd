@@ -6,10 +6,11 @@
 \alias{plotTopLoops,looptest-method}
 \title{Plot the most significant loops}
 \usage{
-plotTopLoops(lto, n = 0, PValue = 1, FDR = 1, organism = "h")
+plotTopLoops(lto, n = 0, PValue = 1, FDR = 1, organism = "h",
+  colorLoops = FALSE)
 
 \S4method{plotTopLoops}{looptest}(lto, n = 0, PValue = 1, FDR = 1,
-  organism = "h")
+  organism = "h", colorLoops = FALSE)
 }
 \arguments{
 \item{lto}{looptest object}
@@ -22,6 +23,10 @@ determined by PValue}
 \item{FDR}{False discovery rate threshold for inclusion}
 
 \item{organism}{Either 'm' for mouse or 'h' for human.}
+
+\item{colorLoops}{Default FALSE; specify true if results slot contains
+loop.type from annotateLoops to visualize plots with varying colors for
+CTCF looping and enhancer-promoter looping}
 }
 \value{
 Prints a time stamped .pdf file of top loops

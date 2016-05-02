@@ -51,9 +51,9 @@ setMethod(f = "numLoops", signature = c("loopdata", "missing"),
 #' This function removes loops from the \code{loops} slot that reference
 #' the same index of the \code{anchors} slot.
 #'
-#' @param dlo A loopdata object
+#' @param dlo A loopdata/looptest object
 #'
-#' @return A loopdata object
+#' @return A loopdata/looptest object
 #'
 #' @examples
 #' rda<-paste(system.file('rda',package='diffloop'),'jpn_chr1reg.rda',sep='/')
@@ -66,6 +66,14 @@ setGeneric(name = "removeSelfLoops", def = function(dlo) standardGeneric("remove
 #' @rdname removeSelfLoops
 setMethod(f = "removeSelfLoops", signature = c("loopdata"), definition = function(dlo) {
     return(subsetLoops(dlo, dlo@loops[, 1] != dlo@loops[, 2]))
+})
+
+#' @rdname removeSelfLoops
+setMethod(f = "removeSelfLoops", signature = c("looptest"), definition = function(dlo) {
+    idx <- dlo@loopdata@loops[, 1] != dlo@loopdata@loops[, 2]
+    slot(dlo, "loopdata", check=TRUE) <- subsetLoops(dlo@loopdata, idx)
+    slot(dlo, "results", check=TRUE) <- dlo@results[idx,]
+    return(dlo)
 })
 
 # Return Boolean Vector for loops in loopdata if both anchors

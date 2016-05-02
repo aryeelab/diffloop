@@ -5,6 +5,7 @@
 \alias{subsetRegion}
 \alias{subsetRegion,loopdata,GRanges,missing-method}
 \alias{subsetRegion,loopdata,GRanges,numeric-method}
+\alias{subsetRegion,looptest,GRanges,ANY-method}
 \title{Extract region from loopdata object}
 \usage{
 subsetRegion(dlo, region, nanchors)
@@ -12,16 +13,18 @@ subsetRegion(dlo, region, nanchors)
 \S4method{subsetRegion}{loopdata,GRanges,numeric}(dlo, region, nanchors)
 
 \S4method{subsetRegion}{loopdata,GRanges,missing}(dlo, region, nanchors)
+
+\S4method{subsetRegion}{looptest,GRanges,ANY}(dlo, region, nanchors)
 }
 \arguments{
-\item{dlo}{A loopdata object to be summarized}
+\item{dlo}{A loopdata/looptest object to be subsetted}
 
 \item{region}{A GRanges object containing region of interest}
 
 \item{nanchors}{Number of anchors to be contained in GRanges object. Default 2}
 }
 \value{
-A loopdata object
+A loopdata/looptest object
 }
 \description{
 \code{subsetRegion} takes a \code{loopdata} object and a \code{GRanges}
@@ -34,7 +37,9 @@ By default, \code{nachors = 2}, meaning both anchors need to be in the
 region for the loop to be preserved when extracting. However, by specifying
 a numeric 1, loops with either the left or right anchor will be extracted.
 Loops with both anchors in the region will be excluded (exclusive \code{or}).
-To get an inclusive \code{or}, take the union of subsetting both with 1 and 2
+To get an inclusive \code{or}, take the union of subsetting both with 1 and 2.
+For looptest objects, can currently only subset regions where both anchors are 
+present
 }
 \examples{
 # Grab region chr1:36000000-36100000
