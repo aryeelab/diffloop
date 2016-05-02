@@ -198,8 +198,7 @@ setMethod(f = "getHumanTSS", signature = c("character"), definition = function(c
 #' ctcf <- rmchr(padGRanges(bedToGRanges(ctcf_j), pad = 1000))
 #' h3k27ac_j <- system.file('extdata','Jurkat_H3K27ac_chr1.narrowPeak',package = 'diffloop')
 #' h3k27ac <- rmchr(padGRanges(bedToGRanges(h3k27ac_j), pad = 1000))
-#' promoter_rs <- system.file('extdata','chr1-TSS.bed',package = 'diffloop')
-#' promoter <- rmchr(bedToGRanges(promoter_rs))
+#' promoter <- padGRanges(getHumanTSS(c('1')), pad = 1000)
 #' jn <- jpn_chr1reg[,c(1,2,5,6)]
 #' assoc_jn <- quickAssoc(jn)
 #' assoc_jn <- removeSelfLoops(assoc_jn)

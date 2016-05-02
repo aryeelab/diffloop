@@ -72,7 +72,9 @@ setMethod(f = "removeSelfLoops", signature = c("loopdata"), definition = functio
 setMethod(f = "removeSelfLoops", signature = c("looptest"), definition = function(dlo) {
     idx <- dlo@loopdata@loops[, 1] != dlo@loopdata@loops[, 2]
     slot(dlo, "loopdata", check=TRUE) <- subsetLoops(dlo@loopdata, idx)
-    slot(dlo, "results", check=TRUE) <- dlo@results[idx,]
+    newresults <- dlo@results[idx,]
+    row.names(newresults) <- 1:nrow(newresults)
+    slot(dlo, "results", check=TRUE) <- newresults
     return(dlo)
 })
 
