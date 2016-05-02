@@ -3,21 +3,13 @@
 \docType{methods}
 \name{loopdataMake}
 \alias{loopdataMake}
-\alias{loopdataMake,character,character,missing-method}
-\alias{loopdataMake,character,character,numeric-method}
-\alias{loopdataMake,character,missing,missing-method}
-\alias{loopdataMake,character,missing,numeric-method}
+\alias{loopdataMake,ANY-method}
 \title{Read preprocessed ChiA-PET data}
 \usage{
-loopdataMake(beddir, samples, mergegap)
+loopdataMake(beddir, samples = NA, mergegap = 0, type = "all")
 
-\S4method{loopdataMake}{character,character,missing}(beddir, samples, mergegap)
-
-\S4method{loopdataMake}{character,missing,missing}(beddir, samples, mergegap)
-
-\S4method{loopdataMake}{character,character,numeric}(beddir, samples, mergegap)
-
-\S4method{loopdataMake}{character,missing,numeric}(beddir, samples, mergegap)
+\S4method{loopdataMake}{ANY}(beddir, samples = NA, mergegap = 0,
+  type = "all")
 }
 \arguments{
 \item{beddir}{A string. The preprocessed data directory}
@@ -25,6 +17,8 @@ loopdataMake(beddir, samples, mergegap)
 \item{samples}{A character vector. Optional list of samples to read in}
 
 \item{mergegap}{An integer value of the radius to merge anchors; default 0}
+
+\item{type}{Specificies "intra", "inter", or "all" looping. Default "all"}
 }
 \value{
 A loopdata object
@@ -38,16 +32,18 @@ This function reads in preprocessed ChIA-PET data produced by the
 \code{dnaloop} preprocessing pipeline. The preprocessed directory 
 contains one subdirectory per sample. The \code{samples} argument specifies
 which samples are read. if \code{samples} is not specified all samples will
-be read.
+be read. \code{type} restricts loops whether they are on the same "inter" or
+different "intra" chormosome. Default is "all"
 }
 \examples{
-# Reading in all samples, no mergegap:
+# Reading in all samples, no mergegap, all loops
 bd<- system.file('extdata', 'esc_jurkat', package='diffloopdata')
 loops <- loopdataMake(bd)
 
-# Reading in a subset of samples, 1kb mergegap:
+# Reading in a subset of samples, 1kb mergegap, only intrachromosomal
+# looping
 samples <- c('naive_esc_1', 'naive_esc_2')
-naive <- loopdataMake(bd, samples, 1000)
+naive.intra <- loopdataMake(bd, samples, 1000, "intra")
 
 }
 

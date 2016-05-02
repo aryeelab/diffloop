@@ -10,22 +10,25 @@ NULL
 #' \code{dnaloop} preprocessing pipeline. The preprocessed directory 
 #' contains one subdirectory per sample. The \code{samples} argument specifies
 #' which samples are read. if \code{samples} is not specified all samples will
-#' be read.
+#' be read. \code{type} restricts loops whether they are on the same "inter" or
+#' different "intra" chormosome. Default is "all"
 #'
 #' @param beddir A string. The preprocessed data directory
 #' @param samples A character vector. Optional list of samples to read in
 #' @param mergegap An integer value of the radius to merge anchors; default 0
+#' @param type Specificies "intra", "inter", or "all" looping. Default "all"
 #'
 #' @return A loopdata object
 #'
 #' @examples
-#' # Reading in all samples, no mergegap:
+#' # Reading in all samples, no mergegap, all loops
 #' bd<- system.file('extdata', 'esc_jurkat', package='diffloopdata')
 #' loops <- loopdataMake(bd)
 #'
-#' # Reading in a subset of samples, 1kb mergegap:
+#' # Reading in a subset of samples, 1kb mergegap, only intrachromosomal
+#' # looping
 #' samples <- c('naive_esc_1', 'naive_esc_2')
-#' naive <- loopdataMake(bd, samples, 1000)
+#' naive.intra <- loopdataMake(bd, samples, 1000, "intra")
 #'
 
 #' @import foreach
@@ -34,21 +37,28 @@ NULL
 #' @import readr
 
 #' @export
-setGeneric(name = "loopdataMake", def = function(beddir, samples, 
-    mergegap) standardGeneric("loopdataMake"))
+setGeneric(name = "loopdataMake", def = function(beddir, samples = NA, 
+    mergegap = 0, type = "all") standardGeneric("loopdataMake"))
 
 #' @import GenomicRanges
-.loopdataMake <- function(beddir, samples, mergegap) {
+.loopdataMake <- function(beddir, samples, mergegap, type) {
     
     ct <- list(col_character(), col_integer(), col_integer(), 
         col_character(), col_integer(), col_integer(), col_character(), 
         col_integer())
+    
+    restrictPets <- function(bt){
+        if (type == "intra"){ return(bt[bt$X1 == bt$X4, ])
+        } else if (type == "inter"){ return(bt[bt$X1 != bt$X4, ])
+        } else { return(bt)}
+    }
     
     # Iterate through files to set up anchors
     anchorsraw <- foreach(sample = samples) %do% {
         fullfile <- file.path(beddir, paste(sample, "loop_counts.bedpe", 
             sep = "."))
         bt <- read_delim(fullfile, " ", col_types = ct, col_names = FALSE)
+        bt <- restrictPets(bt)
         plyr::rbind.fill(bt[, 1:3], setNames(bt[, 4:6], names(bt[, 
             1:3])))
     }
@@ -78,6 +88,7 @@ setGeneric(name = "loopdataMake", def = function(beddir, samples,
         fullfile <- file.path(beddir, paste(sample, "loop_counts.bedpe", 
             sep = "."))
         bt <- read_delim(fullfile, " ", col_types = ct, col_names = FALSE)
+        bt <- restrictPets(bt)
         getpets(makeGRangesFromDataFrame(bt[, 1:3], ignore.strand = TRUE, 
             seqnames.field = "X1", start.field = "X2", end.field = "X3"), 
             makeGRangesFromDataFrame(bt[, 4:6], ignore.strand = TRUE, 
@@ -121,27 +132,10 @@ setGeneric(name = "loopdataMake", def = function(beddir, samples,
 }
 
 #' @rdname loopdataMake
-setMethod("loopdataMake", c("character", "character", "missing"), 
-    function(beddir, samples, mergegap) .loopdataMake(beddir, 
-        samples, 0))
-
-#' @rdname loopdataMake
-setMethod("loopdataMake", c("character", "missing", "missing"), 
-    function(beddir, samples, mergegap) {
-        samples <- dir(beddir, pattern = ".loop_counts.bedpe")
-        samples <- sub(".loop_counts.bedpe", "", samples)
-        .loopdataMake(beddir, samples, 0)
-    })
-
-#' @rdname loopdataMake
-setMethod("loopdataMake", c("character", "character", "numeric"), 
-    function(beddir, samples, mergegap) .loopdataMake(beddir, 
-        samples, mergegap))
-
-#' @rdname loopdataMake
-setMethod("loopdataMake", c("character", "missing", "numeric"), 
-    function(beddir, samples, mergegap) {
-        samples <- dir(beddir, pattern = ".loop_counts.bedpe")
-        samples <- sub(".loop_counts.bedpe", "", samples)
-        .loopdataMake(beddir, samples, mergegap)
+setMethod(f="loopdataMake", def=function(beddir, samples, mergegap = 0, type="all") {
+        if(sum(is.na(samples)) > 0){
+            samples <- dir(beddir, pattern = ".loop_counts.bedpe")
+            samples <- sub(".loop_counts.bedpe", "", samples)
+        }
+        .loopdataMake(beddir, samples, mergegap, type)
     })

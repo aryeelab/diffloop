@@ -1,12 +1,12 @@
 Package: diffloop
 Type: Package
 Title: Differential DNA loop calling from ChIA-PET data
-Version: 0.99.1
-Date: 2016-04-12
-Authors@R: c( person("Caleb", "Lareau", email =
-        "caleblareau@g.harvard.edu", role = c("aut", "cre")),
-        person("Martin", "Aryee", email =
-        "aryee.martin@mgh.harvard.edu", role = "aut") )
+Version: 0.99.2
+Date: 2016-04-22
+Authors@R: c(
+    person("Caleb", "Lareau", email = "caleblareau@g.harvard.edu", role = c("aut", "cre")),
+    person("Martin", "Aryee", email = "aryee.martin@mgh.harvard.edu", role = "aut")
+    )
 Maintainer: Caleb Lareau <caleblareau@g.harvard.edu>
 Author: Caleb Lareau [aut, cre], Martin Aryee [aut]
 Description: A suite of tools for subsetting, visualizing, annotating,
