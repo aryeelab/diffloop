@@ -229,7 +229,8 @@ setMethod(f = "getHumanTSS", signature = c("missing"),
                      "geneinfo.h.rda", sep = "/")
         load(rda)
         human.TSS <- GRanges(geneinfo[,c(1,2,3,4)])
-        end(human.TSS) <- start(human.TSS)
+        end(human.TSS[geneinfo$strand == 1]) <- start(human.TSS[geneinfo$strand == 1])
+        start(human.TSS[geneinfo$strand == -1]) <- end(human.TSS[geneinfo$strand == -1])
         return(human.TSS[as.vector(as.data.frame(human.TSS)$seqnames) %in% as.vector(all)])
             
     })
@@ -242,7 +243,8 @@ setMethod(f = "getHumanTSS", signature = c("character"),
                      "geneinfo.h.rda", sep = "/")
         load(rda)
         human.TSS <- GRanges(geneinfo[,c(1,2,3,4)])
-        end(human.TSS) <- start(human.TSS)
+        end(human.TSS[geneinfo$strand == 1]) <- start(human.TSS[geneinfo$strand == 1])
+        start(human.TSS[geneinfo$strand == -1]) <- end(human.TSS[geneinfo$strand == -1])
         return(human.TSS[is.element(as.vector(as.data.frame(human.TSS)$seqnames),  as.vector(chr))])
     })
 
