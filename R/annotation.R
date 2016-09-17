@@ -422,6 +422,8 @@ setMethod(f = "annotateLoops", signature = c("loops", "missing",
 #' @param promoter GRanges object corresponding to locations of promoter regions
 #'
 #' @return A loops object with an additional row 'loop.type' in the rowData slot
+#' in addition to the gene.tss (which has the gene name) and the
+#' anchor.tss which shows the anchor(s) near the promoter region for the gene.
 #'
 #' @examples
 #' rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
@@ -484,9 +486,16 @@ setMethod(f = "keepEPloops", signature = c("loops",
     #Add annotation and subset
     ep.loops <- (Lvalues.e & Rvalues.p) | (Lvalues.p & Rvalues.e)
     gene.tss <- rep("none", dim(lto)[2])
+    
+    anchor.tss <- rep("none", dim(lto)[2])
+    anchor.tss[which(Rvalues.p & Lvalues.p)] <- "1,2"
+    anchor.tss[which(Lvalues.p)] <- "1"
+    anchor.tss[which(Lvalues.p)] <- "2"
+    
     gene.tss[tss$subjectHits] <- tss$gene
     lto@rowData$loop.type <- "e-p"
     lto@rowData$gene.tss <- gene.tss
+    lto@rowData$anchor.tss <- anchor.tss
     new.loops <- subsetLoops(lto, ep.loops)
     
     return(new.loops)

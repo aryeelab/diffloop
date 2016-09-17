@@ -62,10 +62,10 @@ setMethod("[", signature(x = "loops", i = "numeric", j = "missing",
 #' 
 setMethod("head", signature = "loops", function(x, n = 6, ...) {
     anchors <- head(x@anchors, n)
-    interactions <- head(x@interactions, n)
-    counts <- head(x@counts, n)
+    interactions <- head(x@interactions, n, drop = FALSE)
+    counts <- head(x@counts, n, drop = FALSE)
     colData <- head(x@colData, n)
-    rowData <- head(x@rowData, n)
+    rowData <- head(x@rowData, n, drop = FALSE)
     
     dlo <- loops()
     slot(dlo, "anchors", check = TRUE) <- anchors
@@ -87,10 +87,10 @@ setMethod("head", signature = "loops", function(x, n = 6, ...) {
 #' 
 setMethod("tail", signature = "loops", function(x, n = 6, ...) {
     anchors <- tail(x@anchors, n)
-    interactions <- tail(x@interactions, n)
-    counts <- tail(x@counts, n)
+    interactions <- tail(x@interactions, n, drop = FALSE)
+    counts <- tail(x@counts, n, drop = FALSE)
     colData <- tail(x@colData, n)
-    rowData <- tail(x@rowData, n)
+    rowData <- tail(x@rowData, n, drop = FALSE)
     
     dlo <- loops()
     slot(dlo, "anchors", check = TRUE) <- anchors

@@ -180,7 +180,8 @@ setMethod(f = "mangoCorrection", def = function(lo, FDR = 1, PValue = 1, nbins =
     # Depth normalization
     depthborders <- .binmaker(df$depths, binmethod = "equalocc", numberbins = nbins)
     depth_IAB_model <- .model_chia(x = df$depths, y = df$PETS, borders = depthborders, yvals = TRUE)
-    depth_IAB_spline <- smooth.spline(log10(depth_IAB_model[, 1]), depth_IAB_model[, 3], spar = 0.75)
+    depth_IAB_model.complete <- depth_IAB_model[complete.cases(depth_IAB_model),]
+    depth_IAB_spline <- smooth.spline(log10(depth_IAB_model.complete[, 1]), depth_IAB_model.complete[, 3], spar = 0.75)
     
     # model Combos vs distance
     meanofx_dist = rep(0, nbins)
@@ -214,9 +215,11 @@ setMethod(f = "mangoCorrection", def = function(lo, FDR = 1, PValue = 1, nbins =
     
     # combine data from all chromosomes
     depth_combo_model = cbind(sumofx_depth/countofx_depth, sumofy_depth, sumofy_depth/sum(sumofy_depth))
+    depth_combo_model.complete <- depth_combo_model[complete.cases(depth_combo_model),]
+
     distance_combo_model = cbind(sumofx_dist/countofx_dist, sumofy_dist, sumofy_dist/sum(sumofy_dist))
     
-    depth_combo_spline = smooth.spline(log10(depth_combo_model[, 1]), depth_combo_model[, 3], spar = 0.75)
+    depth_combo_spline = smooth.spline(log10(depth_combo_model.complete[, 1]), depth_combo_model.complete[, 3], spar = 0.75)
     distance_combo_spline = smooth.spline(log10(distance_combo_model[, 1]), distance_combo_model[, 3], spar = 0.75)
     
     df$P_IAB_distance = predict(distance_IAB_spline, log10(df$loopWidth))$y
@@ -252,6 +255,9 @@ setMethod(f = "mangoCorrection", def = function(lo, FDR = 1, PValue = 1, nbins =
     # Add to row data
     lo@rowData$mango.FDR <- df$Q
     lo@rowData$mango.P <- df$P
+    
+    # Scrub 
+    mcols(lo@anchors) <- NULL
     
     # Filter as needed
     idxF <- df$Q <= FDR

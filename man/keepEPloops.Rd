@@ -19,6 +19,8 @@ keepEPloops(lto, enhancer, promoter)
 }
 \value{
 A loops object with an additional row 'loop.type' in the rowData slot
+in addition to the gene.tss (which has the gene name) and the
+anchor.tss which shows the anchor(s) near the promoter region for the gene.
 }
 \description{
 \code{keepEPloops} adds a column to the rowData slot of a loops
