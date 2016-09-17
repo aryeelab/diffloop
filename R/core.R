@@ -53,6 +53,8 @@ setMethod(f = "summary", signature = c("loops"), definition = function(object) {
 # only.
 setGeneric(name = "cleanup", def = function(dlo) standardGeneric("cleanup"))
 setMethod(f = "cleanup", signature = c("loops"), definition = function(dlo) {
+    
+    #Return empty
     if (as.integer(dim(dlo)[2]) == 0) {
         cat("Creating empty loops object")
         dlo <- loops()
@@ -73,18 +75,13 @@ setMethod(f = "cleanup", signature = c("loops"), definition = function(dlo) {
     newAnchors <- dlo@anchors[udf]
     
     # Create mapping from old indices to new indices
-    mapping <- as.data.frame(findOverlaps(dlo@anchors, newAnchors))
-    intsdf <- as.data.frame(dlo@interactions)
+    translate <- seq(1,length(udf),1)
+    names(translate) <- udf
     
-    # Update interactions indices
-    leftmatch <- t(sapply(intsdf$left, function(x) mapping[mapping[,1] == x, ]))
-    rightmatch <- t(sapply(intsdf$right, function(x) mapping[mapping[,1] == x, ]))
-    
-    # Format new indices matrix
-    totalupdate <- cbind(unlist(leftmatch[, 2]), unlist(rightmatch[, 2]))
-    upints <- as.matrix(totalupdate)
+    # Create new matrix
+    upints <- matrix(unname(translate[as.character(dlo@interactions)]), ncol = 2)
     colnames(upints) <- c("left", "right")
-    rownames(upints) <- NULL
+    #rownames(upints) <- NULL
     
     # Update values
     slot(dlo, "interactions", check = TRUE) <- upints
@@ -129,38 +126,40 @@ setGeneric(name = "mergeAnchors", def = function(dlo, mergegap,
     newAnchors <- reduce(dlo@anchors, min.gapwidth = mergegap)
     
     # Create mapping from old indices to new indices
-    mapping <- as.data.frame(findOverlaps(dlo@anchors, newAnchors))
-    intsdf <- as.data.frame(dlo@interactions)
+    ov <- findOverlaps(dlo@anchors, newAnchors)
+    translate <- ov@to
+    names(translate) <- ov@from
     
     # Update interactions indices
-    leftmatch <- t(sapply(intsdf$left, function(x) mapping[mapping[, 
-        1] == x, ]))
-    rightmatch <- t(sapply(intsdf$right, function(x) mapping[mapping[, 
-        1] == x, ]))
-    totalupdate <- cbind(unlist(leftmatch[, 2]), unlist(rightmatch[, 
-        2]))
-    upints <- as.matrix(totalupdate)
+    upints <- matrix(unname(translate[as.character(dlo@interactions)]), ncol = 2)
     colnames(upints) <- c("left", "right")
+    #rownames(upints) <- NULL
     
     # Link counts and interactions
     df <- data.frame(upints, dlo@counts)
     dnames <- colnames(df)
     dM <- melt(df, id.vars = c("left", "right"))
-    print(dM)
     updatedLink <- suppressWarnings(dcast(dM, left + right ~ 
         variable, sum))
     intz <- matrix(c(updatedLink$left, updatedLink$right), ncol = 2)
     colnames(intz) <- c("left", "right")
-    
     countz <- data.matrix(updatedLink[, -1:-2])
+    
+    # Re-initialize new loops with column width
+    w <- (start(newAnchors[intz[, 2]]) + end(newAnchors[intz[, 2]]))/2 -
+         (start(newAnchors[intz[, 1]]) + end(newAnchors[intz[, 1]]))/2
+    w[w < 0] <- 0
+    rowData <- as.data.frame(as.integer(w))
+    colnames(rowData) <- c("loopWidth")
+    
     mergedObject <- loops(anchors = newAnchors, interactions = intz, 
-        counts = countz)
+        counts = countz, colData = dlo@colData, rowData = rowData)
     
     if (selfloops) {
         return(mergedObject)
     } else {
-        return(subsetLoops(mergedObject, mergedObject@interactions[, 
-            1] != mergedObject@interactions[, 2]))
+        return(subsetLoops(mergedObject,
+            mergedObject@interactions[, 1] != mergedObject@interactions[, 2]))
     }
 }
 
@@ -209,6 +208,7 @@ setMethod(f = "mergeAnchors", signature = c("loops", "numeric",
 #' #Either one or two anchors in region
 #' loops.small.both <- union(loops.small.one, loops.small.two)
 #' @import GenomicRanges
+#' @importFrom stats na.omit
 #' @export
 setGeneric(name = "subsetRegion", def = function(dlo, region, 
     nanchors) standardGeneric("subsetRegion"))
@@ -237,48 +237,46 @@ setMethod(f = "subsetRegion", signature = c("loops", "GRanges",
     newAnchors <- dlo@anchors[findOverlaps(region, dlo@anchors)@to, ]
     
     # Create mapping from old indices to new indices
-    mapping <- as.data.frame(findOverlaps(dlo@anchors, newAnchors))
-    intsdf <- as.data.frame(dlo@interactions)
+    ov <- findOverlaps(dlo@anchors, newAnchors)
+    translate <- ov@to
+    names(translate) <- ov@from
     
     # Update interactions indices
-    leftmatch <- t(sapply(intsdf$left, function(x) mapping[mapping[, 
-        1] == x, ]))
-    rightmatch <- t(sapply(intsdf$right, function(x) mapping[mapping[, 
-        1] == x, ]))
-    lm <- suppressWarnings(as.numeric(as.character(leftmatch[, 
-        2])))
-    rm <- suppressWarnings(as.numeric(as.character(rightmatch[, 
-        2])))
+    upints <- matrix(unname(translate[as.character(dlo@interactions)]), ncol = 2)
+    #rownames(upints) <- NULL
     
-    keepTheseLoops <- xor(!is.na(lm), !is.na(rm))  # only one anchor in region
-    keepTheseAnchors <- unique(unlist(intsdf[keepTheseLoops, 
-        ], use.names = FALSE))
+    keepTheseLoops <- xor(!is.na(upints[,1]), !is.na(upints[,2]))  # only one anchor in region
+    keepTheseAnchors <- as.numeric(na.omit(unique(as.vector(dlo@interactions[keepTheseLoops,]))))
+    
+    new.interactions <- dlo@interactions[keepTheseLoops,]
+    new.counts <- dlo@counts[keepTheseLoops,]
+    new.rowData <- as.data.frame(dlo@rowData[keepTheseLoops,])
+    colnames(new.rowData) <- colnames(dlo@rowData)
     
     # Go back through the motions
     
     # Create mapping from old indices to new indices
-    mapping <- as.data.frame(findOverlaps(dlo@anchors, dlo@anchors[keepTheseAnchors, 
-        ]))
-    intsdf <- as.data.frame(dlo@interactions)
+    ov <- findOverlaps(dlo@anchors, dlo@anchors[keepTheseAnchors, ])
+    translate <- ov@to
+    names(translate) <- ov@from
     
     # Update interactions indices
-    lm <- mapping[match(intsdf$left, mapping$queryHits), 2, drop=FALSE]
-    rm <- mapping[match(intsdf$right,mapping$queryHits), 2, drop=FALSE]
-    
+    upints <- matrix(unname(translate[as.character(new.interactions)]), ncol = 2)
+    colnames(upints) <- c("left", "right")
+    #rownames(upints) <- NULL
+
     # Format new indices matrix
-    totalupdate <- cbind(unlist(lm), unlist(rm))
-    cc <- complete.cases(totalupdate)
-    newinteractions <- matrix(totalupdate[cc], ncol = 2)
+    cc <- complete.cases(upints)
+    newinteractions <- matrix(upints[cc], ncol = 2)
     colnames(newinteractions) <- c("left", "right")
     
     # Subset rowData
-    newRowData <- as.data.frame(dlo@rowData[cc, ])
+    newRowData <- as.data.frame(new.rowData[cc, ])
     colnames(newRowData) <- colnames(dlo@rowData)
     row.names(newRowData) <- NULL
     
-    # Grab counts indicies; removes lines that don't map to
-    # anything via making them NAs and then removing them
-    newcounts <- matrix(dlo@counts[cc], ncol = ncol(dlo@counts))
+    # Grab counts indicies
+    newcounts <- matrix(new.counts[cc], ncol = ncol(dlo@counts))
     colnames(newcounts) <- colnames(dlo@counts)
     
     # Update values
@@ -290,25 +288,22 @@ setMethod(f = "subsetRegion", signature = c("loops", "GRanges",
 }
 
 .subsetRegion2 <- function(dlo, region) {
+    
     # Keep only those anchors that are being used
     newAnchors <- dlo@anchors[findOverlaps(region, dlo@anchors)@to, ]
     
     # Create mapping from old indices to new indices
-    mapping <- as.data.frame(findOverlaps(dlo@anchors, newAnchors))
-    intsdf <- as.data.frame(dlo@interactions)
+    ov <- findOverlaps(dlo@anchors, newAnchors)
+    translate <- ov@to
+    names(translate) <- ov@from
     
-    # Update interaction indicies
-    lm <- mapping[match(intsdf$left, mapping$queryHits), 2, drop=FALSE]
-    rm <- mapping[match(intsdf$right,mapping$queryHits), 2, drop=FALSE]
-    
-    # Format new indices matrix
-    totalupdate <- cbind(unlist(lm), unlist(rm))
-    cc <- complete.cases(totalupdate)
-    newinteractions <- matrix(totalupdate[cc], ncol = 2)
-    colnames(newinteractions) <- c("left", "right")
-    
-    # Grab counts indicies; removes lines that don't map to
-    # anything via making them NAs and then removing them
+    # Update interactions indices
+    upints <- matrix(unname(translate[as.character(dlo@interactions)]), ncol = 2)
+    cc <- complete.cases(upints)
+    upints <- upints[cc,]
+    colnames(upints) <- c("left", "right")
+
+    # Grab counts indicies
     newcounts <- matrix(dlo@counts[cc], ncol = ncol(dlo@counts))
     colnames(newcounts) <- colnames(dlo@counts)
     
@@ -316,11 +311,10 @@ setMethod(f = "subsetRegion", signature = c("loops", "GRanges",
     newRowData <- as.data.frame(dlo@rowData[cc, ])
     colnames(newRowData) <- colnames(dlo@rowData)
     row.names(newRowData) <- NULL
-
     
     # Update values
     slot(dlo, "anchors", check = TRUE) <- newAnchors
-    slot(dlo, "interactions", check = TRUE) <- newinteractions
+    slot(dlo, "interactions", check = TRUE) <- upints
     slot(dlo, "counts", check = TRUE) <- newcounts
     slot(dlo, "rowData", check = TRUE) <- newRowData
     return(dlo)
