@@ -23,7 +23,8 @@ A GRanges object
 }
 \description{
 \code{getHumanGenes} returns a \code{GRanges} object of all protein
-coding genes genome-wide or within specified chromosomes
+coding genes genome-wide or within specified chromosomes. Annotation
+is from regions from hg19/Gr37 and protein coding genes.
 }
 \details{
 This function returns a \code{GRanges} object with the coordinates and

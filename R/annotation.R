@@ -116,11 +116,11 @@ setMethod(f = "annotateAnchors.bigwig", definition = function(dlo, file, FUN = m
     return(dlo)
 })
 
-
 #' Get protein coding gene regions
 #'
 #' \code{getHumanGenes} returns a \code{GRanges} object of all protein
-#' coding genes genome-wide or within specified chromosomes
+#' coding genes genome-wide or within specified chromosomes. Annotation
+#' is from regions from hg19/Gr37 and protein coding genes.
 #'
 #' This function returns a \code{GRanges} object with the coordinates and
 #' gene IDs of all protein coding genes either genome-wide 
@@ -147,7 +147,8 @@ setGeneric(name = "getHumanGenes", def = function(chr, cache = TRUE) standardGen
 #' @import GenomicRanges
 .getHumanGenesNoCache <- function(chr) {
     vals = list(chr, "protein_coding")
-    mart = useMart(biomart = "ensembl", dataset = "hsapiens_gene_ensembl")
+    mart = useMart(biomart="ENSEMBL_MART_ENSEMBL", host="grch37.ensembl.org",
+                   path="/biomart/martservice" ,dataset="hsapiens_gene_ensembl")
     geneinfo = getBM(attributes = c("chromosome_name", "start_position", 
         "end_position", "external_gene_name"), filters = c("chromosome_name", 
         "biotype"), values = vals, mart = mart)
@@ -196,7 +197,8 @@ setMethod(f = "getHumanGenes", signature = c("character", "ANY"),
 #' Get Human Transcription Start Sites
 #'
 #' \code{getHumanTSS} returns a \code{GRanges} object of all 
-#' transcription start sites for humans
+#' transcription start sites for humans. Regions from hg19/Gr37 for 
+#' protein coding regions. 
 #'
 #' This function returns a \code{GRanges} object with the coordinates and
 #' gene TSS. The start and end of the IRanges slot will be the same number,
@@ -254,7 +256,8 @@ setMethod(f = "getHumanTSS", signature = c("character", "ANY"),
 #' @import GenomicRanges
 .getHumanTSSNoCache <- function(chr) {
     vals = list(chr)
-    mart = useMart(biomart = "ensembl", dataset = "hsapiens_gene_ensembl")
+    mart = useMart(biomart="ENSEMBL_MART_ENSEMBL", host="grch37.ensembl.org",
+                   path="/biomart/martservice" ,dataset="hsapiens_gene_ensembl")
     geneinfo = getBM(attributes = c("chromosome_name", "start_position", 
         "external_gene_name"), filters = c("chromosome_name"), 
         values = vals, mart = mart)

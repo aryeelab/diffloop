@@ -23,7 +23,8 @@ A GRanges object
 }
 \description{
 \code{getHumanTSS} returns a \code{GRanges} object of all 
-transcription start sites for humans
+transcription start sites for humans. Regions from hg19/Gr37 for 
+protein coding regions.
 }
 \details{
 This function returns a \code{GRanges} object with the coordinates and

@@ -14,7 +14,7 @@ NULL
 #' the x object must be loops and it must have a loop.type
 #' column which can be generated from the \code{annotateLoops}
 #' function. Blue loops are CTCF loops; black are none; red are 
-#' enhancer-promoter loops. 
+#' enhancer-promoter loops. Plots use hg19 and mm9 annotation by default.
 #'
 #' @param x A loops object 
 #' @param y A GRanges object containing region of interest
@@ -70,20 +70,20 @@ setMethod("loopPlot", signature(x = "loops", y = "GRanges", organism = "ANY",
     if (geneinfo == "NA" && !cache) {
         # Get gene annotation from bioMart
         if (organism == "h") {
-            mart = useMart(biomart = "ensembl", dataset = "hsapiens_gene_ensembl")
+            mart = useMart(biomart="ENSEMBL_MART_ENSEMBL", host="grch37.ensembl.org",
+                   path="/biomart/martservice" ,dataset="hsapiens_gene_ensembl")
             chrom_biomart = gsub("chr", "", chrom)
             geneinfo = getBM(attributes = c("chromosome_name", 
                 "exon_chrom_start", "exon_chrom_end", "external_gene_name", 
-                "strand"), filters = c("chromosome_name", "start", 
-                "end"), values = list(chrom_biomart, start, end), 
+                "strand"), 
                 mart = mart)
         } else if (organism == "m") {
-            mart = useMart(biomart = "ensembl", dataset = "mmusculus_gene_ensembl")
+            mart=useMart(host='may2012.archive.ensembl.org', 
+                biomart='ENSEMBL_MART_ENSEMBL', dataset = "mmusculus_gene_ensembl")
             chrom_biomart = gsub("chr", "", chrom)
             geneinfo = getBM(attributes = c("chromosome_name", 
-                "start_position", "end_position", "external_gene_name", 
-                "strand"), filters = c("chromosome_name", "start", 
-                "end"), values = list(chrom_biomart, start, end), 
+                "start_position", "end_position", "external_gene_id", 
+                "strand"), 
                 mart = mart)
         }
         # make names the same
