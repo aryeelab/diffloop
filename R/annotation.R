@@ -310,6 +310,115 @@ setMethod(f = "getHumanTSS", signature = c("character"),
     })
 
 
+#' Get Mouse Transcription Start Sites
+#'
+#' \code{getMouseTSS} returns a \code{GRanges} object of all 
+#' transcription start sites for humans. Regions from mm9 for 
+#' protein coding regions. 
+#'
+#' This function returns a \code{GRanges} object with the coordinates and
+#' gene TSS. The start and end of the IRanges slot will be the same number,
+#' so consider using the \code{padGRanges} function after calling this function.
+#'
+#' @param chr Specifies what chromosomes are desired for the TSS# 
+#' @return A GRanges object
+#'
+#' @examples
+#' # Grab all transition start sites genome-wide
+#' mouse.TSS <- getMouseTSS()
+#' @import GenomicRanges
+#' @import biomaRt
+#' @importFrom GenomeInfoDb sortSeqlevels seqlevels seqlevels<- 
+#' @importFrom S4Vectors queryHits subjectHits
+#' 
+#' @export
+setGeneric(name = "getMouseTSS", def = function(chr) standardGeneric("getMouseTSS"))
+
+#' @rdname getMouseTSS
+setMethod(f = "getMouseTSS", signature = c("missing"), 
+    definition = function(chr) {
+        all <- c("1", "2", "3", "4", "5", "6", "7", "8", "9", 
+                 "10", "11", "12", "13", "14", "15", "16", "17", "18", 
+                 "19", "20", "21", "22", "X", "Y")
+        geneinfo = NULL
+        rda <- paste(system.file("rda", package = "diffloop"), 
+                     "geneinfo.m.rda", sep = "/")
+        load(rda)
+        mouseTSS <- GRanges(geneinfo[,c(1,2,3,4)])
+        end(mouseTSS[geneinfo$strand == 1]) <- start(mouseTSS[geneinfo$strand == 1])
+        start(mouseTSS[geneinfo$strand == -1]) <- end(mouseTSS[geneinfo$strand == -1])
+        return(mouseTSS[as.vector(as.data.frame(mouseTSS)$seqnames) %in% as.vector(all)])
+            
+    })
+
+#' @rdname getMouseTSS
+setMethod(f = "getMouseTSS", signature = c("character"), 
+    definition = function(chr) {
+        geneinfo = NULL
+        rda <- paste(system.file("rda", package = "diffloop"), 
+                     "geneinfo.m.rda", sep = "/")
+        load(rda)
+        mouseTSS <- GRanges(geneinfo[,c(1,2,3,4)])
+        end(mouseTSS[geneinfo$strand == 1]) <- start(mouseTSS[geneinfo$strand == 1])
+        start(mouseTSS[geneinfo$strand == -1]) <- end(mouseTSS[geneinfo$strand == -1])
+        return(mouseTSS[as.vector(as.data.frame(mouseTSS)$seqnames) %in% as.vector(all)])
+    })
+
+#' Get protein coding gene regions
+#'
+#' \code{getMouseGenes} returns a \code{GRanges} object of all protein
+#' coding genes genome-wide or within specified chromosomes. Annotation
+#' is from regions from mm9 and protein coding genes.
+#'
+#' This function returns a \code{GRanges} object with the coordinates and
+#' gene IDs of all protein coding genes either genome-wide 
+#' (by default) orspecified within a particular chromosome. 
+#'
+#' @param chr A vector of chromosomes 
+#'
+#' @return A GRanges object
+#'
+#' @examples
+#' # Grab all protein coding gene locations genome-wide
+#' pc.genes <- getMouseGenes()
+#' # Grab all protein coding gene loctions on chromosome 1
+#' chr1 <- getHumanGenes(c('1'))
+#' @import GenomicRanges
+#' @importFrom GenomeInfoDb sortSeqlevels seqlevels seqlevels<- 
+#' @importFrom S4Vectors queryHits subjectHits
+#' 
+#' @export
+setGeneric(name = "getMouseGenes", def = function(chr) standardGeneric("getMouseGenes"))
+
+#' @rdname getMouseGenes
+setMethod(f = "getMouseGenes", signature = c("missing"), 
+    definition = function(chr) {
+        all <- c("1", "2", "3", "4", "5", "6", "7", "8", "9", 
+                 "10", "11", "12", "13", "14", "15", "16", "17", "18", 
+                 "19", "20", "21", "22", "X", "Y")
+        human.genes = NULL
+        rda <- paste(system.file("rda", package = "diffloop"), 
+                     "human.genes.rda", sep = "/")
+        load(rda)
+        return(human.genes[as.vector(as.data.frame(human.genes)$seqnames) %in%
+                               as.vector(all)])
+        
+    })
+
+#' @rdname getHumanGenes
+setMethod(f = "getHumanGenes", signature = c("character"), 
+    definition = function(chr) {
+        human.genes = NULL
+        rda <- paste(system.file("rda", package = "diffloop"), 
+                     "human.genes.rda", sep = "/")
+        load(rda)
+        return(human.genes[is.element(as.vector(as.data.frame(human.genes)$seqnames), 
+                                      as.vector(chr))])
+        
+    })
+
+
+
 #' Annotate loops as Enhancer-Promoter or CTCF-CTCF
 #'
 #' \code{annotateLoops} adds a column to the rowData slot of a loops

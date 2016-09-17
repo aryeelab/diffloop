@@ -54,9 +54,10 @@ setMethod(f = "callCCDs", def = function(lo, petWeights = FALSE, lowCoveragePerc
 #' @param regionB A GRanges object
 #'
 #' @return A loops object
-#'
+#' @import GenomicRanges
 #' @examples
 #' # Return the width for loops 
+#' library(GenomicRanges)
 #' rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
 #' load(rda)
 #' regA <- GRanges(c('1'),IRanges(c(36000000),c(36100000)))

@@ -26,6 +26,7 @@ maps to regionA and the other maps to region B
 }
 \examples{
 # Return the width for loops 
+library(GenomicRanges)
 rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
 load(rda)
 regA <- GRanges(c('1'),IRanges(c(36000000),c(36100000)))
