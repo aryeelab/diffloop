@@ -32,7 +32,7 @@ This function reads in preprocessed ChIA-PET data produced by the
 \code{dnaloop} preprocessing pipeline. The \code{samples} argument specifies
 which samples are read. If \code{samples} is not specified all samples will
 be read. The \code{type} option restricts loops whether they are on the same 
-'inter' or different 'intra' chormosome. Default is 'all'.
+'intra' or different 'inter' chormosome. Default is 'all'.
 }
 \examples{
 # Reading in all samples, no mergegap, all loops
@@ -42,7 +42,7 @@ bd<- system.file('extdata', 'esc_jurkat', package='diffloopdata')
 # Reading in a subset of samples, 1kb mergegap, only intrachromosomal
 # looping
 samples <- c('naive_esc_1', 'naive_esc_2')
-naive.intra <- loopsMake(bd, samples, 1000, 'intra')
+naive.intra <- loopsMake(bd, samples, 1000, 'inter')
 
 }
 

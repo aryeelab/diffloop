@@ -121,7 +121,7 @@ setReplaceMethod("sampleNames", c("loops", "ANY"), function(object,
 #'
 #' @param dlo A loops object 
 #'
-#' @return A list of loops objects w
+#' @return A list of loops objects with one sample per index.
 #'
 #' @examples
 #' # Updating groups from all 'group1' to meaningful designations

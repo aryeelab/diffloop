@@ -10,7 +10,7 @@ NULL
 #' \code{dnaloop} preprocessing pipeline. The \code{samples} argument specifies
 #' which samples are read. If \code{samples} is not specified all samples will
 #' be read. The \code{type} option restricts loops whether they are on the same 
-#' 'inter' or different 'intra' chormosome. Default is 'all'. 
+#' 'intra' or different 'inter' chormosome. Default is 'all'. 
 #'
 #' @param beddir A string. The preprocessed data directory
 #' @param samples A character vector. Optional list of samples to read in
@@ -27,7 +27,7 @@ NULL
 #' # Reading in a subset of samples, 1kb mergegap, only intrachromosomal
 #' # looping
 #' samples <- c('naive_esc_1', 'naive_esc_2')
-#' naive.intra <- loopsMake(bd, samples, 1000, 'intra')
+#' naive.intra <- loopsMake(bd, samples, 1000, 'inter')
 #'
 
 #' @import foreach
@@ -168,7 +168,7 @@ setMethod(f = "loopsMake", def = function(beddir, samples, mergegap = 0,
     .loopsMake(beddir, samples, mergegap, type)
 })
 
-#' Read preprocessed ChiA-PET data from mango
+#' Read preprocessed ChIA-PET data from mango
 #'
 #' \code{loopsMake.mango} reads in a data directory created by the
 #' \code{mango} preprocessing pipeline and returns a loops object
@@ -180,7 +180,10 @@ setMethod(f = "loopsMake", def = function(beddir, samples, mergegap = 0,
 #' \code{all} or \code{fdr}, with \code{fdr} being the default. Under the
 #' default, all samples with the extension \code{.fdr.mango} will be processed.
 #' Finally, the \code{FDR} parameter (default = 1) specifies the minimum threshold
-#' for loops to be added to the greater \code{loops} object.
+#' for loops to be added to the greater \code{loops} object. Currently, we do not
+#' support importing the verbose output, so the verbose parameter when executing
+#' mango should be set to FALSE or the user will have ot parse the file before
+#' reading into diffloop using \code{awk}, \code{cut}, or something similar. 
 #'
 #' @param beddir A string. The preprocessed data directory; Required
 #' @param samples A character vector. Optional list of samples to read in

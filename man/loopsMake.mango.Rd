@@ -4,7 +4,7 @@
 \name{loopsMake.mango}
 \alias{loopsMake.mango}
 \alias{loopsMake.mango,ANY-method}
-\title{Read preprocessed ChiA-PET data from mango}
+\title{Read preprocessed ChIA-PET data from mango}
 \usage{
 loopsMake.mango(beddir, samples = NA, mergegap = 500, ext = "fdr")
 
