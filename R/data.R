@@ -35,22 +35,6 @@ NULL
 #' @source biomaRt July 2015 stable build
 "human.genes"
 
-#' Human 60k+ transcription start sites
-#'
-#' A GRanges object with all loci of transcription start sites
-#'
-#' @format A GRanges object 
-#' \describe{
-#'   \item{seqnames}{Chromosomes without "chr"}
-#'   \item{ranges}{start/end loci are same}
-#'   \item{strand}{not specified ('*' everywhere)}
-#'   \item{id}{Gene Name}
-#'   ...
-#' }
-#' @return A GRanges object
-#' @source biomaRt July 2015 stable build
-"human.TSS"
-
 #' Human/mouse exon locations
 #'
 #' A dataframe used for plotting annotation for human

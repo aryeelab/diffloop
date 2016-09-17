@@ -7,16 +7,14 @@
 \alias{getHumanTSS,missing-method}
 \title{Get Human Transcription Start Sites}
 \usage{
-getHumanTSS(chr, cache = TRUE)
+getHumanTSS(chr)
 
-\S4method{getHumanTSS}{missing}(chr, cache = TRUE)
+\S4method{getHumanTSS}{missing}(chr)
 
-\S4method{getHumanTSS}{character}(chr, cache = TRUE)
+\S4method{getHumanTSS}{character}(chr)
 }
 \arguments{
-\item{chr}{Specifies what chromosomes are desired for the TSS}
-
-\item{cache}{logic variable (default = TRUE) to use TSS from July.2015 freeze}
+\item{chr}{Specifies what chromosomes are desired for the TSS#'}
 }
 \value{
 A GRanges object

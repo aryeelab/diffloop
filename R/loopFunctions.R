@@ -319,7 +319,7 @@ setMethod(f = "loopGenes", signature = c("loops", "missing"),
     definition = function(dlo, genesGR) {
         df <- summary(dlo)
         gr.loop <- makeGRangesFromDataFrame(df, seqnames.field=c("chr_1"), start.field = "start_1", end.field = "end_2")
-        
+        geneinfo <- NULL
         rda <- paste(system.file("rda", package = "diffloop"), "geneinfo.h.rda", sep = "/")
         load(rda)
         genesGR <- makeGRangesFromDataFrame(geneinfo[,c(1,2,3,4)], keep.extra.columns = TRUE)

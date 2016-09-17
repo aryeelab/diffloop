@@ -204,9 +204,7 @@ setMethod(f = "getHumanGenes", signature = c("character", "ANY"),
 #' gene TSS. The start and end of the IRanges slot will be the same number,
 #' so consider using the \code{padGRanges} function after calling this function.
 #'
-#' @param chr Specifies what chromosomes are desired for the TSS
-#' @param cache logic variable (default = TRUE) to use TSS from July.2015 freeze
-#'  
+#' @param chr Specifies what chromosomes are desired for the TSS#'  
 #' @return A GRanges object
 #'
 #' @examples
@@ -218,58 +216,36 @@ setMethod(f = "getHumanGenes", signature = c("character", "ANY"),
 #' @importFrom S4Vectors queryHits subjectHits
 #' 
 #' @export
-setGeneric(name = "getHumanTSS", def = function(chr, cache = TRUE) standardGeneric("getHumanTSS"))
+setGeneric(name = "getHumanTSS", def = function(chr) standardGeneric("getHumanTSS"))
 
 #' @rdname getHumanTSS
-setMethod(f = "getHumanTSS", signature = c("missing", "ANY"), 
-    definition = function(chr, cache = TRUE) {
+setMethod(f = "getHumanTSS", signature = c("missing"), 
+    definition = function(chr) {
         all <- c("1", "2", "3", "4", "5", "6", "7", "8", "9", 
-            "10", "11", "12", "13", "14", "15", "16", "17", "18", 
-            "19", "20", "21", "22", "X", "Y")
-        if (cache) {
-            human.TSS = NULL
-            rda <- paste(system.file("rda", package = "diffloop"), 
-                "human.TSS.rda", sep = "/")
-            load(rda)
-            return(human.TSS[as.vector(as.data.frame(human.TSS)$seqnames) %in%
-                as.vector(all)])
-        } else {
-            return(.getHumanGenesNoCache(all))
-        }
+                 "10", "11", "12", "13", "14", "15", "16", "17", "18", 
+                 "19", "20", "21", "22", "X", "Y")
+        geneinfo = NULL
+        rda <- paste(system.file("rda", package = "diffloop"), 
+                     "geneinfo.h.rda", sep = "/")
+        load(rda)
+        human.TSS <- GRanges(geneinfo[,c(1,2,3,4)])
+        end(human.TSS) <- start(human.TSS)
+        return(human.TSS[as.vector(as.data.frame(human.TSS)$seqnames) %in% as.vector(all)])
+            
     })
 
 #' @rdname getHumanTSS
-setMethod(f = "getHumanTSS", signature = c("character", "ANY"), 
-    definition = function(chr, cache = TRUE) {
-        if (cache) {
-            human.TSS = NULL
-            rda <- paste(system.file("rda", package = "diffloop"), 
-                "human.TSS.rda", sep = "/")
-            load(rda)
-            return(human.TSS[is.element(as.vector(as.data.frame(human.TSS)$seqnames), 
-                as.vector(chr))])
-        } else {
-            return(.getHumanTSSNoCache(chr))
-        }
+setMethod(f = "getHumanTSS", signature = c("character"), 
+    definition = function(chr) {
+        geneinfo = NULL
+        rda <- paste(system.file("rda", package = "diffloop"), 
+                     "geneinfo.h.rda", sep = "/")
+        load(rda)
+        human.TSS <- GRanges(geneinfo[,c(1,2,3,4)])
+        end(human.TSS) <- start(human.TSS)
+        return(human.TSS[is.element(as.vector(as.data.frame(human.TSS)$seqnames),  as.vector(chr))])
     })
 
-#' @import GenomicRanges
-.getHumanTSSNoCache <- function(chr) {
-    vals = list(chr)
-    mart = useMart(biomart="ENSEMBL_MART_ENSEMBL", host="grch37.ensembl.org",
-                   path="/biomart/martservice" ,dataset="hsapiens_gene_ensembl")
-    geneinfo = getBM(attributes = c("chromosome_name", "start_position", 
-        "external_gene_name"), filters = c("chromosome_name"), 
-        values = vals, mart = mart)
-    colnames(geneinfo) <- c("chr", "start", "id")
-    geneinfo$end <- geneinfo$start
-    raw <- makeGRangesFromDataFrame(geneinfo, keep.extra.columns = TRUE, 
-        ignore.strand = TRUE, seqnames.field = c("chr"), start.field = "start", 
-        end.field = c("end"), starts.in.df.are.0based = FALSE)
-    gr <- sortSeqlevels(raw)
-    gr <- sort(gr)
-    return(gr)
-}
 
 #' Annotate loops as Enhancer-Promoter or CTCF-CTCF
 #'
@@ -486,13 +462,12 @@ setMethod(f = "keepEPloops", signature = c("loops",
     Ltss <- data.frame(Lhits.p)
     Ltss <- cbind(Ltss, mcols(promoter[Ltss$queryHits]))
     ttss <- rbind(Rtss, Ltss)[,c(2,3)]
-    tss <- aggregate(id~subjectHits,paste,collapse=",",data=ttss)
+    tss <- aggregate(gene~subjectHits,paste,collapse=",",data=ttss)
     
     ####### 
     
     # Determine if right anchor is near enhancer peak
-    Rhits.e <- suppressWarnings(findOverlaps(enhancer, Ranchors, 
-        maxgap = 0))
+    Rhits.e <- suppressWarnings(findOverlaps(enhancer, Ranchors, maxgap = 0))
     Rvalues.e <- rep(FALSE, dim(lto.df)[1])
     Rvalues.e[unique(subjectHits(Rhits.e))] <- TRUE
     
@@ -507,7 +482,7 @@ setMethod(f = "keepEPloops", signature = c("loops",
     #Add annotation and subset
     ep.loops <- (Lvalues.e & Rvalues.p) | (Lvalues.p & Rvalues.e)
     gene.tss <- rep("none", dim(lto)[2])
-    gene.tss[tss$subjectHits] <- tss$id
+    gene.tss[tss$subjectHits] <- tss$gene
     lto@rowData$loop.type <- "e-p"
     lto@rowData$gene.tss <- gene.tss
     new.loops <- subsetLoops(lto, ep.loops)
