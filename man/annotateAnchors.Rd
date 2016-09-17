@@ -5,7 +5,7 @@
 \alias{annotateAnchors}
 \alias{annotateAnchors,loops,GRanges,character,missing-method}
 \alias{annotateAnchors,loops,GRanges,character,numeric-method}
-\title{Add meta data column to anchors based on .bed file}
+\title{Add meta data column to anchors based on GRanges}
 \usage{
 annotateAnchors(dlo, features, featureName, maxgap)
 

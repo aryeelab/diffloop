@@ -4,7 +4,7 @@
 \name{loopsMake}
 \alias{loopsMake}
 \alias{loopsMake,ANY-method}
-\title{Read preprocessed ChiA-PET data from dnaloop}
+\title{Read preprocessed ChIA-PET data from dnaloop}
 \usage{
 loopsMake(beddir, samples = NA, mergegap = 0, type = "all")
 

@@ -34,7 +34,9 @@ Imports:
     stats,
     utils,
     Biobase,
-    readr
+    readr, 
+    data.table,
+    rtracklayer
 License: MIT + file LICENSE
 LazyData: TRUE
 Suggests:

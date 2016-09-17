@@ -1,7 +1,7 @@
 #' @include union.R
 NULL
 
-#' Add meta data column to anchors based on .bed file
+#' Add meta data column to anchors based on GRanges
 #'
 #' \code{annotateAnchors} adds a logical variable to meta data columns in the
 #' anchors based on a GRanges object of features' genomic coordinates
@@ -59,6 +59,61 @@ setMethod(f = "annotateAnchors", signature = c("loops", "GRanges",
     "character", "numeric"), definition = function(dlo, features, 
     featureName, maxgap) {
     .annotateAnchors(dlo, features, featureName, maxgap)
+})
+
+#' Add meta data column to anchors based on .bigwig
+#'
+#' \code{annotateAnchors.bigwig} adds a numeric variable to meta data 
+#' columns in the anchors slot based on a user-specified .bigwig
+#' file. 
+#'
+#' This function adds a meta data column to anchors of the specified
+#' loops object. All values from the .bigwig file that overlap with the 
+#' each anchor are handled by the FUN (default is to average them) to 
+#' produce a single value added to the mcols of the anchors. 
+#'
+#' @param dlo A loops object whose anchors will be annotated
+#' @param file A Granges object corresponding to locations of interest
+#' @param FUN A function used to combine multiple values observed in a single anchor; default is mean
+#' @param pad An integer value of to pad the anchors of the loops object; default is 0
+#'
+#' @return A loops object with new numeric meta data column in anchors
+#'
+#' @examples
+#' # Annotate whether anchors are near a gene body; within 1kb
+#' rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
+#' load(rda)
+#' gb <-getHumanGenes()
+#' loops.small <- annotateAnchors(loops.small,gb,'nearGeneBody')
+#'
+#' @import GenomicRanges
+#' @importFrom rtracklayer import.bw
+#' @importFrom tools file_path_sans_ext
+#' 
+#' @export
+setGeneric(name = "annotateAnchors.bigwig", function(dlo, file, FUN = mean, pad = 0)
+    standardGeneric("annotateAnchors.bigwig"))
+
+#' @rdname annotateAnchors.bigwig
+setMethod(f = "annotateAnchors.bigwig", definition = function(dlo, file, FUN = mean, pad = 0) {
+    
+    sample <- basename(file_path_sans_ext(file))
+    bw.vals <- import.bw(file, which = addchr(dlo@anchors))
+    ovl.k <- findOverlaps(addchr(dlo@anchors), bw.vals)
+    qh.k <- queryHits(ovl.k) # anchors
+    sh.k <- subjectHits(ovl.k) 
+    values.t <- as.data.frame(tapply(mcols(bw.vals[sh.k])$score, qh.k, FUN))
+    
+    #A lot of extra effort to handle anchor regions with no values
+    colnames(values.t) <- "bwvalues"
+    vNA <- data.frame(matrix(NA, ncol = 1, nrow = length(ranges(dlo@anchors))))
+    colnames(vNA) <- "NAss"
+    ugly <- merge(vNA, values.t, by=0, all = TRUE, sort = F)
+    ugly <- ugly[order(as.numeric(ugly$Row.names)), ]
+    values <- data.frame(ugly$bwvalues)
+    colnames(values) <- sample
+    mcols(dlo@anchors) <- as.data.frame(c(mcols(dlo@anchors), values))
+    return(dlo)
 })
 
 
@@ -257,10 +312,8 @@ setMethod(f = "annotateLoops", signature = c("loops", "GRanges",
     promoter) {
     
     lto.df <- summary(lto)
-    Ranchors <- GRanges(lto.df[, 1], IRanges(lto.df[, 2], lto.df[, 
-        3]))
-    Lanchors <- GRanges(lto.df[, 4], IRanges(lto.df[, 5], lto.df[, 
-        6]))
+    Ranchors <- GRanges(lto.df[, 1], IRanges(lto.df[, 2], lto.df[, 3]))
+    Lanchors <- GRanges(lto.df[, 4], IRanges(lto.df[, 5], lto.df[, 6]))
     
     # Determine if right anchor is near CTCF peak
     Rhits.c <- suppressWarnings(findOverlaps(ctcf, Ranchors, 
@@ -326,7 +379,10 @@ setMethod(f = "annotateLoops", signature = c("loops", "GRanges",
 #' only loops that are enhancer-promoter. 
 #'
 #' This function works similar to the \code{annotateLoops} function but
-#' returns only
+#' returns only enhancer-promoter loops that are defined in this function.
+#' Additionally, this function returns the gene name(s) of the nearby 
+#' transcription start sites in a comma-separted list if there are multiple.
+#' These gene names are defined by the promoter GRanges mcol slot.
 #'
 #' @param lto A loops object whose loops will be annotated
 #' @param enhancer GRanges object corresponding to locations of enhancer peaks
@@ -402,4 +458,101 @@ setMethod(f = "keepEPloops", signature = c("loops",
     new.loops <- subsetLoops(lto, ep.loops)
     
     return(new.loops)
+})
+
+#' Annotate enhancer-promoter loops with differential gene expression
+#'
+#' \code{annotateLoops.dge} adds columns to the rowData slot of a loops
+#' object that shows summary statistics corresponding TSS of a gene name 
+#' based on the genes.tss rowData column. This function should be used
+#' following the \code{keepEPloops} function. 
+#'
+#' This function links enhancer-promoter loops and differential gene
+#' expression results. The rownames of the deseq_res slots should correspond
+#' to the gene names in the gene.tss column of the rowData slot of the loops
+#' object. The function returns a loops object if multiple is specified as FALSE
+#' which is the case by default. Otherwise, if multiple is TRUE, then this
+#' function returns a data frame since each loop may have more than moe TSS. 
+#' One can reproduce this dataframe quickly when multiple = FALSE using the
+#' summary() function on the returned loops object. 
+#'
+#' @param lto A loops object whose loops will be annotated
+#' @param deseq_res A data.frame 
+#' @param multiple Annotate loops with multiple TSS? Default = FALSE
+#'
+#' @return A loops object if multiple = FALSE or data frame if multiple = TRUE
+#'
+#' @examples
+#' rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
+#' load(rda)
+#' h3k27ac_j <- system.file('extdata','Jurkat_H3K27ac_chr1.narrowPeak',package='diffloop')
+#' h3k27ac <- rmchr(padGRanges(bedToGRanges(h3k27ac_j), pad = 1000))
+#' promoter <- padGRanges(getHumanTSS(c('1')), pad = 1000)
+#' small.ep <- keepEPloops(loops.small, h3k27ac, promoter)
+#' #ADD SOMETHING HERE.
+#' 
+#' @import GenomicRanges
+#' @importFrom data.table as.data.table
+#' @export
+setGeneric(name = "annotateLoops.dge", def = function(lto, 
+    deseq_res, multiple = FALSE) standardGeneric("annotateLoops.dge"))
+
+#' @rdname annotateLoops.dge
+setMethod(f = "annotateLoops.dge", definition = function(lto, deseq_res, multiple = FALSE) {
+    
+     if(!"gene.tss" %in% colnames(lto@rowData)){
+        stop("Must have gene.tss column in rowData slot!")     
+    }
+    
+    res.dt <- as.data.table(as.data.frame(deseq_res), keep.rownames=TRUE)
+
+    diffloop_results <- lto@rowData
+    diffloop_results <- dplyr::add_rownames(diffloop_results, "idx")
+
+    #E-P loops with one gene
+    dup <- grep(",", diffloop_results$gene.tss)
+    onehit <- diffloop_results[-dup,]
+    
+    if(!multiple){
+        idx <- "" # hack to avoid note
+        onehit.dt <- as.data.table(onehit)
+        c.onehit <- merge(onehit.dt, res.dt, by.x = c("gene.tss"),by.y=c("rn"))
+        c.onehit <- dplyr::arrange(c.onehit, as.numeric(idx))
+        ida <- c.onehit$idx
+        gene.tss <- c.onehit$gene.tss
+        c.onehit <- within(c.onehit, rm("idx", "gene.tss"))
+        c.onehit$gene.tss <- gene.tss
+        new.loops <- subsetLoops(lto, as.numeric(ida))
+        new.loops@rowData <- c.onehit
+        return(new.loops)
+        
+    } else {
+        diffloop_results <- summary(lto)
+
+        #E-P loops with one gene
+        dup <- grep(",", diffloop_results$gene.tss)
+        onehit <- diffloop_results[-dup,]
+    
+        #Handle E-P loops with multiple genes
+        multhits <- diffloop_results[dup,]
+        multgenes <- strsplit(multhits$gene.tss, ",")
+        multhits.long <- data.frame()
+        for(i in 1:length(multgenes)){
+            t <- cbind(data.frame(multgenes[[i]]), rep(multhits[i,], length(multgenes[[i]])))
+            t$gene.tss <- t[,1]
+            t <- t[,-1]
+            multhits.long <- rbind(multhits.long, t)
+        }
+
+        #Combine; make data.tables
+        allhits <- rbind(onehit, multhits.long)
+        allhits.dt <- as.data.table(allhits)
+
+        #Link DESeq results
+        c.allhits <-  merge(allhits.dt, res.dt, by.x = c("gene.tss"),by.y=c("rn"))
+        gene.tss <- c.allhits$gene.tss
+        c.allhits <- within(c.allhits, rm("gene.tss"))
+        c.allhits$gene.tss <- gene.tss
+        return(data.frame(c.allhits))
+    }
 })

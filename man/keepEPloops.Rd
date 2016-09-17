@@ -28,7 +28,10 @@ only loops that are enhancer-promoter.
 }
 \details{
 This function works similar to the \code{annotateLoops} function but
-returns only
+returns only enhancer-promoter loops that are defined in this function.
+Additionally, this function returns the gene name(s) of the nearby 
+transcription start sites in a comma-separted list if there are multiple.
+These gene names are defined by the promoter GRanges mcol slot.
 }
 \examples{
 rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
