@@ -20,12 +20,11 @@ setMethod("[", signature(x = "loops", i = "numeric", j = "numeric",
     colnames(newRowData) <- colnames(x@rowData)
     slot(x, "rowData", check = TRUE) <- newRowData
     
-    slot(x, "counts", check = TRUE) <- x@counts[, j]
-    nonZero <- apply(x@counts, MARGIN = 1, function(t) !all(t == 
-        0))
+    slot(x, "counts", check = TRUE) <- x@counts[, j, drop = FALSE]
+    nonZero <- apply(x@counts, MARGIN = 1, function(t) !all(t == 0))
     x <- subsetLoops(x, nonZero)
     slot(x, "colData", check = TRUE) <- x@colData[j, ]
-    return(x)
+    return(cleanup(x))
 })
 
 #' @rdname sub-loops-numeric-numeric-missing-method 
@@ -37,7 +36,7 @@ setMethod("[", signature(x = "loops", i = "missing", j = "numeric",
     nonZero <- apply(x@counts, MARGIN = 1, function(t) !all(t == 0))
     x <- subsetLoops(x, nonZero)
     slot(x, "colData", check = TRUE) <- x@colData[j, ]
-    return(x)
+    return(cleanup(x))
 })
 
 #' @rdname sub-loops-numeric-numeric-missing-method 
@@ -45,12 +44,12 @@ setMethod("[", signature(x = "loops", i = "numeric", j = "missing",
     drop = "missing"), definition = function(x, i, j, drop) {
     upints <- x@interactions[i, ]
     slot(x, "interactions", check = TRUE) <- as.matrix(upints)
-    ucounts <- x@counts[i, ]
+    ucounts <- x@counts[i, , drop = FALSE]
     slot(x, "counts", check = TRUE) <- ucounts
     newRowData <- as.data.frame(x@rowData[i, ])
     colnames(newRowData) <- colnames(x@rowData)
     slot(x, "rowData", check = TRUE) <- newRowData
-    return(x)
+    return(cleanup(x))
 })
 
 #' Extract first part of loops object
@@ -62,7 +61,6 @@ setMethod("[", signature(x = "loops", i = "numeric", j = "missing",
 #' @return A loops object
 #' 
 setMethod("head", signature = "loops", function(x, n = 6, ...) {
-    
     anchors <- head(x@anchors, n)
     interactions <- head(x@interactions, n)
     counts <- head(x@counts, n)
@@ -88,7 +86,6 @@ setMethod("head", signature = "loops", function(x, n = 6, ...) {
 #' @return A loops object
 #' 
 setMethod("tail", signature = "loops", function(x, n = 6, ...) {
-    
     anchors <- tail(x@anchors, n)
     interactions <- tail(x@interactions, n)
     counts <- tail(x@counts, n)
