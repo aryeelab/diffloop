@@ -24,6 +24,8 @@ NULL
 #' @param geneinfo A data.frame manually specifying annotation (see Examples)
 #' @param colorLoops Differentiates loops based on loop.type in loops object
 #' @param cache logic variable (default = TRUE) to use gene annotation from July.2015 freeze
+#' @param maxCounts Number of counts associated with thickest loop. Default is largest count
+#' in region displayed
 #'
 #' @return A plot object
 #'
@@ -33,7 +35,7 @@ NULL
 #' rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
 #' load(rda)
 #' regA <- GRanges(c('1'),IRanges(start=c(36000000),end=c(36300000)))
-#' plot1 <- subsetRegion(loops.small, regA)
+#' plot1 <- loopPlot(loops.small, regA)
 #' #Example of \code{geneinfo} table
 #' geneinfo <- data.frame(1,359345,359681,'RP5-8572K21.15','.',-1)
 #' names(geneinfo) <- c('chrom','start','stop','gene','strand')
@@ -45,20 +47,20 @@ NULL
 #' 
 #' @export
 setGeneric(name = "loopPlot", def = function(x, y, organism = "h", 
-    geneinfo = "NA", colorLoops = FALSE, cache = TRUE) standardGeneric("loopPlot"))
+    geneinfo = "NA", colorLoops = FALSE, cache = TRUE, maxCounts = -1) standardGeneric("loopPlot"))
 
 #' @rdname loopPlot
 setMethod("loopPlot", signature(x = "loops", y = "GRanges", organism = "ANY", 
-    geneinfo = "ANY", colorLoops = "ANY", cache = "ANY"), definition = function(x, 
-    y, organism = "h", geneinfo = "NA", colorLoops = FALSE, cache = TRUE) {
+    geneinfo = "ANY", colorLoops = "ANY", cache = "ANY", maxCounts = "ANY"), definition = function(x, 
+    y, organism = "h", geneinfo = "NA", colorLoops = FALSE, cache = TRUE, maxCounts = -1) {
     if (!colorLoops) {
-        return(.loopPlot(x, y, organism, geneinfo, cache))
+        return(.loopPlot(x, y, organism, geneinfo, cache, maxCounts))
     } else {
-        return(.loopPlotcolor(x, y, organism, geneinfo, cache))
+        return(.loopPlotcolor(x, y, organism, geneinfo, cache, maxCounts))
     }
 })
 
-.loopPlot <- function(x, y, organism = "h", geneinfo = "NA", cache = TRUE) {
+.loopPlot <- function(x, y, organism = "h", geneinfo = "NA", cache = TRUE, maxCounts = -1) {
     
     # Immediately restrict the loops object to the region
     objReg <- removeSelfLoops(subsetRegion(x, y))
@@ -134,8 +136,15 @@ setMethod("loopPlot", signature(x = "loops", y = "GRanges", organism = "ANY",
     w <- loopWidth(objReg)
     h <- sqrt(w/max(w))
     
+    malw <- 1
+    if(maxCounts == -1){
+        malw <- max(bedPE$score) 
+    } else {
+        malw <- maxCounts
+    }
+    
     samples <- colnames(objReg@counts)
-    lwd <- 5 * (bedPE$score/max(bedPE$score))
+    lwd <- 5 * (bedPE$score/malw)
     
     loplot <- recordPlot()
     par(mfrow = c(m + 1, 1), mar = c(3, 1, 1, 1), oma = c(0, 
@@ -173,7 +182,7 @@ setMethod("loopPlot", signature(x = "loops", y = "GRanges", organism = "ANY",
     return(loplot)
 }
 
-.loopPlotcolor <- function(x, y, organism = "h", geneinfo = "NA", cache = TRUE) {
+.loopPlotcolor <- function(x, y, organism = "h", geneinfo = "NA", cache = TRUE, maxCounts) {
     
     # Immediately restrict the loops object to the region
     objReg <- removeSelfLoops(subsetRegion(x, y))
@@ -259,8 +268,15 @@ setMethod("loopPlot", signature(x = "loops", y = "GRanges", organism = "ANY",
     w <- loopWidth(objReg)
     h <- sqrt(w/max(w))
     
+    malw <- 1
+    if(maxCounts == -1){
+        malw <- max(bedPE$score) 
+    } else {
+        malw <- maxCounts
+    }
+    
     samples <- colnames(objReg@counts)
-    lwd <- 5 * (bedPE$score/max(bedPE$score))
+    lwd <- 5 * (bedPE$score/malw)
     
     loplot <- recordPlot()
     par(mfrow = c(m + 1, 1), mar = c(3, 1, 1, 1), oma = c(0, 

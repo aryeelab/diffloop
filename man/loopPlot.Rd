@@ -7,10 +7,10 @@
 \title{Visualize looping}
 \usage{
 loopPlot(x, y, organism = "h", geneinfo = "NA", colorLoops = FALSE,
-  cache = TRUE)
+  cache = TRUE, maxCounts = -1)
 
 \S4method{loopPlot}{loops,GRanges}(x, y, organism = "h", geneinfo = "NA",
-  colorLoops = FALSE, cache = TRUE)
+  colorLoops = FALSE, cache = TRUE, maxCounts = -1)
 }
 \arguments{
 \item{x}{A loops object}
@@ -24,6 +24,9 @@ loopPlot(x, y, organism = "h", geneinfo = "NA", colorLoops = FALSE,
 \item{colorLoops}{Differentiates loops based on loop.type in loops object}
 
 \item{cache}{logic variable (default = TRUE) to use gene annotation from July.2015 freeze}
+
+\item{maxCounts}{Number of counts associated with thickest loop. Default is largest count
+in region displayed}
 }
 \value{
 A plot object
@@ -51,7 +54,7 @@ library(GenomicRanges)
 rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
 load(rda)
 regA <- GRanges(c('1'),IRanges(start=c(36000000),end=c(36300000)))
-plot1 <- subsetRegion(loops.small, regA)
+plot1 <- loopPlot(loops.small, regA)
 #Example of \\code{geneinfo} table
 geneinfo <- data.frame(1,359345,359681,'RP5-8572K21.15','.',-1)
 names(geneinfo) <- c('chrom','start','stop','gene','strand')
