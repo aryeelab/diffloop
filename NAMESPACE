@@ -2,6 +2,7 @@
 
 export(addchr)
 export(annotateAnchors)
+export(annotateAnchors.bed)
 export(annotateAnchors.bigwig)
 export(annotateLoops)
 export(annotateLoops.dge)
