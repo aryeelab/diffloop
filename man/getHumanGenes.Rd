@@ -11,9 +11,7 @@ getHumanGenes(chr, cache = TRUE)
 
 \S4method{getHumanGenes}{missing}(chr, cache = TRUE)
 
-\S4method{getHumanGenes}{character}(chr)
-
-\S4method{getHumanGenes}{character}(chr)
+\S4method{getHumanGenes}{character}(chr, cache = TRUE)
 }
 \arguments{
 \item{chr}{A vector of chromosomes}

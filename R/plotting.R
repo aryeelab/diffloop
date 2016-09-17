@@ -161,7 +161,7 @@ setMethod("loopPlot", signature(x = "loops", y = "GRanges", organism = "ANY",
     lwd <- 5 * (bedPE$score/malw)
     
     loplot <- recordPlot()
-    par(mfrow = c(m + 1, 1), mar = c(3, 1, 1, 1), oma = c(0,  0, 3, 0))
+    par(mfrow = c(m + 1, 1), mar = c(3, 1, 1, 1), oma = c(0, 0, 3, 0))
     for (sample in samples[-m]) {
         idx <- which(bedPE$sample_id == sample)
         bedPE_sample <- bedPE[idx , ]

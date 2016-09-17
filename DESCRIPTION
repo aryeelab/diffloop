@@ -37,7 +37,8 @@ Imports:
     readr,
     data.table,
     rtracklayer,
-    pbapply
+    pbapply,
+    limma
 License: MIT + file LICENSE
 LazyData: TRUE
 Suggests:

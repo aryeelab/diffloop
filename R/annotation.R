@@ -398,6 +398,7 @@ setMethod(f = "getMouseGenes", signature = c("missing"),
                  "19", "X", "Y")
         rda <- paste(system.file("rda", package = "diffloop"), 
                      "geneinfo.m.rda", sep = "/")
+        geneinfo <- ""
         load(rda)
         gi <- geneinfo[as.vector(as.data.frame(geneinfo)$chrom) %in%  as.vector(all),c(1,2,3,4)]
         return(GRanges(gi))
@@ -410,6 +411,7 @@ setMethod(f = "getMouseGenes", signature = c("character"),
         rda <- paste(system.file("rda", package = "diffloop"), 
                      "geneinfo.m.rda", sep = "/")
         load(rda)
+        geneinfo <- ""
         gi <- geneinfo[as.vector(as.data.frame(geneinfo)$chrom) %in%  as.vector(all),c(1,2,3,4)]
         return(GRanges(gi))
     })

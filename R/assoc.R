@@ -403,6 +403,65 @@ setMethod(f = "quickAssoc", signature = c("loops"), definition = function(y) {
     return(y)
 })
 
+#' Perform quick differential loop calling
+#'
+#' \code{quickAssocVoom} takes a loops object and performs a basic
+#' \code{voom} association on the counts matrix and groups from \code{colData}
+#'
+#' This function returns the output of fitting an \code{voom} model using
+#' the groups defined in \code{colData} for the specific loops
+#' object. The factor normalization is based on the \code{voom} model.
+#' For quick association, the number of groups is restricted to two. If
+#' a more complex group structure exists, consider using the \code{loopFit}
+#' and \code{loopTest} functions. 
+#' 
+#' If sizeFactors are present in the \code{loops} object, then those will
+#' be used for normalization. If they are all 1s, new ones will be estimated
+#' using the voom framework. 
+#'
+#' @param y A loops object for association
+#'
+#' @return A loops object
+#'
+#' @examples
+#' # Differential loop calling between naive and primed
+#' rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
+#' load(rda)
+#' np <- loops.small[,1:4]
+#' assoc_np_voom <- quickAssocVoom(np)
+
+#' @import limma
+#' @export
+setGeneric(name = "quickAssocVoom", def = function(y) standardGeneric("quickAssocVoom"))
+
+#' @rdname quickAssocVoom
+setMethod(f = "quickAssocVoom", signature = c("loops"), definition = function(y) {
+    # Check that there's only two groups, if not, escape
+    if (length(unique(y@colData$groups)) != 2) {
+        stop("Must be two groups for quickAssoc; use loopFit instead!")
+    }
+    groups <- y@colData$groups
+    
+    z <- DGEList(counts = y@counts, group = groups)
+    design <- model.matrix(~groups)
+    
+    # If the size factors are different than 1 and in the loops
+    # object use those; otherwise, normalize with edgeR
+    if( all(y@colData$sizeFactor == 1) ){
+        z <- calcNormFactors(z)
+    } else { z@.Data[[2]]$norm.factors <- y@colData$sizeFactor }
+    v <- voom(z,design,plot=TRUE)
+    fit <- lmFit(v,design)
+    fit <- eBayes(fit)
+    results <- as.data.frame(topTable(fit, number = nrow(y@counts), 
+        sort.by = "none"))
+    newRowData <- as.data.frame(cbind(y@rowData, results))
+    row.names(newRowData) <- NULL
+    y@rowData <- newRowData
+    return(y)
+})
+
+
 #' Grab top loops
 #'
 #' \code{topLoops} takes a loops object and performs basic filtering

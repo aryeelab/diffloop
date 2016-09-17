@@ -3,12 +3,15 @@
 \docType{methods}
 \name{getMouseGenes}
 \alias{getMouseGenes}
+\alias{getMouseGenes,character-method}
 \alias{getMouseGenes,missing-method}
 \title{Get protein coding gene regions}
 \usage{
 getMouseGenes(chr)
 
 \S4method{getMouseGenes}{missing}(chr)
+
+\S4method{getMouseGenes}{character}(chr)
 }
 \arguments{
 \item{chr}{A vector of chromosomes}
