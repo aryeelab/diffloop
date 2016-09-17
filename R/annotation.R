@@ -106,11 +106,14 @@ setMethod(f = "annotateAnchors.bigwig", definition = function(dlo, file, FUN = m
     
     #A lot of extra effort to handle anchor regions with no values
     colnames(values.t) <- "bwvalues"
-    vNA <- data.frame(matrix(NA, ncol = 1, nrow = length(ranges(dlo@anchors))))
-    colnames(vNA) <- "NAss"
-    ugly <- merge(vNA, values.t, by=0, all = TRUE, sort = F)
-    ugly <- ugly[order(as.numeric(ugly$Row.names)), ]
-    values <- data.frame(ugly$bwvalues)
+    vNA <- as.character(1:length(ranges(dlo@anchors)))
+    Missing <- setdiff(vNA, rownames(values.t))
+    m.df <- data.frame(m.vals = matrix(NA, nrow = length(Missing), ncol = 1))
+    row.names(m.df) <- Missing
+    colnames(m.df) <- "bwvalues"
+    total <- rbind(values.t, m.df)
+    
+    values <- as.vector(total[order(as.numeric(row.names(total))),, drop = FALSE])
     colnames(values) <- sample
     mcols(dlo@anchors) <- as.data.frame(c(mcols(dlo@anchors), values))
     return(dlo)
@@ -148,7 +151,7 @@ setMethod(f = "annotateAnchors.bigwig", definition = function(dlo, file, FUN = m
 setGeneric(name = "annotateAnchors.bed", function(dlo, file, FUN = mean, pad = 0)
     standardGeneric("annotateAnchors.bed"))
 
-#' @rdname annotateAnchors.bigwig
+#' @rdname annotateAnchors.bed
 setMethod(f = "annotateAnchors.bed", definition = function(dlo, file, FUN = mean, pad = 0) {
     
     sample <- basename(file_path_sans_ext(file))
@@ -160,11 +163,14 @@ setMethod(f = "annotateAnchors.bed", definition = function(dlo, file, FUN = mean
     
     #A lot of extra effort to handle anchor regions with no values
     colnames(values.t) <- "bwvalues"
-    vNA <- data.frame(matrix(NA, ncol = 1, nrow = length(ranges(dlo@anchors))))
-    colnames(vNA) <- "NAss"
-    ugly <- merge(vNA, values.t, by=0, all = TRUE, sort = F)
-    ugly <- ugly[order(as.numeric(ugly$Row.names)), ]
-    values <- data.frame(ugly$bwvalues)
+    vNA <- as.character(1:length(ranges(dlo@anchors)))
+    Missing <- setdiff(vNA, rownames(values.t))
+    m.df <- data.frame(m.vals = matrix(NA, nrow = length(Missing), ncol = 1))
+    row.names(m.df) <- Missing
+    colnames(m.df) <- "bwvalues"
+    total <- rbind(values.t, m.df)
+    
+    values <- as.vector(total[order(as.numeric(row.names(total))),, drop = FALSE])
     colnames(values) <- sample
     mcols(dlo@anchors) <- as.data.frame(c(mcols(dlo@anchors), values))
     return(dlo)
