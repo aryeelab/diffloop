@@ -4,16 +4,19 @@
 \name{loopGenes}
 \alias{loopGenes}
 \alias{loopGenes,loops,GRanges-method}
+\alias{loopGenes,loops,missing-method}
 \title{Determine genes contained within loops}
 \usage{
 loopGenes(dlo, genesGR)
 
 \S4method{loopGenes}{loops,GRanges}(dlo, genesGR)
+
+\S4method{loopGenes}{loops,missing}(dlo, genesGR)
 }
 \arguments{
 \item{dlo}{A loops object}
 
-\item{genesGR}{A GRanges object of genes with mcol 'id'}
+\item{genesGR}{A GRanges object of genes in first mcol.}
 }
 \value{
 A matrix of comma separated gene names
@@ -23,11 +26,10 @@ A matrix of comma separated gene names
 in a loop.
 }
 \details{
-Function that annotates all loops. 'NA' if looping between chromosomes.
-Otherwise, all gene names that are contained within a loop. 'None' if no
-genes are in the loop body. If there are multiple, the function returns a
-comma separated list. The length of the object returned by this function
-should be the same length as the number of rows in the \code{loops} slot.
+Function that annotates all loops. If there are multiple, the function returns a
+comma separated list. Adds a "loopGenes" column to the rowData slot. If
+the genesGR is left blank, diffloop will use protein coding genes for human
+from hg19.
 }
 \examples{
 # Determine the genes housed in the loops from our example

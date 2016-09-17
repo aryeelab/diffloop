@@ -65,8 +65,7 @@ setGeneric(name = "removeSelfLoops", def = function(dlo) standardGeneric("remove
 
 #' @rdname removeSelfLoops
 setMethod(f = "removeSelfLoops", signature = c("loops"), definition = function(dlo) {
-    return(subsetLoops(dlo, dlo@interactions[, 1] != dlo@interactions[, 
-        2]))
+    return(subsetLoops(dlo, dlo@interactions[, 1] != dlo@interactions[, 2]))
 })
 
 # Return Boolean Vector for loops in loops if both anchors
@@ -271,14 +270,14 @@ setMethod(f = "filterLoops", definition = function(dlo, width = 0,
 #' \code{loopGenes} determines all gene bodies partially or fully contained
 #' in a loop.
 #'
-#' Function that annotates all loops. 'NA' if looping between chromosomes.
-#' Otherwise, all gene names that are contained within a loop. 'None' if no
-#' genes are in the loop body. If there are multiple, the function returns a
-#' comma separated list. The length of the object returned by this function
-#' should be the same length as the number of rows in the \code{loops} slot.
+#' Function that annotates all loops. If there are multiple, the function returns a
+#' comma separated list. Adds a "loopGenes" column to the rowData slot. If
+#' the genesGR is left blank, diffloop will use protein coding genes for human
+#' from hg19. 
+#' 
 #'
 #' @param dlo A loops object
-#' @param genesGR A GRanges object of genes with mcol 'id'
+#' @param genesGR A GRanges object of genes in first mcol.
 #'
 #' @return A matrix of comma separated gene names
 #'
@@ -297,31 +296,48 @@ setGeneric(name = "loopGenes", def = function(dlo, genesGR) standardGeneric("loo
 #' @rdname loopGenes
 setMethod(f = "loopGenes", signature = c("loops", "GRanges"), 
     definition = function(dlo, genesGR) {
-        values <- apply(dlo@interactions, 1, function(interaction) {
-            chr1 <- as.character(dlo@anchors[interaction[1]]@seqnames)
-            chr2 <- as.character(dlo@anchors[interaction[2]]@seqnames)
-            if (chr1 != chr2) {
-                "NA"
-            } else {
-                big <- max(dlo@anchors[interaction[2]]@ranges)
-                small <- min((dlo@anchors[interaction[1]]@ranges))
-                loop <- GRanges(seqnames = c(chr1), ranges = IRanges(start = c(small), 
-                  end = c(big)))
-                
-                # Supposes that the first mcol of the genesGR are the gene
-                # names
-                geneHits <- mcols(genesGR[findOverlaps(loop, 
-                  genesGR)@from])[, 1]
-                if (length(geneHits) == 0) {
-                  "NONE"
-                } else {
-                  paste(unique(geneHits), collapse = ", ")
-                }
-            }
-        })
-        values <- as.matrix(values)
-        colnames(values) <- c("GenesInLoop")
-        return(values)
+        df <- summary(dlo)
+        gr.loop <- makeGRangesFromDataFrame(df, seqnames.field=c("chr_1"), start.field = "start_1", end.field = "end_2")
+        ovl <- findOverlaps(gr.loop, genesGR)
+        qh <- queryHits(ovl) 
+        sh <- subjectHits(ovl) 
+        values.t <- as.data.frame(tapply(mcols(genesGR[sh])[,1], qh, paste, collapse = ","))
+        
+        #A lot of extra effort to handle regions with no values
+        colnames(values.t) <- "gbv"
+        vNA <- data.frame(matrix(NA, ncol = 1, nrow = as.numeric(dim(dlo)[2])))
+        colnames(vNA) <- "NAss"
+        ugly <- merge(vNA, values.t, by=0, all = TRUE, sort = FALSE)
+        ugly <- ugly[order(as.numeric(ugly$Row.names)), ]
+        values <- unname(ugly$gbv, force = TRUE)
+        dlo@rowData$loopGenes <- values
+        return(dlo)
+    })
+
+#' @rdname loopGenes
+setMethod(f = "loopGenes", signature = c("loops", "missing"), 
+    definition = function(dlo, genesGR) {
+        df <- summary(dlo)
+        gr.loop <- makeGRangesFromDataFrame(df, seqnames.field=c("chr_1"), start.field = "start_1", end.field = "end_2")
+        
+        rda <- paste(system.file("rda", package = "diffloop"), "geneinfo.h.rda", sep = "/")
+        load(rda)
+        genesGR <- makeGRangesFromDataFrame(geneinfo[,c(1,2,3,4)], keep.extra.columns = TRUE)
+
+        ovl <- findOverlaps(gr.loop, genesGR)
+        qh <- queryHits(ovl) 
+        sh <- subjectHits(ovl) 
+        values.t <- as.data.frame(tapply(mcols(genesGR[sh])[,1], qh, paste, collapse = ","))
+        
+        #A lot of extra effort to handle regions with no values
+        colnames(values.t) <- "gbv"
+        vNA <- data.frame(matrix(NA, ncol = 1, nrow = as.numeric(dim(dlo)[2])))
+        colnames(vNA) <- "NAss"
+        ugly <- merge(vNA, values.t, by=0, all = TRUE, sort = FALSE)
+        ugly <- ugly[order(as.numeric(ugly$Row.names)), ]
+        values <- unname(ugly$gbv, force = TRUE)
+        dlo@rowData$loopGenes <- values
+        return(dlo)
     })
 
 #' Loops within chromosomes
