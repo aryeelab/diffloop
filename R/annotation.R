@@ -490,7 +490,7 @@ setMethod(f = "keepEPloops", signature = c("loops",
     anchor.tss <- rep("none", dim(lto)[2])
     anchor.tss[which(Rvalues.p & Lvalues.p)] <- "1,2"
     anchor.tss[which(Lvalues.p)] <- "1"
-    anchor.tss[which(Lvalues.p)] <- "2"
+    anchor.tss[which(Rvalues.p)] <- "2"
     
     gene.tss[tss$subjectHits] <- tss$gene
     lto@rowData$loop.type <- "e-p"
