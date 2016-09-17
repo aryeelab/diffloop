@@ -634,7 +634,7 @@ setMethod(f = "keepEPloops", signature = c("loops",
     Rtss <- cbind(Rtss, mcols(promoter[Rtss$queryHits]))
     Ltss <- data.frame(Lhits.p)
     Ltss <- cbind(Ltss, mcols(promoter[Ltss$queryHits]))
-    ttss <- rbind(Rtss, Ltss)[,c(2,3)]
+    ttss <- unique(rbind(Rtss, Ltss)[,c(2,3)])
     tss <- aggregate(gene~subjectHits,paste,collapse=",",data=ttss)
     
     ####### 
@@ -808,7 +808,7 @@ setMethod(f = "annotateLoops.dge", definition = function(lto, deseq_res, multipl
         multgenes <- strsplit(multhits$gene.tss, ",")
         multhits.long <- data.frame()
         for(i in 1:length(multgenes)){
-            t <- cbind(data.frame(multgenes[[i]]), rep(multhits[i,], length(multgenes[[i]])))
+            t <- cbind(data.frame(multgenes[[i]]), do.call("rbind", replicate(length(multgenes[[i]]), multhits[i,], simplify = FALSE)))
             t$gene.tss <- t[,1]
             t <- t[,-1]
             multhits.long <- rbind(multhits.long, t)
