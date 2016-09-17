@@ -155,10 +155,17 @@ setMethod("loopPlot", signature(x = "loops", y = "GRanges", organism = "ANY",
     labelgenome(chromchr, start, end, side = 1, scipen = 20, 
         n = 3, scale = "Mb", line = 0.18, chromline = 0.5, scaleline = 0.5)
     
-    pg = plotGenes(geneinfo = geneinfo, chrom = chromchr, chromstart = start, 
-        chromend = end, bheight = 0.1, plotgenetype = "box", 
-        bentline = FALSE, labeloffset = 0.4, fontsize = 1, arrowlength = 0.025, 
-        labeltext = TRUE)
+    if(dim(geneinfo)[1] == 0){ #Dummy plot
+        plotBedpe(data.frame(), chrom, start, end, color = c("blue"), lwd = 0, 
+                  plottype = "loops", heights = 0, lwdrange = c(0, 0), 
+                  main = "", adj=0)
+    } else {
+        pg <- plotGenes(geneinfo = geneinfo, chrom = chromchr, chromstart = start, 
+            chromend = end, bheight = 0.1, plotgenetype = "box", 
+            bentline = FALSE, labeloffset = 0.4, fontsize = 1, arrowlength = 0.025, 
+            labeltext = TRUE)
+    }
+    
     mtext(paste0("Region: ", chrom, ":", start, "-", end), outer = TRUE, 
         line = 1)
     return(loplot)
@@ -271,10 +278,17 @@ setMethod("loopPlot", signature(x = "loops", y = "GRanges", organism = "ANY",
     labelgenome(chromchr, start, end, side = 1, scipen = 20, 
         n = 3, scale = "Mb", line = 0.18, chromline = 0.5, scaleline = 0.5)
     
-    pg = plotGenes(geneinfo = geneinfo, chrom = chromchr, chromstart = start, 
-        chromend = end, bheight = 0.1, plotgenetype = "box", 
-        bentline = FALSE, labeloffset = 0.4, fontsize = 1, arrowlength = 0.025, 
-        labeltext = TRUE)
+    if(dim(geneinfo)[1] == 0){ #Dummy plot
+        plotBedpe(data.frame(), chrom, start, end, color = c("blue"), lwd = 0, 
+                  plottype = "loops", heights = 0, lwdrange = c(0, 0), 
+                  main = "", adj=0)
+    } else {
+        pg <- plotGenes(geneinfo = geneinfo, chrom = chromchr, chromstart = start, 
+            chromend = end, bheight = 0.1, plotgenetype = "box", 
+            bentline = FALSE, labeloffset = 0.4, fontsize = 1, arrowlength = 0.025, 
+            labeltext = TRUE)
+    }
+    
     mtext(paste0("Region: ", chrom, ":", start, "-", end), outer = TRUE, 
         line = 1)
     return(loplot)
