@@ -14,7 +14,9 @@ NULL
 #' the x object must be loops and it must have a loop.type
 #' column which can be generated from the \code{annotateLoops}
 #' function. Blue loops are CTCF loops; black are none; red are 
-#' enhancer-promoter loops. Plots use hg19 and mm9 annotation by default.
+#' enhancer-promoter loops; orange are promoter-promoter loops;
+#' and purple are enhancer-enhancer loops. 
+#' Plots use hg19 and mm9 annotation by default.
 #'
 #' @param x A loops object 
 #' @param y A GRanges object containing region of interest
@@ -230,6 +232,8 @@ setMethod("loopPlot", signature(x = "loops", y = "GRanges", organism = "ANY",
     # Setup colors for plotting
     cs <- res$loop.type
     cs <- gsub("e-p", "red", cs)
+    cs <- gsub("p-p", "orange", cs)
+    cs <- gsub("e-e", "mediumpurple1", cs)
     cs <- gsub("ctcf", "blue", cs)
     cs <- gsub("none", "black", cs)
     

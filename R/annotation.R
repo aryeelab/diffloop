@@ -274,9 +274,9 @@ setMethod(f = "getHumanTSS", signature = c("character", "ANY"),
 #' Annotate loops as Enhancer-Promoter or CTCF-CTCF
 #'
 #' \code{annotateLoops} adds a column to the rowData slot of a loops
-#' object categorizing loops as either e-p (enhancer-promoter), ctcf 
-#' (CTCF-CTCF) or none (no biological annotation). If both ctcf and e-p,
-#' then categorized as e-p. 
+#' object categorizing loops as either e-p (enhancer-promoter), p-p
+#' (promoter-promoter), e-e (enhancer-enhancer), ctcf (CTCF-CTCF)
+#' or none (no biological annotation). 
 #'
 #' Function annotates loops where both anchors are near CTCF peaks or where 
 #' one anchor is near an enhancer and the other near a promoter. Consider using
@@ -299,10 +299,7 @@ setMethod(f = "getHumanTSS", signature = c("character", "ANY"),
 #' h3k27ac_j <- system.file('extdata','Jurkat_H3K27ac_chr1.narrowPeak',package='diffloop')
 #' h3k27ac <- rmchr(padGRanges(bedToGRanges(h3k27ac_j), pad = 1000))
 #' promoter <- padGRanges(getHumanTSS(c('1')), pad = 1000)
-#' jn <- loops.small[,c(1,2,5,6)]
-#' assoc_jn <- quickAssoc(jn)
-#' assoc_jn <- removeSelfLoops(assoc_jn)
-#' annotated_jn <- annotateLoops(assoc_jn, ctcf, h3k27ac, promoter)
+#' annotated_small <- annotateLoops(loops.small, ctcf, h3k27ac, promoter)
 #' 
 #' @import GenomicRanges
 #' @export
@@ -361,18 +358,73 @@ setMethod(f = "annotateLoops", signature = c("loops", "GRanges",
     ####### 
     
     ctcf.loops <- Lvalues.c & Rvalues.c
-    ep.loops <- (Lvalues.e & Rvalues.p) | (Lvalues.p & Rvalues.e)
-    loop.types <- as.integer(ctcf.loops) + as.integer(ep.loops) * 
-        2
-    loop.types <- gsub("3", "e-p", loop.types)
-    loop.types <- gsub("2", "e-p", loop.types)
-    loop.types <- gsub("1", "ctcf", loop.types)
-    loop.types <- gsub("0", "none", loop.types)
-    
-    lto@rowData$loop.type <- loop.types
+    ee.loops <- as.integer(Lvalues.e & Rvalues.p) * 10
+    pp.loops <- as.integer(Lvalues.p & Rvalues.p) * 100
+    ep.loops <- as.integer((Lvalues.e & Rvalues.p) | (Lvalues.p & Rvalues.e)) * 1000
+    loop.types <- ctcf.loops + ee.loops + pp.loops + ep.loops
+    description <- rep("none", length(loop.types))
+
+    description[loop.types >= 1] <- "ctcf"
+    description[loop.types >= 10] <- "e-e"
+    description[loop.types >= 100] <- "p-p"
+    description[loop.types >= 1000] <- "e-p"
+
+    lto@rowData$loop.type <- description
     return(lto)
 })
 
+#' @rdname annotateLoops
+setMethod(f = "annotateLoops", signature = c("loops", "missing", 
+    "GRanges", "GRanges"), definition = function(lto, ctcf, enhancer, 
+    promoter) {
+    
+    lto.df <- summary(lto)
+    Ranchors <- GRanges(lto.df$chr_1, IRanges(lto.df$start_1, lto.df$end_1))
+    Lanchors <- GRanges(lto.df$chr_2, IRanges(lto.df$start_2, lto.df$end_2))
+
+    ####### 
+    
+    # Determine if right anchor is near promoter region
+    Rhits.p <- suppressWarnings(findOverlaps(promoter, Ranchors, 
+        maxgap = 0))
+    Rvalues.p <- rep(FALSE, dim(lto.df)[1])
+    Rvalues.p[unique(subjectHits(Rhits.p))] <- TRUE
+    
+    # Determine if left anchor is near promoter region
+    Lhits.p <- suppressWarnings(findOverlaps(promoter, Lanchors, 
+        maxgap = 0))
+    Lvalues.p <- rep(FALSE, dim(lto.df)[1])
+    Lvalues.p[unique(subjectHits(Lhits.p))] <- TRUE
+    
+    ####### 
+    
+    # Determine if right anchor is near enhancer peak
+    Rhits.e <- suppressWarnings(findOverlaps(enhancer, Ranchors, 
+        maxgap = 0))
+    Rvalues.e <- rep(FALSE, dim(lto.df)[1])
+    Rvalues.e[unique(subjectHits(Rhits.e))] <- TRUE
+    
+    # Determine if left anchor is near enhancer peak
+    Lhits.e <- suppressWarnings(findOverlaps(enhancer, Lanchors, 
+        maxgap = 0))
+    Lvalues.e <- rep(FALSE, dim(lto.df)[1])
+    Lvalues.e[unique(subjectHits(Lhits.e))] <- TRUE
+    
+    ####### 
+    
+    ee.loops <- as.integer(Lvalues.e & Rvalues.p) * 10
+    pp.loops <- as.integer(Lvalues.p & Rvalues.p) * 100
+    ep.loops <- as.integer((Lvalues.e & Rvalues.p) | (Lvalues.p & Rvalues.e)) * 1000
+    loop.types <- ee.loops + pp.loops + ep.loops
+    description <- rep("none", length(loop.types))
+
+    description[loop.types >= 10] <- "e-e"
+    description[loop.types >= 100] <- "p-p"
+    description[loop.types >= 1000] <- "e-p"
+
+    lto@rowData$loop.type <- description
+    return(lto)
+})
 
 #' Keep enhancer-promoter loops
 #'

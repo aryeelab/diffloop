@@ -41,7 +41,9 @@ in the entire plot. If colorLoops is specified at TRUE, then
 the x object must be loops and it must have a loop.type
 column which can be generated from the \code{annotateLoops}
 function. Blue loops are CTCF loops; black are none; red are 
-enhancer-promoter loops.
+enhancer-promoter loops; orange are promoter-promoter loops;
+and purple are enhancer-enhancer loops. 
+Plots use hg19 and mm9 annotation by default.
 }
 \examples{
 # Print loops in region chr1:36000000-36300000

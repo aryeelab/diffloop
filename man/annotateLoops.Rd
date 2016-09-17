@@ -4,11 +4,15 @@
 \name{annotateLoops}
 \alias{annotateLoops}
 \alias{annotateLoops,loops,GRanges,GRanges,GRanges-method}
+\alias{annotateLoops,loops,missing,GRanges,GRanges-method}
 \title{Annotate loops as Enhancer-Promoter or CTCF-CTCF}
 \usage{
 annotateLoops(lto, ctcf, enhancer, promoter)
 
 \S4method{annotateLoops}{loops,GRanges,GRanges,GRanges}(lto, ctcf, enhancer,
+  promoter)
+
+\S4method{annotateLoops}{loops,missing,GRanges,GRanges}(lto, ctcf, enhancer,
   promoter)
 }
 \arguments{
@@ -25,9 +29,9 @@ A loops object with an additional row 'loop.type' in the rowData slot
 }
 \description{
 \code{annotateLoops} adds a column to the rowData slot of a loops
-object categorizing loops as either e-p (enhancer-promoter), ctcf 
-(CTCF-CTCF) or none (no biological annotation). If both ctcf and e-p,
-then categorized as e-p.
+object categorizing loops as either e-p (enhancer-promoter), p-p
+(promoter-promoter), e-e (enhancer-enhancer), ctcf (CTCF-CTCF)
+or none (no biological annotation).
 }
 \details{
 Function annotates loops where both anchors are near CTCF peaks or where 
@@ -44,10 +48,7 @@ ctcf <- rmchr(padGRanges(bedToGRanges(ctcf_j), pad = 1000))
 h3k27ac_j <- system.file('extdata','Jurkat_H3K27ac_chr1.narrowPeak',package='diffloop')
 h3k27ac <- rmchr(padGRanges(bedToGRanges(h3k27ac_j), pad = 1000))
 promoter <- padGRanges(getHumanTSS(c('1')), pad = 1000)
-jn <- loops.small[,c(1,2,5,6)]
-assoc_jn <- quickAssoc(jn)
-assoc_jn <- removeSelfLoops(assoc_jn)
-annotated_jn <- annotateLoops(assoc_jn, ctcf, h3k27ac, promoter)
+annotated_small <- annotateLoops(loops.small, ctcf, h3k27ac, promoter)
 
 }
 
