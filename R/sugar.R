@@ -66,7 +66,7 @@ setMethod("head", signature = "loops", function(x, n = 6, ...) {
     
     anchors <- head(x@anchors, n)
     interactions <- as.matrix(head(x@interactions, n))
-    counts <- head(x@counts, n)
+    counts <- as.matrix(head(x@counts, n))
     colData <- x@colData
     rowData <- head(x@rowData, n)
     
@@ -78,8 +78,6 @@ setMethod("head", signature = "loops", function(x, n = 6, ...) {
     slot(dlo, "rowData", check = TRUE) <- rowData
     
     return(dlo)
-    
-    
 })
 
 
@@ -95,7 +93,7 @@ setMethod("tail", signature = "loops", function(x, n = 6, ...) {
     
     anchors <- tail(x@anchors, n)
     interactions <- as.matrix(tail(x@interactions, n))
-    counts <- tail(x@counts, n)
+    counts <- as.matrix(tail(x@counts, n))
     colData <- x@colData
     rowData <- tail(x@rowData, n)
     
@@ -123,8 +121,7 @@ setMethod("dim", signature = "loops", function(x) {
     samples <- ncol(x@counts)
     colData <- ncol(x@colData)
     rowData <- ncol(x@rowData)
-    return(data.frame(cbind(anchors, interactions, samples, colData, 
-        rowData)))
+    return(data.frame(cbind(anchors, interactions, samples, colData, rowData)))
 })
 
 #' Remove 'chr' from GRanges seqnames

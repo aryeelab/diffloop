@@ -12,7 +12,10 @@ NULL
 #' different design matrix, pass that parameter through the function. 
 #' Otherwise, the default is to generate a new matrix from
 #' \code{loops@colData$groups}. Currently, 'QLF' is the only supported
-#' method, but new association tests may be added in later developments
+#' method, but new association tests may be added in later developments.
+#' If sizeFactors are present in the \code{loops} object, then those will
+#' be used for normalization. If they are all 1s, new ones will be estimated
+#' using the edgeR framework. 
 #'
 #' @param y A loops object for association
 #' @param design A design matrix (optional)
@@ -39,7 +42,13 @@ setMethod(f = "loopFit", signature = c("loops", "missing", "missing"),
     definition = function(y, design, method) {
         groups <- y@colData$groups
         z <- DGEList(counts = y@counts, group = groups)
-        z <- calcNormFactors(z)
+        
+        # If the size factors are different than 1 and in the loops
+        # object use those; otherwise, normalize with edgeR
+        if( all(y@colData$sizeFactor == 1) ){
+            z <- calcNormFactors(z)
+        } else { z@.Data[[2]]$norm.factors <- y@colData$sizeFactor }
+            
         design <- model.matrix(~groups)
         cat("The coefficients of the fitted GLM object are:\n")
         cat(colnames(model.matrix(~groups)))
@@ -346,7 +355,11 @@ setMethod(f = "featureTest", signature = c("loops", "GRanges"),
 #' object. The factor normalization is based on the \code{edgeR} model.
 #' For quick association, the number of groups is restricted to two. If
 #' a more complex group structure exists, consider using the \code{loopFit}
-#' and \code{loopTest} functions
+#' and \code{loopTest} functions. 
+#' 
+#' If sizeFactors are present in the \code{loops} object, then those will
+#' be used for normalization. If they are all 1s, new ones will be estimated
+#' using the edgeR framework. 
 #'
 #' @param y A loops object for association
 #'
@@ -370,9 +383,15 @@ setMethod(f = "quickAssoc", signature = c("loops"), definition = function(y) {
         stop("Must be two groups for quickAssoc; use loopFit instead!")
     }
     groups <- y@colData$groups
+    
     z <- DGEList(counts = y@counts, group = groups)
     design <- model.matrix(~groups)
-    z <- calcNormFactors(z)
+    
+    # If the size factors are different than 1 and in the loops
+    # object use those; otherwise, normalize with edgeR
+    if( all(y@colData$sizeFactor == 1) ){
+        z <- calcNormFactors(z)
+    } else { z@.Data[[2]]$norm.factors <- y@colData$sizeFactor }
     yy <- estimateDisp(z, design)
     fit <- glmQLFit(yy, design, robust = TRUE)
     qlf <- glmQLFTest(fit, coef = 2)

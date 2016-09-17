@@ -34,7 +34,10 @@ that is the normal output of an \code{edgeR glmQLFit}. To set up a
 different design matrix, pass that parameter through the function. 
 Otherwise, the default is to generate a new matrix from
 \code{loops@colData$groups}. Currently, 'QLF' is the only supported
-method, but new association tests may be added in later developments
+method, but new association tests may be added in later developments.
+If sizeFactors are present in the \code{loops} object, then those will
+be used for normalization. If they are all 1s, new ones will be estimated
+using the edgeR framework.
 }
 \examples{
 # Differential loop fit

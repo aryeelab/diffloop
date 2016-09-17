@@ -58,6 +58,7 @@ setMethod(f = "summary", signature = c("loops"), definition = function(object) {
 setGeneric(name = "cleanup", def = function(dlo) standardGeneric("cleanup"))
 setMethod(f = "cleanup", signature = c("loops"), definition = function(dlo) {
     if (as.integer(dim(dlo)[2]) == 0) {
+        cat("Creating empty loops object")
         dlo <- loops()
         slot(dlo, "anchors", check = TRUE) <- GRanges()
         slot(dlo, "interactions", check = TRUE) <- matrix()
@@ -68,8 +69,7 @@ setMethod(f = "cleanup", signature = c("loops"), definition = function(dlo) {
     }
     
     # Grab indicies of anchors being referenced in loops
-    idf <- data.frame(dlo@interactions[, 1], dlo@interactions[, 
-        2])
+    idf <- data.frame(dlo@interactions[, 1], dlo@interactions[,2])
     sdf <- stack(idf)
     udf <- sort(unique(sdf[, "values"]))
     
@@ -81,14 +81,11 @@ setMethod(f = "cleanup", signature = c("loops"), definition = function(dlo) {
     intsdf <- as.data.frame(dlo@interactions)
     
     # Update interactions indices
-    leftmatch <- t(sapply(intsdf$left, function(x) mapping[mapping[, 
-        1] == x, ]))
-    rightmatch <- t(sapply(intsdf$right, function(x) mapping[mapping[, 
-        1] == x, ]))
+    leftmatch <- t(sapply(intsdf$left, function(x) mapping[mapping[,1] == x, ]))
+    rightmatch <- t(sapply(intsdf$right, function(x) mapping[mapping[,1] == x, ]))
     
     # Format new indices matrix
-    totalupdate <- cbind(unlist(leftmatch[, 2]), unlist(rightmatch[, 
-        2]))
+    totalupdate <- cbind(unlist(leftmatch[, 2]), unlist(rightmatch[, 2]))
     upints <- as.matrix(totalupdate)
     colnames(upints) <- c("left", "right")
     rownames(upints) <- NULL

@@ -291,13 +291,13 @@ setMethod(f = "annotateLoops", signature = c("loops", "GRanges",
     ####### 
     
     # Determine if right anchor is near enhancer peak
-    Rhits.e <- suppressWarnings(findOverlaps(ctcf, Ranchors, 
+    Rhits.e <- suppressWarnings(findOverlaps(enhancer, Ranchors, 
         maxgap = 0))
     Rvalues.e <- rep(FALSE, dim(lto.df)[1])
     Rvalues.e[unique(subjectHits(Rhits.e))] <- TRUE
     
     # Determine if left anchor is near enhancer peak
-    Lhits.e <- suppressWarnings(findOverlaps(ctcf, Lanchors, 
+    Lhits.e <- suppressWarnings(findOverlaps(enhancer, Lanchors, 
         maxgap = 0))
     Lvalues.e <- rep(FALSE, dim(lto.df)[1])
     Lvalues.e[unique(subjectHits(Lhits.e))] <- TRUE
@@ -315,4 +315,91 @@ setMethod(f = "annotateLoops", signature = c("loops", "GRanges",
     
     lto@rowData$loop.type <- loop.types
     return(lto)
+})
+
+
+#' Keep enhancer-promoter loops
+#'
+#' \code{keepEPloops} adds a column to the rowData slot of a loops
+#' object that shows the corresponding TSS of a gene name based on
+#' the promoter GRanges. The loops object is then subsetted and returns
+#' only loops that are enhancer-promoter. 
+#'
+#' This function works similar to the \code{annotateLoops} function but
+#' returns only
+#'
+#' @param lto A loops object whose loops will be annotated
+#' @param enhancer GRanges object corresponding to locations of enhancer peaks
+#' @param promoter GRanges object corresponding to locations of promoter regions
+#'
+#' @return A loops object with an additional row 'loop.type' in the rowData slot
+#'
+#' @examples
+#' rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
+#' load(rda)
+#' h3k27ac_j <- system.file('extdata','Jurkat_H3K27ac_chr1.narrowPeak',package='diffloop')
+#' h3k27ac <- rmchr(padGRanges(bedToGRanges(h3k27ac_j), pad = 1000))
+#' promoter <- padGRanges(getHumanTSS(c('1')), pad = 1000)
+#' small.ep <- keepEPloops(loops.small, h3k27ac, promoter)
+#' 
+#' @import GenomicRanges
+#' @importFrom stats aggregate
+#' @export
+setGeneric(name = "keepEPloops", def = function(lto, 
+    enhancer, promoter) standardGeneric("keepEPloops"))
+
+#' @rdname keepEPloops
+setMethod(f = "keepEPloops", signature = c("loops", 
+    "GRanges", "GRanges"), definition = function(lto, enhancer, 
+    promoter) {
+    
+    lto.df <- summary(lto)
+    Ranchors <- GRanges(lto.df[, 1], IRanges(lto.df[, 2], lto.df[, 3]))
+    Lanchors <- GRanges(lto.df[, 4], IRanges(lto.df[, 5], lto.df[, 6]))
+    
+    # Determine if right anchor is near promoter region
+    Rhits.p <- suppressWarnings(findOverlaps(promoter, Ranchors, 
+        maxgap = 0))
+    Rvalues.p <- rep(FALSE, dim(lto.df)[1])
+    Rvalues.p[unique(subjectHits(Rhits.p))] <- TRUE
+
+    # Determine if left anchor is near promoter region
+    Lhits.p <- suppressWarnings(findOverlaps(promoter, Lanchors, 
+        maxgap = 0))
+    Lvalues.p <- rep(FALSE, dim(lto.df)[1])
+    Lvalues.p[unique(subjectHits(Lhits.p))] <- TRUE
+    
+    # Aggregate TSS
+    Rtss <- data.frame(Rhits.p)
+    Rtss <- cbind(Rtss, mcols(promoter[Rtss$queryHits]))
+    Ltss <- data.frame(Lhits.p)
+    Ltss <- cbind(Ltss, mcols(promoter[Ltss$queryHits]))
+    ttss <- rbind(Rtss, Ltss)[,c(2,3)]
+    tss <- aggregate(id~subjectHits,paste,collapse=",",data=ttss)
+    
+    ####### 
+    
+    # Determine if right anchor is near enhancer peak
+    Rhits.e <- suppressWarnings(findOverlaps(enhancer, Ranchors, 
+        maxgap = 0))
+    Rvalues.e <- rep(FALSE, dim(lto.df)[1])
+    Rvalues.e[unique(subjectHits(Rhits.e))] <- TRUE
+    
+    # Determine if left anchor is near enhancer peak
+    Lhits.e <- suppressWarnings(findOverlaps(enhancer, Lanchors, 
+        maxgap = 0))
+    Lvalues.e <- rep(FALSE, dim(lto.df)[1])
+    Lvalues.e[unique(subjectHits(Lhits.e))] <- TRUE
+    
+    ####### 
+    
+    #Add annotation and subset
+    ep.loops <- (Lvalues.e & Rvalues.p) | (Lvalues.p & Rvalues.e)
+    gene.tss <- rep("none", dim(lto)[2])
+    gene.tss[tss$subjectHits] <- tss$id
+    lto@rowData$loop.type <- "e-p"
+    lto@rowData$gene.tss <- gene.tss
+    new.loops <- subsetLoops(lto, ep.loops)
+    
+    return(new.loops)
 })

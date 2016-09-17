@@ -1,7 +1,7 @@
 #' @include diffloop.R
 NULL
 
-setClassUnion("matrixORinteger", c("matrix", "integer"))
+setClassUnion("nim", c("numeric", "integer", "matrix"))
 
 #' A class to represent ChIA-PET interaction data and annotations
 #'
@@ -14,7 +14,7 @@ setClassUnion("matrixORinteger", c("matrix", "integer"))
 #' @import GenomicRanges
 #' @export
 loops <- setClass("loops", slots = c(anchors = "GRanges", 
-    interactions = "matrixORinteger", counts = "matrix",
+    interactions = "nim", counts = "nim",
     colData = "data.frame", rowData = "data.frame"))
 
 #' A class to represent ChIA-PET interaction data and an edgeR fit. 

@@ -154,49 +154,41 @@ jnp_res <- loopTest(fit,coef=2:3)
 head(jnp_res)
 ```
 
-
-## Differential Looping Regions
-What regions are significantly different between jurkat and naive? We can 
-answer this by doing a sliding window test by specifying the window size
-and the step size in the `slidingWindowTest` function.
-```{r swAssoc}
-sw_jn <- slidingWindowTest(jn_res,200000,200000)
-head(sw_jn)
-```
-
-What gene bodies have significantly different looping between the cell lines?
-Whereas the `slidingWindowTest` makes no prior assumptions about the regions
-to be tested, `featureTest` requires a `GRanges` object of coordinates to 
-determine what regions will be tested for association.
-```{r featAssoc}
-chr1 <- getHumanGenes(c("1"))
-ft_jnp <- featureTest(jnp_res,chr1)
-head(ft_jnp,10)
-```
-
 ## Quantifying Associations
 How many differential loops are present pairwise between these conditions?
 ```{r pairwiseSum, message=FALSE, warning=FALSE}
-np_sig_res <- topLoops(np_res, FDR = 0.2)
-dim(np_sig_res)
-dim(topLoops(jp_res, FDR = 0.2))
+jp_sig_res <- topLoops(jp_res, FDR = 0.2)
+dim(jp_sig_res)
 dim(topLoops(jn_res, FDR = 0.2))
-summary(np_sig_res)
+dim(topLoops(np_res, FDR = 0.2))
+head(summary(jp_sig_res),3)
 ```
-At FDR < 0.2, only 7 loops are significantly different from the naive and
+At FDR < 0.2, only no loops are significantly different from the naive and
 primed stem cells whereas the jurkat differs between the primed stem cells
-by 169 significant loops and the naive by 208 significant loops on chromosome 1.
+by 52 significant loops and the naive by 108 significant loops on chromosome 1.
 These results are in line with the underlying biology of these cell types. 
-\newline \newline
-Now we can visualize a PC plot using only loops that are significantly
-different between celltypes
-```{r pca_sigfix, fig.width=7, fig.height=4, fig.cap = "PCA plot of differential loops"}
-pcaPlot(topLoops(jnp_res, FDR = 0.05)) + geom_text(aes(label=samples)) 
-```
-Here, we see a much tighter cluster of the cell types, which may be expected
-since the only variables introduced into the principal components are the loops
-that are statistically different between the cell types. 
 
+##Annotating Loops
+A key feature of diffloop is the ability to annotate the various loops either
+from the full data or from the significantly different loops. The `annotateLoops`
+function takes a `GRanges` coordinates for CTCF regions, Enhancer regions, and
+Promoter regions and returns the `loops` object with each loop annotated either
+as `ctcf`, `e-p`, or `none` under v1.0.0
+```{r annotateLoops}
+ctcf_j <- system.file('extdata','Jurkat_CTCF_chr1.narrowPeak',package='diffloop')
+ctcf <- rmchr(padGRanges(bedToGRanges(ctcf_j), pad = 1000))
+h3k27ac_j <- system.file('extdata','Jurkat_H3K27ac_chr1.narrowPeak',package='diffloop')
+h3k27ac <- rmchr(padGRanges(bedToGRanges(h3k27ac_j), pad = 1000))
+promoter <- padGRanges(getHumanTSS(c('1')), pad = 1000)
+annotated_jn <- annotateLoops(jn_res, ctcf = ctcf, enhancer = h3k27ac, promoter = promoter)
+head(annotated_jn, 3)
+```
+Optionally, one can subset the loops to those with enhancer-promoter activity
+and retain the gene of the promoter region using the function below:
+```{r epLoops}
+ep_jn <- keepEPloops(jn_res, enhancer = h3k27ac, promoter = promoter)
+head(ep_jn, 3)
+```
 ## Loop Plots
 We can easily visualize the looping structure of a region specfied by a 
 `GRanges` object in each sample. We also afford the annotation of the region
@@ -206,6 +198,15 @@ are supported.
 regA <- GRanges(c("1"),ranges=IRanges(c(36000000),c(36300000)))
 full.plot <- loopPlot(jn_res, regA)
 ```
+
+When loop annotation information is available, these can be identified in
+the plot by indicating `colorLoops = TRUE`, which makes ctcf loops blue,
+enhancer-promoter loops red, and loopswith no special annotation black.
+```{r colorplots,fig.width=7, fig.height=10}
+regB <- GRanges(c("1"),ranges=IRanges(c(36000000),c(36500000)))
+color.plot <- loopPlot(annotated_jn, regB, colorLoops = TRUE)
+```
+
 $^1$Hnisz, Denes, et al. "Activation of proto-oncogenes by disruption of
 chromosome neighborhoods." Science (2016): aad9024. <br><br>
 $^2$Ji, Xiong, et al. "3D Chromosome Regulatory Landscape of Human Pluripotent

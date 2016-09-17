@@ -140,18 +140,18 @@ setMethod("loopPlot", signature(x = "loops", y = "GRanges", organism = "ANY",
         0, 3, 0))
     for (sample in samples[-m]) {
         idx <- which(bedPE$sample_id == sample)
-        plotBedpe(bedPE[idx, ], chrom, start, end, color = rep("red", 
+        plotBedpe(bedPE[idx, ], chrom, start, end, color = rep("black", 
             n), lwd = lwd[idx], plottype = "loops", heights = h, 
-            lwdrange = c(0, 5), main = sample)
+            lwdrange = c(0, 5), main = sample, adj=0)
         labelgenome(chromchr, start, end, side = 1, scipen = 20, 
             n = 3, scale = "Mb", line = 0.18, chromline = 0.5, 
             scaleline = 0.5)
     }
     sample = samples[m]
     idx <- which(bedPE$sample_id == sample)
-    plotBedpe(bedPE[idx, ], chrom, start, end, color = rep("red", 
+    plotBedpe(bedPE[idx, ], chrom, start, end, color = rep("black", 
         n), lwd = lwd[idx], plottype = "loops", heights = h, 
-        lwdrange = c(0, 5), main = sample)
+        lwdrange = c(0, 5), main = sample, adj=0)
     labelgenome(chromchr, start, end, side = 1, scipen = 20, 
         n = 3, scale = "Mb", line = 0.18, chromline = 0.5, scaleline = 0.5)
     
@@ -258,7 +258,7 @@ setMethod("loopPlot", signature(x = "loops", y = "GRanges", organism = "ANY",
         idx <- which(bedPE$sample_id == sample)
         plotBedpe(bedPE[idx, ], chrom, start, end, color = cs, 
             lwd = lwd[idx], plottype = "loops", heights = h, 
-            lwdrange = c(0, 5), main = sample)
+            lwdrange = c(0, 5), main = sample, adj=0)
         labelgenome(chromchr, start, end, side = 1, scipen = 20, 
             n = 3, scale = "Mb", line = 0.18, chromline = 0.5, 
             scaleline = 0.5)
@@ -267,7 +267,7 @@ setMethod("loopPlot", signature(x = "loops", y = "GRanges", organism = "ANY",
     idx <- which(bedPE$sample_id == sample)
     plotBedpe(bedPE[idx, ], chrom, start, end, color = cs, lwd = lwd[idx], 
         plottype = "loops", heights = h, lwdrange = c(0, 5), 
-        main = sample)
+        main = sample, adj=0)
     labelgenome(chromchr, start, end, side = 1, scipen = 20, 
         n = 3, scale = "Mb", line = 0.18, chromline = 0.5, scaleline = 0.5)
     
