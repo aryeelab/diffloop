@@ -24,7 +24,7 @@ setMethod("[", signature(x = "loops", i = "numeric", j = "numeric",
     nonZero <- apply(x@counts, MARGIN = 1, function(t) !all(t == 0))
     x <- subsetLoops(x, nonZero)
     slot(x, "colData", check = TRUE) <- x@colData[j, ]
-    return(cleanup(x))
+    return(x)
 })
 
 #' @rdname sub-loops-numeric-numeric-missing-method 
@@ -36,7 +36,7 @@ setMethod("[", signature(x = "loops", i = "missing", j = "numeric",
     nonZero <- apply(x@counts, MARGIN = 1, function(t) !all(t == 0))
     x <- subsetLoops(x, nonZero)
     slot(x, "colData", check = TRUE) <- x@colData[j, ]
-    return(cleanup(x))
+    return(x)
 })
 
 #' @rdname sub-loops-numeric-numeric-missing-method 
@@ -49,7 +49,7 @@ setMethod("[", signature(x = "loops", i = "numeric", j = "missing",
     newRowData <- as.data.frame(x@rowData[i, ])
     colnames(newRowData) <- colnames(x@rowData)
     slot(x, "rowData", check = TRUE) <- newRowData
-    return(cleanup(x))
+    return(x)
 })
 
 #' Extract first part of loops object
