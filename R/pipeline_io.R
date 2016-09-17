@@ -11,12 +11,14 @@ NULL
 #' which samples are read. If \code{samples} is not specified all samples will
 #' be read. The \code{type} option restricts loops whether they are on the same 
 #' 'intra' or different 'inter' chormosome. Default is 'all'. 
+#' 
+#' IMPORTANT: Assumes the delimiter is a space, not a tab on the files. 
 #'
 #' @param beddir A string. The preprocessed data directory
 #' @param samples A character vector. Optional list of samples to read in
 #' @param mergegap An integer value of the radius to merge anchors; default 0
 #' @param type Specificies 'intra', 'inter', or 'all' looping. Default 'all'
-#'
+#' 
 #' @return A loops object
 #'
 #' @examples

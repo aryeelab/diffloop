@@ -9,7 +9,9 @@ NULL
 #' This function returns a \code{data.frame} where the left and right anchors 
 #' are visualized together along with the loop width, individual counts, and
 #' any anchor meta-data that has been annotated into the anchors GRanges
-#' object as well as any rowData varianble
+#' object as well as any rowData varianble. Finally, the region column
+#' contains the coordinates that readily facilitates visualization of loop in 
+#' UCSC or DNAlandscapeR by padding the loop by 25kb on either side. 
 #'
 #' @param object A loops object to be summarized
 #'
@@ -40,8 +42,12 @@ setMethod(f = "summary", signature = c("loops"), definition = function(object) {
     colnames(rightAnchor2) <- paste(colnames(rightAnchor2), "2", sep = "_")
     colnames(rightAnchor2)[1] <- "chr_2"
     
-    # Add the loop features
-    cbind(leftAnchor2, rightAnchor2, dlo@counts, object@rowData)
+    # Add the loop features; UCSC coordinates
+    df1 <- cbind(leftAnchor2, rightAnchor2, dlo@counts, dlo@rowData)
+    reg <- paste0(df1$chr_1,":", as.character(df1$start_1 - 25000), "-", as.character(df1$end_2 + 25000))
+    if(all(grepl("chr", df1$chr_1))) { region <- reg 
+    } else { region <- paste0("chr", reg) } 
+    return(cbind(df1, region))
 })
 
 .emptyloopsobject <- function(colData){

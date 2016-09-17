@@ -31,7 +31,7 @@ rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
 load(rda)
 regA <- GRanges(c('1'),IRanges(c(36000000),c(36100000)))
 regB <- GRanges(c('1'),IRanges(c(36200000),c(36300000)))
-splits <- subsetRegionAB(dlo, regA, regB)
+splits <- subsetRegionAB(loops.small, regA, regB)
 
 }
 

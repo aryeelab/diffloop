@@ -21,7 +21,9 @@ loop data structure resulting in a \code{data.frame}.
 This function returns a \code{data.frame} where the left and right anchors 
 are visualized together along with the loop width, individual counts, and
 any anchor meta-data that has been annotated into the anchors GRanges
-object as well as any rowData varianble
+object as well as any rowData varianble. Finally, the region column
+contains the coordinates that readily facilitates visualization of loop in 
+UCSC or DNAlandscapeR by padding the loop by 25kb on either side.
 }
 \examples{
 # Summarizing the first ten loops in \\code{loops.small}

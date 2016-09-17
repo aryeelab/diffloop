@@ -33,6 +33,8 @@ This function reads in preprocessed ChIA-PET data produced by the
 which samples are read. If \code{samples} is not specified all samples will
 be read. The \code{type} option restricts loops whether they are on the same 
 'intra' or different 'inter' chormosome. Default is 'all'.
+
+IMPORTANT: Assumes the delimiter is a space, not a tab on the files.
 }
 \examples{
 # Reading in all samples, no mergegap, all loops
