@@ -420,3 +420,53 @@ setMethod(f = "plotTopLoops", signature = c("loops", "ANY", "ANY",
     dev.off()
     close(pb)
 })
+
+#' Plot several loop regions
+#'
+#' \code{manyLoopPlots} takes a loops object and creates a time-stamped .pdf
+#' file with loop plots (one per page) of all regions specified in the GRanges object. 
+#'
+#' Each plot will show one region sequentially that is supplied in the GRanges object.
+#'
+#' @param x loops object 
+#' @param y GRanges object with many regions to be visualized
+#' @param organism 'h' for human or 'm' for mouse supported
+#' @param geneinfo A data.frame manually specifying annotation (see Examples)
+#' @param colorLoops Differentiates loops based on loop.type in loops object
+#' @param cache logic variable (default = TRUE) to use gene annotation from July.2015 freeze
+#' @param maxCounts Number of counts associated with thickest loop. Default is largest count
+#' in region displayed
+#'
+#' @return Prints a time stamped .pdf file of top loops
+#'
+#' @examples
+#' rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
+#' load(rda)
+#' jpn.u <- removeSelfLoops(loops.small)
+#' jpn_loopfit <- loopFit(jpn.u)
+#' assoc_jn <- loopTest(jpn_loopfit, coef = 2)
+#' #manyLoopPlots(assoc_jn, regs) #define regs as multiple GRanges
+#' 
+#' @import GenomicRanges
+#' 
+#' @export
+setGeneric(name = "manyLoopPlots", def = function(x, y, organism = "h", 
+    geneinfo = "NA", colorLoops = FALSE, cache = TRUE, maxCounts = -1) standardGeneric("manyLoopPlots"))
+
+#' @rdname manyLoopPlots
+setMethod("manyLoopPlots", signature(x = "loops", y = "GRanges", organism = "ANY", 
+    geneinfo = "ANY", colorLoops = "ANY", cache = "ANY", maxCounts = "ANY"),
+    definition = function(x, y, organism = "h", geneinfo = "NA", colorLoops = FALSE, cache = TRUE, maxCounts = -1) {
+   
+    fname <- gsub(":", ".", gsub(" ", "at", paste0("manyLoopsPlotted-", Sys.time(), ".pdf"), fixed = TRUE))
+    pdf(file = fname)
+    pb <- txtProgressBar(min = 0, max = length(y), style = 3)
+    
+    for (i in 1:length(y)) {
+        yy <- y[i]
+        loopPlot(x, yy, organism = organism, colorLoops = colorLoops, maxCounts = maxCounts)
+        setTxtProgressBar(pb, i)
+    }
+    dev.off()
+    close(pb)
+})
