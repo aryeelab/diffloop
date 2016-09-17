@@ -339,7 +339,7 @@ setMethod(f = "getMouseTSS", signature = c("missing"),
     definition = function(chr) {
         all <- c("1", "2", "3", "4", "5", "6", "7", "8", "9", 
                  "10", "11", "12", "13", "14", "15", "16", "17", "18", 
-                 "19", "20", "21", "22", "X", "Y")
+                 "19", "X", "Y")
         geneinfo = NULL
         rda <- paste(system.file("rda", package = "diffloop"), 
                      "geneinfo.m.rda", sep = "/")
@@ -395,26 +395,23 @@ setMethod(f = "getMouseGenes", signature = c("missing"),
     definition = function(chr) {
         all <- c("1", "2", "3", "4", "5", "6", "7", "8", "9", 
                  "10", "11", "12", "13", "14", "15", "16", "17", "18", 
-                 "19", "20", "21", "22", "X", "Y")
-        human.genes = NULL
+                 "19", "X", "Y")
         rda <- paste(system.file("rda", package = "diffloop"), 
-                     "human.genes.rda", sep = "/")
+                     "geneinfo.m.rda", sep = "/")
         load(rda)
-        return(human.genes[as.vector(as.data.frame(human.genes)$seqnames) %in%
-                               as.vector(all)])
+        gi <- geneinfo[as.vector(as.data.frame(geneinfo)$chrom) %in%  as.vector(all),c(1,2,3,4)]
+        return(GRanges(gi))
         
     })
 
-#' @rdname getHumanGenes
-setMethod(f = "getHumanGenes", signature = c("character"), 
+#' @rdname getMouseGenes
+setMethod(f = "getMouseGenes", signature = c("character"), 
     definition = function(chr) {
-        human.genes = NULL
         rda <- paste(system.file("rda", package = "diffloop"), 
-                     "human.genes.rda", sep = "/")
+                     "geneinfo.m.rda", sep = "/")
         load(rda)
-        return(human.genes[is.element(as.vector(as.data.frame(human.genes)$seqnames), 
-                                      as.vector(chr))])
-        
+        gi <- geneinfo[as.vector(as.data.frame(geneinfo)$chrom) %in%  as.vector(all),c(1,2,3,4)]
+        return(GRanges(gi))
     })
 
 
