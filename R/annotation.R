@@ -515,6 +515,66 @@ setMethod(f = "keepEPloops", signature = c("loops",
     return(new.loops)
 })
 
+#' Keep CTCF loops
+#'
+#' \code{keepCTCFloops} returns loops that are nearby CTCF peaks
+#' as determined by some external data in a GRanges object 
+#'
+#' This function works similar to the \code{annotateLoops} function but
+#' returns only CTCF loops that are defined in this function.
+#' However, loops in \code{annotateLoops} may have a different annotation
+#' based on their priority scheme. For example, an e-p loop from 
+#' \code{annotateLoops} may be returned as a CTCF loop by this function
+#' if the loop had both annotations. These peaks don't necessarily 
+#' need to be CTCF peaks, so using a GRanges object with enhancers
+#' or promoters to determine e-e loops and p-p loops could also
+#' be used in this function
+#'
+#' @param lto A loops object whose loops will be annotated
+#' @param ctcf GRanges object corresponding to locations of CTCF peaks
+#'
+#' @return A loops object with all loops having both anchors in the GRanges region
+#'
+#' @examples
+#' rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
+#' load(rda)
+#' ctcf_j <- system.file('extdata','Jurkat_CTCF_chr1.narrowPeak',package='diffloop')
+#' ctcf <- rmchr(padGRanges(bedToGRanges(ctcf_j), pad = 1000))
+#' small.ctcf <- keepCTCFloops(loops.small, ctcf)
+#' 
+#' @import GenomicRanges
+#' @importFrom stats aggregate
+#' @export
+setGeneric(name = "keepCTCFloops", def = function(lto, 
+    ctcf) standardGeneric("keepCTCFloops"))
+
+#' @rdname keepCTCFloops
+setMethod(f = "keepCTCFloops", signature = c("loops", 
+    "GRanges"), definition = function(lto, ctcf) {
+    
+    lto.df <- summary(lto)
+    Ranchors <- GRanges(lto.df$chr_1, IRanges(lto.df$start_1, lto.df$end_1))
+    Lanchors <- GRanges(lto.df$chr_2, IRanges(lto.df$start_2, lto.df$end_2))
+    
+    # Determine if right anchor is near CTCF peak
+    Rhits.c <- suppressWarnings(findOverlaps(ctcf, Ranchors, 
+        maxgap = 0))
+    Rvalues.c <- rep(FALSE, dim(lto.df)[1])
+    Rvalues.c[unique(subjectHits(Rhits.c))] <- TRUE
+    
+    # Determine if left anchor is near CTCF peak
+    Lhits.c <- suppressWarnings(findOverlaps(ctcf, Lanchors, 
+        maxgap = 0))
+    Lvalues.c <- rep(FALSE, dim(lto.df)[1])
+    Lvalues.c[unique(subjectHits(Lhits.c))] <- TRUE
+   
+    ctcf.loops <- Lvalues.c & Rvalues.c
+    new.loops <- subsetLoops(lto, ctcf.loops)
+    
+    return(new.loops)
+})
+
+
 #' Annotate enhancer-promoter loops with differential gene expression
 #'
 #' \code{annotateLoops.dge} adds columns to the rowData slot of a loops
