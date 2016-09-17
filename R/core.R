@@ -320,6 +320,64 @@ setMethod(f = "subsetRegion", signature = c("loops", "GRanges",
     return(dlo)
 }
 
+
+#' Remove region from loops object
+#'
+#' \code{removeRegion} takes a \code{loops} object and a \code{GRanges}
+#' object and returns a \code{loops} object where neither anchors map inside
+#' the \code{GRanges} coordinates.
+#'
+#' @param dlo A loops object to be subsetted
+#' @param region A GRanges object containing region of interest 
+#' 
+#' @return A loops object with no anchors touching the region given
+#'
+#' @examples
+#' # Remove region chr1:36000000-36100000
+#' library(GenomicRanges)
+#' regA <- GRanges(c('1'),IRanges(c(36000000),c(36100000)))
+#' rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
+#' load(rda)
+#' # Get rid of loop if either anchor touches that region
+#' restricted <- removeRegion(loops.small, regA)
+#' @import GenomicRanges
+#' @importFrom stats na.omit
+#' @export
+setGeneric(name = "removeRegion", def = function(dlo, region) standardGeneric("removeRegion"))
+
+#' @rdname removeRegion
+setMethod(f = "removeRegion", signature = c("loops", "GRanges"), definition = function(dlo, region) {
+    # Keep only those anchors that are being used
+    newAnchors <- dlo@anchors[setdiff(1:length(dlo@anchors),findOverlaps(region, dlo@anchors)@to) ]
+    
+    # Create mapping from old indices to new indices
+    ov <- findOverlaps(dlo@anchors, newAnchors)
+    translate <- ov@to
+    names(translate) <- ov@from
+    
+    # Update interactions indices
+    upints <- matrix(unname(translate[as.character(dlo@interactions)]), ncol = 2)
+    cc <- complete.cases(upints)
+    upints <- matrix(upints[cc,], ncol = 2)
+    colnames(upints) <- c("left", "right")
+
+    # Grab counts indicies
+    newcounts <- matrix(dlo@counts[cc], ncol = ncol(dlo@counts))
+    colnames(newcounts) <- colnames(dlo@counts)
+    
+    # Subset rowData
+    newRowData <- as.data.frame(dlo@rowData[cc, ])
+    colnames(newRowData) <- colnames(dlo@rowData)
+    row.names(newRowData) <- NULL
+    
+    # Update values
+    slot(dlo, "anchors", check = TRUE) <- newAnchors
+    slot(dlo, "interactions", check = TRUE) <- upints
+    slot(dlo, "counts", check = TRUE) <- newcounts
+    slot(dlo, "rowData", check = TRUE) <- newRowData
+    return(dlo)
+})
+
 #' Get number of anchors in each sample
 #'
 #' \code{numAnchors} takes a \code{loops} object and a summarizes the
