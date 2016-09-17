@@ -81,7 +81,7 @@ setGeneric(name = "loopsMake", def = function(beddir, samples = NA,
         rightanchor[queryHits(ovl)] <- subjectHits(ovl)
         
         df <- data.frame(left = leftanchor, right = rightanchor)
-        g <- dplyr::group_by(df, left, right)
+        g <- as.data.frame(dplyr::group_by(df, left, right))
         d <- cbind(g, counts)
         colnames(d) <- c("left", "right", "counts")
         dag <- aggregate(counts ~ left + right, FUN = sum, data=d)
@@ -101,7 +101,7 @@ setGeneric(name = "loopsMake", def = function(beddir, samples = NA,
             bt[, 8], sample)
     }
     .full_join <- function(a, b) {
-        dplyr::full_join(a, b, by = c("left", "right"))
+        as.data.frame(dplyr::full_join(a, b, by = c("left", "right")))
     }
     
     # Map Counts
@@ -235,7 +235,7 @@ setGeneric(name = "loopsMake.mango", def = function(beddir, samples = NA,
         rightanchor[queryHits(ovl)] <- subjectHits(ovl)
         
         df <- data.frame(left = leftanchor, right = rightanchor)
-        g <- dplyr::group_by(df, left, right)
+        g <- as.data.frame(dplyr::group_by(df, left, right))
         d <- cbind(g, counts)
         colnames(d) <- c("left", "right", "counts")
         dag <- aggregate(counts ~ left + right, FUN = sum, data=d)
@@ -253,7 +253,7 @@ setGeneric(name = "loopsMake.mango", def = function(beddir, samples = NA,
             bt[, 7], sample)
     }
     .full_join <- function(a, b) {
-        dplyr::full_join(a, b, by = c("left", "right"))
+        as.data.frame(dplyr::full_join(a, b, by = c("left", "right")))
     }
     
     # Map Counts
