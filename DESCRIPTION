@@ -60,6 +60,7 @@ Collate:
     'colData.R'
     'mangoFunctions.R'
     'plotting.R'
+    'ruan.R'
 biocViews: Preprocessing, QualityControl, Visualization, DataImport,
     DataRepresentation, GO
 NeedsCompilation: no

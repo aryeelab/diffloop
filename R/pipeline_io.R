@@ -27,7 +27,7 @@ NULL
 #' # Reading in a subset of samples, 1kb mergegap, only intrachromosomal
 #' # looping
 #' samples <- c('naive_esc_1', 'naive_esc_2')
-#' naive.intra <- loopsMake(bd, samples, 1000, 'inter')
+#' # naive.intra <- loopsMake(bd, samples, 1000, 'inter')
 #'
 
 #' @import foreach
