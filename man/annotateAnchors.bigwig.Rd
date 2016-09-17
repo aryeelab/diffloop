@@ -2,7 +2,6 @@
 % Please edit documentation in R/annotation.R
 \docType{methods}
 \name{annotateAnchors.bigwig}
-\alias{annotateAnchors.bed,ANY-method}
 \alias{annotateAnchors.bigwig}
 \alias{annotateAnchors.bigwig,ANY-method}
 \title{Add meta data column to anchors based on .bigwig}
@@ -10,8 +9,6 @@
 annotateAnchors.bigwig(dlo, file, FUN = mean, pad = 0)
 
 \S4method{annotateAnchors.bigwig}{ANY}(dlo, file, FUN = mean, pad = 0)
-
-\S4method{annotateAnchors.bed}{ANY}(dlo, file, FUN = mean, pad = 0)
 }
 \arguments{
 \item{dlo}{A loops object whose anchors will be annotated}

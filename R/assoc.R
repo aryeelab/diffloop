@@ -454,3 +454,37 @@ setMethod(f = "topLoops", signature = c("loops", "missing", "numeric"),
     definition = function(dlo, FDR, PValue) {
         .topLoops(dlo, 1, PValue)
     })
+
+
+#' Retain loops spanning some genomic feature
+#'
+#' \code{filterSpanningLoops} returns a loops object where the ends of the 
+#' anchors completely span one or more genomic feature (e.g. boundary)
+#'
+#' Rather than a simple overlap, the function by default requires a
+#' genomic locus to be completely contacints
+#'
+#' @param dlo A loops object
+#' @param gf A GRanges object of features
+#'
+#' @return An loops object
+#'
+#' @examples
+#' # Return the width for loops 
+#' rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
+#' load(rda)
+#' w <- loopWidth(loops.small)
+#'
+#' @export
+setGeneric(name = "filterSpanningLoops", def = function(dlo, gf) standardGeneric("filterSpanningLoops"))
+
+#' @rdname filterSpanningLoops
+setMethod(f = "filterSpanningLoops", signature = c("loops", "GRanges"), definition = function(dlo, gf) {
+    sdf <- summary(dlo)
+    span <- makeGRangesFromDataFrame(sdf, seqnames.field = "chr_1", start.field = "start_1", end.field = "end_2")
+    co <- findOverlaps(gf, span, type = "within")
+    return(subsetLoops(dlo, subjectHits(co)))
+})
+
+
+

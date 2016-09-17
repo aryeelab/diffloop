@@ -409,3 +409,4 @@ setMethod(f = "numAnchors", signature = c("loops"), definition = function(x) {
     colnames(nAnchors) <- colnames(x@counts)
     return(nAnchors)
 })
+
