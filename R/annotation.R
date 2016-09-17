@@ -73,7 +73,7 @@ setMethod(f = "annotateAnchors", signature = c("loops", "GRanges",
 #' produce a single value added to the mcols of the anchors. 
 #'
 #' @param dlo A loops object whose anchors will be annotated
-#' @param file A Granges object corresponding to locations of interest
+#' @param file A file corresponding to the bigwig of interest
 #' @param FUN A function used to combine multiple values observed in a single anchor; default is mean
 #' @param pad An integer value of to pad the anchors of the loops object; default is 0
 #'
@@ -115,6 +115,61 @@ setMethod(f = "annotateAnchors.bigwig", definition = function(dlo, file, FUN = m
     mcols(dlo@anchors) <- as.data.frame(c(mcols(dlo@anchors), values))
     return(dlo)
 })
+
+#' Add meta data column to anchors based on bedgraph scores
+#'
+#' \code{annotateAnchors.bed} adds a numeric variable to meta data 
+#' columns in the anchors slot based on a user-specified .bed file
+#' where the fourth column is a numeric score.
+#'
+#' This function adds a meta data column to anchors of the specified
+#' loops object. All values from the .bed file that overlap with the 
+#' each anchor are handled by the FUN (default is to average them) to 
+#' produce a single value added to the mcols of the anchors. 
+#'
+#' @param dlo A loops object whose anchors will be annotated
+#' @param file A string pointing to the bed file of interest
+#' @param FUN A function used to combine multiple values observed in a single anchor; default is mean
+#' @param pad An integer value of to pad the anchors of the loops object; default is 0
+#'
+#' @return A loops object with new numeric meta data column in anchors
+#'
+#' @examples
+#' # Annotate whether anchors are near a gene body; within 1kb
+#' rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
+#' load(rda)
+#' gb <-getHumanGenes()
+#' loops.small <- annotateAnchors(loops.small,gb,'nearGeneBody')
+#'
+#' @import GenomicRanges
+#' @importFrom tools file_path_sans_ext
+#' 
+#' @export
+setGeneric(name = "annotateAnchors.bed", function(dlo, file, FUN = mean, pad = 0)
+    standardGeneric("annotateAnchors.bed"))
+
+#' @rdname annotateAnchors.bigwig
+setMethod(f = "annotateAnchors.bed", definition = function(dlo, file, FUN = mean, pad = 0) {
+    
+    sample <- basename(file_path_sans_ext(file))
+    bed.vals <- GRanges(setNames(read.table(file, header = TRUE), c("chr", "start", "stop", "score")))
+    ovl.k <- findOverlaps(dlo@anchors, rmchr(bed.vals))
+    qh.k <- queryHits(ovl.k) # anchors
+    sh.k <- subjectHits(ovl.k) 
+    values.t <- as.data.frame(tapply(mcols(bed.vals[sh.k])$score, qh.k, FUN))
+    
+    #A lot of extra effort to handle anchor regions with no values
+    colnames(values.t) <- "bwvalues"
+    vNA <- data.frame(matrix(NA, ncol = 1, nrow = length(ranges(dlo@anchors))))
+    colnames(vNA) <- "NAss"
+    ugly <- merge(vNA, values.t, by=0, all = TRUE, sort = F)
+    ugly <- ugly[order(as.numeric(ugly$Row.names)), ]
+    values <- data.frame(ugly$bwvalues)
+    colnames(values) <- sample
+    mcols(dlo@anchors) <- as.data.frame(c(mcols(dlo@anchors), values))
+    return(dlo)
+})
+
 
 #' Get protein coding gene regions
 #'
