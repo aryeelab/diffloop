@@ -334,7 +334,7 @@ setMethod(f = "annotateLoops", signature = c("loops", "GRanges",
     ####### 
     
     ctcf.loops <- Lvalues.c & Rvalues.c
-    ee.loops <- as.integer(Lvalues.e & Rvalues.p) * 10
+    ee.loops <- as.integer(Lvalues.e & Rvalues.e) * 10
     pp.loops <- as.integer(Lvalues.p & Rvalues.p) * 100
     ep.loops <- as.integer((Lvalues.e & Rvalues.p) | (Lvalues.p & Rvalues.e)) * 1000
     loop.types <- ctcf.loops + ee.loops + pp.loops + ep.loops
@@ -388,7 +388,7 @@ setMethod(f = "annotateLoops", signature = c("loops", "missing",
     
     ####### 
     
-    ee.loops <- as.integer(Lvalues.e & Rvalues.p) * 10
+    ee.loops <- as.integer(Lvalues.e & Rvalues.e) * 10
     pp.loops <- as.integer(Lvalues.p & Rvalues.p) * 100
     ep.loops <- as.integer((Lvalues.e & Rvalues.p) | (Lvalues.p & Rvalues.e)) * 1000
     loop.types <- ee.loops + pp.loops + ep.loops
