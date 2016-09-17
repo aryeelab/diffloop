@@ -19,7 +19,6 @@ setMethod("[", signature(x = "loops", i = "numeric", j = "numeric",
     newRowData <- as.data.frame(x@rowData[i, ])
     colnames(newRowData) <- colnames(x@rowData)
     slot(x, "rowData", check = TRUE) <- newRowData
-    x <- cleanup(x)
     
     slot(x, "counts", check = TRUE) <- x@counts[, j]
     nonZero <- apply(x@counts, MARGIN = 1, function(t) !all(t == 
@@ -51,7 +50,7 @@ setMethod("[", signature(x = "loops", i = "numeric", j = "missing",
     newRowData <- as.data.frame(x@rowData[i, ])
     colnames(newRowData) <- colnames(x@rowData)
     slot(x, "rowData", check = TRUE) <- newRowData
-    return(cleanup(x))
+    return(x)
 })
 
 #' Extract first part of loops object
