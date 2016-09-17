@@ -177,7 +177,7 @@ setMethod(f = "loopsMake", def = function(beddir, samples, mergegap = 0,
 #' \code{mango} preprocessing pipeline. The \code{samples} argument specifies
 #' which samples are read. If \code{samples} is not specified all samples will
 #' be read. The \code{ext} specifies which type of file to look for, either
-#' \code{all} or \code{fdr}, with \code{fdr} being the default. Under the
+#' \code{all} or \code{fdr}, with \code{all} being the default. Under the
 #' default, all samples with the extension \code{.fdr.mango} will be processed.
 #' Finally, the \code{FDR} parameter (default = 1) specifies the minimum threshold
 #' for loops to be added to the greater \code{loops} object. Currently, we do not
@@ -188,7 +188,7 @@ setMethod(f = "loopsMake", def = function(beddir, samples, mergegap = 0,
 #' @param beddir A string. The preprocessed data directory; Required
 #' @param samples A character vector. Optional list of samples to read in
 #' @param mergegap An integer value of the radius to merge anchors; default 500
-#' @param ext Specificies 'all' or 'fdr' file format; default 'fdr'
+#' @param ext Specificies 'all' or 'fdr' file format; default 'all'
 #'
 #' @return A loops object where 'chr' is removed from the anchors.
 #'
@@ -204,7 +204,7 @@ setMethod(f = "loopsMake", def = function(beddir, samples, mergegap = 0,
 
 #' @export
 setGeneric(name = "loopsMake.mango", def = function(beddir, samples = NA, 
-    mergegap = 500, ext = "fdr") standardGeneric("loopsMake.mango"))
+    mergegap = 500, ext = "all") standardGeneric("loopsMake.mango"))
 
 #' @import GenomicRanges
 .loopsMake.mango <- function(beddir, samples, mergegap, ext) {
@@ -313,7 +313,7 @@ setGeneric(name = "loopsMake.mango", def = function(beddir, samples = NA,
 }
 
 #' @rdname loopsMake.mango
-setMethod(f = "loopsMake.mango", def = function(beddir, samples=NA, mergegap = 500, ext = "fdr") {
+setMethod(f = "loopsMake.mango", def = function(beddir, samples=NA, mergegap = 500, ext = "all") {
     if (sum(is.na(samples)) > 0) {
         file.path(beddir, paste("", ext, "mango", sep = "."))
         samples <- dir(beddir, pattern = paste("", ext, "mango", sep = "."))

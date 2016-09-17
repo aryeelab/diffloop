@@ -6,10 +6,10 @@
 \alias{loopsMake.mango,ANY-method}
 \title{Read preprocessed ChIA-PET data from mango}
 \usage{
-loopsMake.mango(beddir, samples = NA, mergegap = 500, ext = "fdr")
+loopsMake.mango(beddir, samples = NA, mergegap = 500, ext = "all")
 
 \S4method{loopsMake.mango}{ANY}(beddir, samples = NA, mergegap = 500,
-  ext = "fdr")
+  ext = "all")
 }
 \arguments{
 \item{beddir}{A string. The preprocessed data directory; Required}
@@ -18,7 +18,7 @@ loopsMake.mango(beddir, samples = NA, mergegap = 500, ext = "fdr")
 
 \item{mergegap}{An integer value of the radius to merge anchors; default 500}
 
-\item{ext}{Specificies 'all' or 'fdr' file format; default 'fdr'}
+\item{ext}{Specificies 'all' or 'fdr' file format; default 'all'}
 }
 \value{
 A loops object where 'chr' is removed from the anchors.
@@ -32,7 +32,7 @@ This function reads in preprocessed ChIA-PET data produced by the
 \code{mango} preprocessing pipeline. The \code{samples} argument specifies
 which samples are read. If \code{samples} is not specified all samples will
 be read. The \code{ext} specifies which type of file to look for, either
-\code{all} or \code{fdr}, with \code{fdr} being the default. Under the
+\code{all} or \code{fdr}, with \code{all} being the default. Under the
 default, all samples with the extension \code{.fdr.mango} will be processed.
 Finally, the \code{FDR} parameter (default = 1) specifies the minimum threshold
 for loops to be added to the greater \code{loops} object. Currently, we do not
