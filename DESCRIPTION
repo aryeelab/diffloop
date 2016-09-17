@@ -1,8 +1,8 @@
 Package: diffloop
 Type: Package
 Title: Differential DNA loop calling from ChIA-PET data
-Version: 1.1.2
-Date: 2016-09-08
+Version: 1.1.9
+Date: 2016-09-17
 Authors@R: c(
     person("Caleb", "Lareau", email = "caleblareau@g.harvard.edu", role = c("aut", "cre")),
     person("Martin", "Aryee", email = "aryee.martin@mgh.harvard.edu", role = "aut")
@@ -40,6 +40,8 @@ Imports:
     pbapply,
     limma
 License: MIT + file LICENSE
+URL: https://github.com/aryeelab/diffloop
+BugReports: https://github.com/aryeelab/diffloop/issues
 LazyData: TRUE
 Suggests:
     diffloopdata,

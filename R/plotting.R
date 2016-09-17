@@ -81,7 +81,7 @@ setMethod("loopPlot", signature(x = "loops", y = "GRanges", organism = "ANY",
                 "exon_chrom_start", "exon_chrom_end", "external_gene_name", 
                 "strand"), 
                 mart = mart)
-        } else if (organism == "m") {
+        } else if (organism == "m" && geneinfo == "NA" && !cache) {
             mart=useMart(host='may2012.archive.ensembl.org', 
                 biomart='ENSEMBL_MART_ENSEMBL', dataset = "mmusculus_gene_ensembl")
             chrom_biomart = gsub("chr", "", chrom)
@@ -91,8 +91,7 @@ setMethod("loopPlot", signature(x = "loops", y = "GRanges", organism = "ANY",
                 mart = mart)
         }
         # make names the same
-        names(geneinfo) = c("chrom", "start", "stop", "gene", 
-            "strand")
+        names(geneinfo) = c("chrom", "start", "stop", "gene", "strand")
         
         # reorder and make proper bed format
         geneinfo$score = "."
