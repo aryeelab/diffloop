@@ -6,11 +6,12 @@
 \alias{loopPlot,loops,GRanges-method}
 \title{Visualize looping}
 \usage{
-loopPlot(x, y, organism = "h", geneinfo = "NA", colorLoops = FALSE,
-  cache = TRUE, maxCounts = -1)
+loopPlot(x, y, organism = "h", geneinfo = "NA", colorLoops = TRUE,
+  cache = TRUE, showAnchorWidths = FALSE, maxCounts = -1)
 
 \S4method{loopPlot}{loops,GRanges}(x, y, organism = "h", geneinfo = "NA",
-  colorLoops = FALSE, cache = TRUE, maxCounts = -1)
+  colorLoops = TRUE, cache = TRUE, showAnchorWidths = FALSE,
+  maxCounts = -1)
 }
 \arguments{
 \item{x}{A loops object}
@@ -24,6 +25,8 @@ loopPlot(x, y, organism = "h", geneinfo = "NA", colorLoops = FALSE,
 \item{colorLoops}{Differentiates loops based on loop.type in loops object}
 
 \item{cache}{logic variable (default = TRUE) to use gene annotation from July.2015 freeze}
+
+\item{showAnchorWidths}{Display the width of the anchor on the plot? Default = FALSE}
 
 \item{maxCounts}{Number of counts associated with thickest loop. Default is largest count
 in region displayed}

@@ -26,6 +26,7 @@ NULL
 #' @param cache logic variable (default = TRUE) to use gene annotation from July.2015 freeze
 #' @param maxCounts Number of counts associated with thickest loop. Default is largest count
 #' in region displayed
+#' @param showAnchorWidths Display the width of the anchor on the plot? Default = FALSE
 #'
 #' @return A plot object
 #'
@@ -47,20 +48,19 @@ NULL
 #' 
 #' @export
 setGeneric(name = "loopPlot", def = function(x, y, organism = "h", 
-    geneinfo = "NA", colorLoops = FALSE, cache = TRUE, maxCounts = -1) standardGeneric("loopPlot"))
+    geneinfo = "NA", colorLoops = TRUE, cache = TRUE, showAnchorWidths = FALSE,  maxCounts = -1) standardGeneric("loopPlot"))
 
 #' @rdname loopPlot
 setMethod("loopPlot", signature(x = "loops", y = "GRanges", organism = "ANY", 
-    geneinfo = "ANY", colorLoops = "ANY", cache = "ANY", maxCounts = "ANY"), definition = function(x, 
-    y, organism = "h", geneinfo = "NA", colorLoops = FALSE, cache = TRUE, maxCounts = -1) {
-    if (!colorLoops) {
-        return(.loopPlot(x, y, organism, geneinfo, cache, maxCounts))
-    } else {
-        return(.loopPlotcolor(x, y, organism, geneinfo, cache, maxCounts))
-    }
+    geneinfo = "ANY", colorLoops = "ANY", cache = "ANY", maxCounts = "ANY"),
+    definition = function(x, y, organism = "h", geneinfo = "NA", 
+                          colorLoops = TRUE, cache = TRUE, showAnchorWidths = FALSE, maxCounts = -1) {
+    return(.loopPlot(x, y, organism, geneinfo, colorLoops, cache, showAnchorWidths, maxCounts))
+
 })
 
-.loopPlot <- function(x, y, organism = "h", geneinfo = "NA", cache = TRUE, maxCounts = -1) {
+.loopPlot <- function(x, y, organism = "h", geneinfo = "NA", colorLoops = TRUE,
+                      cache = TRUE, showAnchorWidths = FALSE, maxCounts = -1) {
     
     # Immediately restrict the loops object to the region
     objReg <- removeSelfLoops(subsetRegion(x, y))
@@ -114,144 +114,25 @@ setMethod("loopPlot", signature(x = "loops", y = "GRanges", organism = "ANY",
     n <- dim(objReg@interactions)[1]  #number of interactions
     m <- dim(objReg@counts)[2]  #number of samples
     
-    # Setup Dataframe for Plot
-    leftAnchor <- as.data.frame(objReg@anchors[objReg@interactions[, 
-        1]])[c(1, 2, 3)]
-    LA <- do.call("rbind", replicate(m, leftAnchor, simplify = FALSE))
-    rightAnchor <- as.data.frame(objReg@anchors[objReg@interactions[, 
-        2]])[c(1, 2, 3)]
-    RA <- do.call("rbind", replicate(m, rightAnchor, simplify = FALSE))
-    colnames(LA) <- c("chr_1", "start_1", "end_1")
-    colnames(RA) <- c("chr_2", "start_2", "end_2")
-    name <- rep(NA, n)
-    strand_1 <- rep(".", n * m)
-    strand_2 <- rep(".", n * m)
-    score <- matrix(objReg@counts, ncol = 1)
-    sample_id <- matrix(sapply(colnames(objReg@counts), function(x) rep(x, 
-        n)), ncol = 1)
-    bedPE <- data.frame(LA, RA, name, score, strand_1, strand_2, 
-        sample_id)
-    
-    # Plot
-    w <- loopWidth(objReg)
-    h <- sqrt(w/max(w))
-    
-    malw <- 1
-    if(maxCounts == -1){
-        malw <- max(bedPE$score) 
-    } else {
-        malw <- maxCounts
-    }
-    
-    samples <- colnames(objReg@counts)
-    lwd <- 5 * (bedPE$score/malw)
-    
-    loplot <- recordPlot()
-    par(mfrow = c(m + 1, 1), mar = c(3, 1, 1, 1), oma = c(0, 
-        0, 3, 0))
-    for (sample in samples[-m]) {
-        idx <- which(bedPE$sample_id == sample)
-        plotBedpe(bedPE[idx, ], chrom, start, end, color = rep("black", 
-            n), lwd = lwd[idx], plottype = "loops", heights = h, 
-            lwdrange = c(0, 5), main = sample, adj=0)
-        labelgenome(chromchr, start, end, side = 1, scipen = 20, 
-            n = 3, scale = "Mb", line = 0.18, chromline = 0.5, 
-            scaleline = 0.5)
-    }
-    sample = samples[m]
-    idx <- which(bedPE$sample_id == sample)
-    plotBedpe(bedPE[idx, ], chrom, start, end, color = rep("black", 
-        n), lwd = lwd[idx], plottype = "loops", heights = h, 
-        lwdrange = c(0, 5), main = sample, adj=0)
-    labelgenome(chromchr, start, end, side = 1, scipen = 20, 
-        n = 3, scale = "Mb", line = 0.18, chromline = 0.5, scaleline = 0.5)
-    
-    if(dim(geneinfo)[1] == 0){ #Dummy plot
-        plotBedpe(data.frame(), chrom, start, end, color = c("blue"), lwd = 0, 
-                  plottype = "loops", heights = 0, lwdrange = c(0, 0), 
-                  main = "", adj=0)
-    } else {
-        pg <- plotGenes(geneinfo = geneinfo, chrom = chromchr, chromstart = start, 
-            chromend = end, bheight = 0.1, plotgenetype = "box", 
-            bentline = FALSE, labeloffset = 0.4, fontsize = 1, arrowlength = 0.025, 
-            labeltext = TRUE)
-    }
-    
-    mtext(paste0("Region: ", chrom, ":", start, "-", end), outer = TRUE, 
-        line = 1)
-    return(loplot)
-}
-
-.loopPlotcolor <- function(x, y, organism = "h", geneinfo = "NA", cache = TRUE, maxCounts) {
-    
-    # Immediately restrict the loops object to the region
-    objReg <- removeSelfLoops(subsetRegion(x, y))
     res <- objReg@rowData
     
-    # Grab Regional Coordinates
-    chrom <- as.character(seqnames(y))
-    chromchr <- paste(c("chr", as.character(chrom)), collapse = "")
-    start <- as.integer(start(ranges(range(y))))
-    end <- as.integer(end(ranges(range(y))))
-    
-    if (geneinfo == "NA" && !cache) {
-        # Get gene annotation from bioMart
-        if (organism == "h") {
-            mart = useMart(biomart = "ensembl", dataset = "hsapiens_gene_ensembl")
-            chrom_biomart = gsub("chr", "", chrom)
-            geneinfo = getBM(attributes = c("chromosome_name", 
-                "exon_chrom_start", "exon_chrom_end", "external_gene_name", 
-                "strand"), filters = c("chromosome_name", "start", 
-                "end"), values = list(chrom_biomart, start, end), 
-                mart = mart)
-        } else if (organism == "m") {
-            mart = useMart(biomart = "ensembl", dataset = "mmusculus_gene_ensembl")
-            chrom_biomart = gsub("chr", "", chrom)
-            geneinfo = getBM(attributes = c("chromosome_name", 
-                "start_position", "end_position", "external_gene_name", 
-                "strand"), filters = c("chromosome_name", "start", 
-                "end"), values = list(chrom_biomart, start, end), 
-                mart = mart)
-        }
-        # make names the same
-        names(geneinfo) = c("chrom", "start", "stop", "gene", 
-            "strand")
-        
-        # reorder and make proper bed format
-        geneinfo$score = "."
-        geneinfo = geneinfo[, c(1, 2, 3, 4, 6, 5)]
-        
-    } else if (cache){
-        # load and subset geneinfo; condition on mouse/human
-        if(organism == "h") {
-            rda <- paste(system.file("rda", package = "diffloop"), 
-                "geneinfo.h.rda", sep = "/")
-        } else if (organism == "m") {
-            rda <- paste(system.file("rda", package = "diffloop"), 
-                "geneinfo.m.rda", sep = "/")
-        }
-        load(rda)
-        geneinfo <- geneinfo[geneinfo$chrom == chrom & geneinfo$start > start - 10000 & geneinfo$stop < end + 10000,]
-    } 
-    
-    # Dimensions of dataframe
-    n <- dim(objReg@interactions)[1]  #number of interactions
-    m <- dim(objReg@counts)[2]  #number of samples
-    
     # Setup colors for plotting
-    cs <- res$loop.type
-    cs <- gsub("e-p", "red", cs)
-    cs <- gsub("p-p", "orange", cs)
-    cs <- gsub("e-e", "mediumpurple1", cs)
-    cs <- gsub("ctcf", "blue", cs)
-    cs <- gsub("none", "black", cs)
+    cs <- 0
+    if(!is.null(res$loop.type) & colorLoops){
+        cs <- res$loop.type
+        cs <- gsub("e-p", "red", cs)
+        cs <- gsub("p-p", "orange", cs)
+        cs <- gsub("e-e", "mediumpurple1", cs)
+        cs <- gsub("ctcf", "blue", cs)
+        cs <- gsub("none", "black", cs)
+    } else {
+        cs <- rep("black", n)
+    }
     
     # Setup Dataframe for Plot
-    leftAnchor <- as.data.frame(objReg@anchors[objReg@interactions[, 
-        1]])[c(1, 2, 3)]
+    leftAnchor <- as.data.frame(objReg@anchors[objReg@interactions[, 1]])[c(1, 2, 3)]
     LA <- do.call("rbind", replicate(m, leftAnchor, simplify = FALSE))
-    rightAnchor <- as.data.frame(objReg@anchors[objReg@interactions[, 
-        2]])[c(1, 2, 3)]
+    rightAnchor <- as.data.frame(objReg@anchors[objReg@interactions[,2]])[c(1, 2, 3)]
     RA <- do.call("rbind", replicate(m, rightAnchor, simplify = FALSE))
     colnames(LA) <- c("chr_1", "start_1", "end_1")
     colnames(RA) <- c("chr_2", "start_2", "end_2")
@@ -259,18 +140,19 @@ setMethod("loopPlot", signature(x = "loops", y = "GRanges", organism = "ANY",
     strand_1 <- rep(".", n * m)
     strand_2 <- rep(".", n * m)
     score <- matrix(objReg@counts, ncol = 1)
-    sample_id <- matrix(sapply(colnames(objReg@counts), function(x) rep(x, 
-        n)), ncol = 1)
-    bedPE <- data.frame(LA, RA, name, score, strand_1, strand_2, 
-        sample_id)
-    
+    sample_id <- matrix(sapply(colnames(objReg@counts), function(x) rep(x, n)), ncol = 1)
+    if(length(score != 0)){
+        bedPE <- data.frame(LA, RA, name, score, strand_1, strand_2, sample_id)
+    } else {
+         bedPE <- data.frame(score = integer(0), sample_id = character(0), stringsAsFactors = FALSE)
+    }
     # Plot
     w <- loopWidth(objReg)
-    h <- sqrt(w/max(w))
+    h <- sqrt(w/max(suppressWarnings(max(w)),1))
     
     malw <- 1
     if(maxCounts == -1){
-        malw <- max(bedPE$score) 
+        malw <- max(suppressWarnings(max(bedPE$score)), 1)
     } else {
         malw <- maxCounts
     }
@@ -279,24 +161,84 @@ setMethod("loopPlot", signature(x = "loops", y = "GRanges", organism = "ANY",
     lwd <- 5 * (bedPE$score/malw)
     
     loplot <- recordPlot()
-    par(mfrow = c(m + 1, 1), mar = c(3, 1, 1, 1), oma = c(0, 
-        0, 3, 0))
+    par(mfrow = c(m + 1, 1), mar = c(3, 1, 1, 1), oma = c(0,  0, 3, 0))
     for (sample in samples[-m]) {
         idx <- which(bedPE$sample_id == sample)
-        plotBedpe(bedPE[idx, ], chrom, start, end, color = cs, 
-            lwd = lwd[idx], plottype = "loops", heights = h, 
-            lwdrange = c(0, 5), main = sample, adj=0)
-        labelgenome(chromchr, start, end, side = 1, scipen = 20, 
-            n = 3, scale = "Mb", line = 0.18, chromline = 0.5, 
-            scaleline = 0.5)
+        bedPE_sample <- bedPE[idx , ]
+        lwd_sample <- lwd[idx]
+        
+        ## Show anchor widths
+        if(showAnchorWidths){
+            loos <- bedPE_sample[bedPE_sample$score !=0,]
+            
+            #Make new data frame
+            tdf <- unique(rbind(loos[,c(1,2,3)],setNames(loos[,c(4,5,6)], c("chr_1", "start_1", "end_1"))))
+            a1df <- data.frame(
+                chr_1 = tdf$chr_1, 
+                start_1 = tdf$start_1,
+                end_1 = tdf$start_1,
+                chr_2 = tdf$chr_1,
+                start_2 = tdf$end_1,
+                end_2 = tdf$end_1,
+                name = NA,
+                score = 1,
+                strand_1 = ".",
+                strand_2 = ".",
+                sample_id = sample
+            )
+            bedPE_sample <- rbind(bedPE_sample, a1df)
+            
+            #Update vectors
+            cssamp <- c(cs, rep("black", dim(a1df)[1]))
+            hsamp <- c(h, rep(0.01, dim(a1df)[1]))
+            lwd_sample <- c(lwd_sample, rep(4, dim(a1df)[1]))
+        } else {
+            cssamp <- cs
+            hsamp <- h
+        }
+        
+        plotBedpe(bedPE_sample, chrom, start, end, color = cssamp, lwd = lwd_sample, plottype = "loops", heights = hsamp, 
+                  lwdrange = c(0, 5), main = sample, adj=0)
+        labelgenome(chromchr, start, end, side = 1, scipen = 20, n = 3, scale = "Mb", line = 0.18, chromline = 0.5, scaleline = 0.5)
     }
     sample = samples[m]
     idx <- which(bedPE$sample_id == sample)
-    plotBedpe(bedPE[idx, ], chrom, start, end, color = cs, lwd = lwd[idx], 
-        plottype = "loops", heights = h, lwdrange = c(0, 5), 
-        main = sample, adj=0)
-    labelgenome(chromchr, start, end, side = 1, scipen = 20, 
-        n = 3, scale = "Mb", line = 0.18, chromline = 0.5, scaleline = 0.5)
+    bedPE_sample <- bedPE[idx , ]
+    lwd_sample <- lwd[idx]
+    
+    ## Show anchor widths
+    if(showAnchorWidths & dim(bedPE_sample)[1] != 0){
+        loos <- bedPE_sample[bedPE_sample$score !=0,]
+        
+        #Make new data frame
+        tdf <- unique(rbind(loos[,c(1,2,3)],setNames(loos[,c(4,5,6)], c("chr_1", "start_1", "end_1"))))
+        a1df <- data.frame(
+            chr_1 = tdf$chr_1, 
+            start_1 = pmax(start, tdf$start_1),
+            end_1 = pmax(start, tdf$start_1), # to get the loop to fully fit on the window
+            chr_2 = tdf$chr_1,
+            start_2 = pmin(end, tdf$end_1),
+            end_2 = pmin(end, tdf$end_1),
+            name = NA,
+            score = 1,
+            strand_1 = ".",
+            strand_2 = ".",
+            sample_id = sample
+        )
+        bedPE_sample <- rbind(bedPE_sample, a1df)
+        
+        #Update vectors
+        cssamp <- c(cs, rep("black", dim(a1df)[1]))
+        hsamp <- c(h, rep(0.01, dim(a1df)[1]))
+        lwd_sample <- c(lwd_sample, rep(4, dim(a1df)[1]))
+    } else {
+        cssamp <- cs
+        hsamp <- h
+    }
+    
+    plotBedpe(bedPE_sample, chrom, start, end, color = cssamp, lwd = lwd_sample, plottype = "loops", heights = hsamp, 
+        lwdrange = c(0, 5), main = sample, adj=0)
+    labelgenome(chromchr, start, end, side = 1, scipen = 20,  n = 3, scale = "Mb", line = 0.18, chromline = 0.5, scaleline = 0.5)
     
     if(dim(geneinfo)[1] == 0){ #Dummy plot
         plotBedpe(data.frame(), chrom, start, end, color = c("blue"), lwd = 0, 
@@ -309,8 +251,7 @@ setMethod("loopPlot", signature(x = "loops", y = "GRanges", organism = "ANY",
             labeltext = TRUE)
     }
     
-    mtext(paste0("Region: ", chrom, ":", start, "-", end), outer = TRUE, 
-        line = 1)
+    mtext(paste0("Region: ", chrom, ":", start, "-", end), outer = TRUE, line = 1)
     return(loplot)
 }
 
@@ -436,6 +377,7 @@ setMethod(f = "plotTopLoops", signature = c("loops", "ANY", "ANY",
 #' @param cache logic variable (default = TRUE) to use gene annotation from July.2015 freeze
 #' @param maxCounts Number of counts associated with thickest loop. Default is largest count
 #' in region displayed
+#' @param showAnchorWidths Display the width of the anchor on the plot? Default = FALSE
 #'
 #' @return Prints a time stamped .pdf file of top loops
 #'
@@ -451,12 +393,13 @@ setMethod(f = "plotTopLoops", signature = c("loops", "ANY", "ANY",
 #' 
 #' @export
 setGeneric(name = "manyLoopPlots", def = function(x, y, organism = "h", 
-    geneinfo = "NA", colorLoops = FALSE, cache = TRUE, maxCounts = -1) standardGeneric("manyLoopPlots"))
+    geneinfo = "NA", colorLoops = FALSE, cache = TRUE, maxCounts = -1, showAnchorWidths = FALSE) standardGeneric("manyLoopPlots"))
 
 #' @rdname manyLoopPlots
 setMethod("manyLoopPlots", signature(x = "loops", y = "GRanges", organism = "ANY", 
-    geneinfo = "ANY", colorLoops = "ANY", cache = "ANY", maxCounts = "ANY"),
-    definition = function(x, y, organism = "h", geneinfo = "NA", colorLoops = FALSE, cache = TRUE, maxCounts = -1) {
+    geneinfo = "ANY", colorLoops = "ANY", cache = "ANY", maxCounts = "ANY", showAnchorWidths = "ANY"),
+    definition = function(x, y, organism = "h", geneinfo = "NA", colorLoops = FALSE, cache = TRUE,
+                          maxCounts = -1, showAnchorWidths = FALSE) {
    
     fname <- gsub(":", ".", gsub(" ", "at", paste0("manyLoopsPlotted-", Sys.time(), ".pdf"), fixed = TRUE))
     pdf(file = fname)
@@ -464,7 +407,7 @@ setMethod("manyLoopPlots", signature(x = "loops", y = "GRanges", organism = "ANY
     
     for (i in 1:length(y)) {
         yy <- y[i]
-        loopPlot(x, yy, organism = organism, colorLoops = colorLoops, maxCounts = maxCounts)
+        loopPlot(x, yy, organism = organism, colorLoops = colorLoops, maxCounts = maxCounts, showAnchorWidths = showAnchorWidths)
         setTxtProgressBar(pb, i)
     }
     dev.off()

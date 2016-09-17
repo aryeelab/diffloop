@@ -7,10 +7,11 @@
 \title{Plot several loop regions}
 \usage{
 manyLoopPlots(x, y, organism = "h", geneinfo = "NA", colorLoops = FALSE,
-  cache = TRUE, maxCounts = -1)
+  cache = TRUE, maxCounts = -1, showAnchorWidths = FALSE)
 
 \S4method{manyLoopPlots}{loops,GRanges}(x, y, organism = "h",
-  geneinfo = "NA", colorLoops = FALSE, cache = TRUE, maxCounts = -1)
+  geneinfo = "NA", colorLoops = FALSE, cache = TRUE, maxCounts = -1,
+  showAnchorWidths = FALSE)
 }
 \arguments{
 \item{x}{loops object}
@@ -27,6 +28,8 @@ manyLoopPlots(x, y, organism = "h", geneinfo = "NA", colorLoops = FALSE,
 
 \item{maxCounts}{Number of counts associated with thickest loop. Default is largest count
 in region displayed}
+
+\item{showAnchorWidths}{Display the width of the anchor on the plot? Default = FALSE}
 }
 \value{
 Prints a time stamped .pdf file of top loops
