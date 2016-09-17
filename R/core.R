@@ -300,7 +300,7 @@ setMethod(f = "subsetRegion", signature = c("loops", "GRanges",
     # Update interactions indices
     upints <- matrix(unname(translate[as.character(dlo@interactions)]), ncol = 2)
     cc <- complete.cases(upints)
-    upints <- upints[cc,]
+    upints <- matrix(upints[cc,], ncol = 2)
     colnames(upints) <- c("left", "right")
 
     # Grab counts indicies
