@@ -170,7 +170,7 @@ setMethod(f = "mangoCorrection", def = function(lo, FDR = 1, PValue = 1, nbins =
     df$depths <- df$totalPetCounts_1 * df$totalPetCounts_2
     
     totalcombos <- 0
-    chromosomes <- as.character(seqnames(tc.GR)@values)
+    chromosomes <- unique(as.character(seqnames(tc.GR)@values))
     
     # Distance normalization
     distanceborders <- .binmaker(df$loopWidth, binmethod = "equalocc", numberbins = nbins)
@@ -249,7 +249,11 @@ setMethod(f = "mangoCorrection", def = function(lo, FDR = 1, PValue = 1, nbins =
     
     df$Q <- p.adjust(df$P, method = "BH")
     
+    # Add to row data
+    lo@rowData$mango.FDR <- df$Q
+    lo@rowData$mango.P <- df$P
     
+    # Filter as needed
     idxF <- df$Q <= FDR
     idxP <- df$P <= PValue
     idxA <- idxF & idxP
