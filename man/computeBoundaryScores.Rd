@@ -6,17 +6,17 @@
 \alias{computeBoundaryScores,loops-method}
 \title{Compute boundary scores for genomic loci in between anchors}
 \usage{
-computeBoundaryScores(dlo, samples = 0, windowSize = 1e+06)
+computeBoundaryScores(dlo, samples = 0, windowSize = 5e+05)
 
 \S4method{computeBoundaryScores}{loops}(dlo, samples = 0,
-  windowSize = 1e+06)
+  windowSize = 5e+05)
 }
 \arguments{
 \item{dlo}{A loops object}
 
 \item{samples}{= 0 Vector indexing which samples should be used. 0 is all}
 
-\item{windowSize}{= 1000000}
+\item{windowSize}{= 500000 BP length on left and right of putative boundary to define A/B}
 }
 \value{
 A GRanges object with genomic loci and boundary scores in the mcols
@@ -39,7 +39,7 @@ an anticipated runntime.
 # Return the width for loops 
 rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
 load(rda)
-BS <- computeBoundaryScores(loops.small, samples = 0, windowSize = 1000000)
+BS <- computeBoundaryScores(loops.small, samples = 0, windowSize = 500000)
 
 }
 

@@ -94,7 +94,7 @@ setMethod(f = "subsetRegionAB", signature = c("loops", "GRanges", "GRanges"),
 #'
 #' @param dlo A loops object
 #' @param samples = 0 Vector indexing which samples should be used. 0 is all 
-#' @param windowSize = 1000000
+#' @param windowSize = 500000 BP length on left and right of putative boundary to define A/B
 #'
 #' @return A GRanges object with genomic loci and boundary scores in the mcols
 #'
@@ -102,15 +102,15 @@ setMethod(f = "subsetRegionAB", signature = c("loops", "GRanges", "GRanges"),
 #' # Return the width for loops 
 #' rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
 #' load(rda)
-#' BS <- computeBoundaryScores(loops.small, samples = 0, windowSize = 1000000)
+#' BS <- computeBoundaryScores(loops.small, samples = 0, windowSize = 500000)
 #'
 #' @importFrom pbapply pbsapply
 #' @export
-setGeneric(name = "computeBoundaryScores", def = function(dlo, samples = 0, windowSize = 1000000) standardGeneric("computeBoundaryScores"))
+setGeneric(name = "computeBoundaryScores", def = function(dlo, samples = 0, windowSize = 500000) standardGeneric("computeBoundaryScores"))
 
 #' @rdname computeBoundaryScores
 setMethod(f = "computeBoundaryScores", signature = c("loops", "ANY", "ANY"),
-          definition = function(dlo, samples = 0, windowSize = 1000000) {
+          definition = function(dlo, samples = 0, windowSize = 500000) {
     stopifnot(min(samples) >= 0, max(samples) <= dim(dlo)[3]) # Not a valid entry for samples
     stopifnot(windowSize > 0)
     if(samples[1] == 0) samples <- c(1:as.numeric(dim(dlo)[3]))

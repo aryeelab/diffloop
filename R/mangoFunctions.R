@@ -220,7 +220,8 @@ setMethod(f = "mangoCorrection", def = function(lo, FDR = 1, PValue = 1, nbins =
     distance_combo_model = cbind(sumofx_dist/countofx_dist, sumofy_dist, sumofy_dist/sum(sumofy_dist))
     
     depth_combo_spline = smooth.spline(log10(depth_combo_model.complete[, 1]), depth_combo_model.complete[, 3], spar = 0.75)
-    distance_combo_spline = smooth.spline(log10(distance_combo_model[, 1]), distance_combo_model[, 3], spar = 0.75)
+    mOI <- is.infinite(distance_combo_model[, 1]) | is.na(distance_combo_model[, 1])
+    distance_combo_spline = smooth.spline(log10(distance_combo_model[!mOI, 1]), distance_combo_model[!mOI, 3], spar = 0.75)
     
     df$P_IAB_distance = predict(distance_IAB_spline, log10(df$loopWidth))$y
     df$P_combos_distance = predict(distance_combo_spline, log10(df$loopWidth))$y
