@@ -36,7 +36,8 @@ Imports:
     Biobase,
     readr,
     data.table,
-    rtracklayer
+    rtracklayer,
+    pbapply
 License: MIT + file LICENSE
 LazyData: TRUE
 Suggests:
