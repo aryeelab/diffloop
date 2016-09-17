@@ -35,7 +35,10 @@ be read. The \code{ext} specifies which type of file to look for, either
 \code{all} or \code{fdr}, with \code{fdr} being the default. Under the
 default, all samples with the extension \code{.fdr.mango} will be processed.
 Finally, the \code{FDR} parameter (default = 1) specifies the minimum threshold
-for loops to be added to the greater \code{loops} object.
+for loops to be added to the greater \code{loops} object. Currently, we do not
+support importing the verbose output, so the verbose parameter when executing
+mango should be set to FALSE or the user will have ot parse the file before
+reading into diffloop using \code{awk}, \code{cut}, or something similar.
 }
 \examples{
 # UPDATE THIS

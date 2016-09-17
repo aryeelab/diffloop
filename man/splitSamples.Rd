@@ -14,7 +14,7 @@ splitSamples(dlo)
 \item{dlo}{A loops object}
 }
 \value{
-A list of loops objects w
+A list of loops objects with one sample per index.
 }
 \description{
 \code{splitSamples} takes a loops object and returns a list of loops
