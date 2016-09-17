@@ -315,8 +315,8 @@ setMethod(f = "annotateLoops", signature = c("loops", "GRanges",
     promoter) {
     
     lto.df <- summary(lto)
-    Ranchors <- GRanges(lto.df[, 1], IRanges(lto.df[, 2], lto.df[, 3]))
-    Lanchors <- GRanges(lto.df[, 4], IRanges(lto.df[, 5], lto.df[, 6]))
+    Ranchors <- GRanges(lto.df$chr_1, IRanges(lto.df$start_1, lto.df$end_1))
+    Lanchors <- GRanges(lto.df$chr_2, IRanges(lto.df$start_2, lto.df$end_2))
     
     # Determine if right anchor is near CTCF peak
     Rhits.c <- suppressWarnings(findOverlaps(ctcf, Ranchors, 
@@ -413,8 +413,8 @@ setMethod(f = "keepEPloops", signature = c("loops",
     promoter) {
     
     lto.df <- summary(lto)
-    Ranchors <- GRanges(lto.df[, 1], IRanges(lto.df[, 2], lto.df[, 3]))
-    Lanchors <- GRanges(lto.df[, 4], IRanges(lto.df[, 5], lto.df[, 6]))
+    Ranchors <- GRanges(lto.df$chr_1, IRanges(lto.df$start_1, lto.df$end_1))
+    Lanchors <- GRanges(lto.df$chr_2, IRanges(lto.df$start_2, lto.df$end_2))
     
     # Determine if right anchor is near promoter region
     Rhits.p <- suppressWarnings(findOverlaps(promoter, Ranchors, 

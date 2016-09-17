@@ -234,8 +234,7 @@ setMethod(f = "subsetRegion", signature = c("loops", "GRanges",
 .subsetRegion1 <- function(dlo, region) {
     
     # Keep only those anchors that are being used
-    newAnchors <- dlo@anchors[findOverlaps(region, dlo@anchors)@to, 
-        ]
+    newAnchors <- dlo@anchors[findOverlaps(region, dlo@anchors)@to, ]
     
     # Create mapping from old indices to new indices
     mapping <- as.data.frame(findOverlaps(dlo@anchors, newAnchors))
