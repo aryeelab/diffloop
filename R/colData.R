@@ -31,8 +31,7 @@ setMethod("calcLDSizeFactors", c("loops"), function(dlo) {
     keep <- rowSums(dlo@counts > 0) == ncol(lc)
     lc <- lc[keep, ]
     target <- 2^rowMeans(lc)
-    sizeFactor <- colMedians(sweep(2^lc, 1, target, FUN = "/"), 
-        na.rm = TRUE)
+    sizeFactor <- colMedians(sweep(2^lc, 1, target, FUN = "/"), na.rm = TRUE)
     dlo@colData$sizeFactor <- sizeFactor
     return(dlo)
 })

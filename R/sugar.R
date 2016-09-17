@@ -65,9 +65,9 @@ setMethod("[", signature(x = "loops", i = "numeric", j = "missing",
 setMethod("head", signature = "loops", function(x, n = 6, ...) {
     
     anchors <- head(x@anchors, n)
-    interactions <- as.matrix(head(x@interactions, n))
-    counts <- as.matrix(head(x@counts, n))
-    colData <- x@colData
+    interactions <- head(x@interactions, n)
+    counts <- head(x@counts, n)
+    colData <- head(x@colData, n)
     rowData <- head(x@rowData, n)
     
     dlo <- loops()
@@ -76,7 +76,6 @@ setMethod("head", signature = "loops", function(x, n = 6, ...) {
     slot(dlo, "counts", check = TRUE) <- counts
     slot(dlo, "colData", check = TRUE) <- colData
     slot(dlo, "rowData", check = TRUE) <- rowData
-    
     return(dlo)
 })
 
@@ -92,9 +91,9 @@ setMethod("head", signature = "loops", function(x, n = 6, ...) {
 setMethod("tail", signature = "loops", function(x, n = 6, ...) {
     
     anchors <- tail(x@anchors, n)
-    interactions <- as.matrix(tail(x@interactions, n))
-    counts <- as.matrix(tail(x@counts, n))
-    colData <- x@colData
+    interactions <- tail(x@interactions, n)
+    counts <- tail(x@counts, n)
+    colData <- tail(x@colData, n)
     rowData <- tail(x@rowData, n)
     
     dlo <- loops()
@@ -288,10 +287,8 @@ setMethod(f = "padGRanges", signature = c("GRanges", "ANY", "ANY",
     "ANY"), definition = function(gro, upstream = 0, downstream = 0, 
     pad = 0) {
     g.df <- data.frame(gro)
-    g.df[g.df$strand == "-", ]$start <- g.df[g.df$strand == "-", 
-        ]$start - pad - downstream
-    g.df[g.df$strand == "-", ]$end <- g.df[g.df$strand == "-", 
-        ]$end + pad + upstream
+    g.df[g.df$strand == "-", ]$start <- g.df[g.df$strand == "-", ]$start - pad - downstream
+    g.df[g.df$strand == "-", ]$end <- g.df[g.df$strand == "-",  ]$end + pad + upstream
     pos <- g.df$strand == "+" | g.df$strand == "*"
     g.df[pos, ]$start <- g.df[pos, ]$start - pad - upstream
     g.df[pos, ]$end <- g.df[pos, ]$end + pad + downstream

@@ -29,19 +29,15 @@ setMethod(f = "summary", signature = c("loops"), definition = function(object) {
     dlo <- object
     
     # Grab all the left anchors in order of loop occurence
-    leftAnchor2 <- as.data.frame(dlo@anchors[dlo@interactions[, 
-        1]])
+    leftAnchor2 <- as.data.frame(dlo@anchors[dlo@interactions[, 1]])
     leftAnchor2 <- subset(leftAnchor2, select = -c(width, strand))
-    colnames(leftAnchor2) <- paste(colnames(leftAnchor2), "1", 
-        sep = "_")
+    colnames(leftAnchor2) <- paste(colnames(leftAnchor2), "1", sep = "_")
     colnames(leftAnchor2)[1] <- "chr_1"
     
     # Grab all the right anchors in order of loop occurence
-    rightAnchor2 <- as.data.frame(dlo@anchors[dlo@interactions[, 
-        2]])
+    rightAnchor2 <- as.data.frame(dlo@anchors[dlo@interactions[, 2]])
     rightAnchor2 <- subset(rightAnchor2, select = -c(width, strand))
-    colnames(rightAnchor2) <- paste(colnames(rightAnchor2), "2", 
-        sep = "_")
+    colnames(rightAnchor2) <- paste(colnames(rightAnchor2), "2", sep = "_")
     colnames(rightAnchor2)[1] <- "chr_2"
     
     # Add the loop features

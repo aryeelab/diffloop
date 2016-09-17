@@ -155,9 +155,9 @@ setGeneric(name = "loopWidth", def = function(dlo) standardGeneric("loopWidth"))
 
 #' @rdname loopWidth
 setMethod(f = "loopWidth", signature = c("loops"), definition = function(dlo) {
-    w <- start(dlo@anchors[dlo@interactions[, 2]]) - end(dlo@anchors[dlo@interactions[, 
-        1]]) + 1
-    return(w)
+    w <- (start(dlo@anchors[dlo@interactions[, 2]]) + end(dlo@anchors[dlo@interactions[, 2]]))/2 -
+         (start(dlo@anchors[dlo@interactions[, 1]]) + end(dlo@anchors[dlo@interactions[, 1]]))/2
+    return(as.integer(w))
 })
 
 #' Subset loops

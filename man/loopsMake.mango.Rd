@@ -6,11 +6,10 @@
 \alias{loopsMake.mango,ANY-method}
 \title{Read preprocessed ChiA-PET data from mango}
 \usage{
-loopsMake.mango(beddir, samples = NA, mergegap = 500, ext = "fdr",
-  FDR = 1)
+loopsMake.mango(beddir, samples = NA, mergegap = 500, ext = "fdr")
 
 \S4method{loopsMake.mango}{ANY}(beddir, samples = NA, mergegap = 500,
-  ext = "fdr", FDR = 1)
+  ext = "fdr")
 }
 \arguments{
 \item{beddir}{A string. The preprocessed data directory; Required}
@@ -20,8 +19,6 @@ loopsMake.mango(beddir, samples = NA, mergegap = 500, ext = "fdr",
 \item{mergegap}{An integer value of the radius to merge anchors; default 500}
 
 \item{ext}{Specificies 'all' or 'fdr' file format; default 'fdr'}
-
-\item{FDR}{FDR minimum threshold for loops to be added; default 1}
 }
 \value{
 A loops object where 'chr' is removed from the anchors.

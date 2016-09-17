@@ -59,8 +59,7 @@ setGeneric(name = "loopsMake", def = function(beddir, samples = NA,
     
     # Iterate through files to set up anchors
     anchorsraw <- foreach(sample = samples) %do% {
-        fullfile <- file.path(beddir, paste(sample, "loop_counts.bedpe", 
-            sep = "."))
+        fullfile <- file.path(beddir, paste(sample, "loop_counts.bedpe", sep = "."))
         bt <- read_delim(fullfile, " ", col_types = ct, col_names = FALSE)
         bt <- restrictPets(bt)
         plyr::rbind.fill(bt[, 1:3], setNames(bt[, 4:6], names(bt[, 
@@ -120,28 +119,38 @@ setGeneric(name = "loopsMake", def = function(beddir, samples = NA,
     counts <- as.matrix(pets[, -c(1:2)])[order(iraw[, 1], iraw[, 
         2]), ]
     counts[is.na(counts)] <- 0
-    
-    # Initialize colData slot
-    sizeFactor <- rep(1, length(samples))
-    groups <- rep("group1", length(samples))
-    dfcd <- data.frame(sizeFactor, groups)
-    rownames(dfcd) <- samples
+    counts <- as.matrix(counts, ncol = length(samples))
+    colnames(counts) <- samples
     
     # Initialize rowData slot (with loop widths)
-    w <- start(anchors[interactions[, 2]]) - end(anchors[interactions[, 
-        1]]) + 1
+    w <- (start(anchors[interactions[, 2]]) + end(anchors[interactions[, 2]]))/2 -
+         (start(anchors[interactions[, 1]]) + end(anchors[interactions[, 1]]))/2
     w[w < 0] <- 0
-    rowData <- as.data.frame(w)
+    rowData <- as.data.frame(as.integer(w))
     colnames(rowData) <- c("loopWidth")
     
-     #Remove rownames from matrices
+    # Remove rownames from matrices
     row.names(interactions) <- NULL
     row.names(counts) <- NULL
+    
+    # Initialize colData slot
+    groups <- rep("group1", length(samples))
+    if(length(samples) == 1){
+        sizeFactor <- 1
+    } else {
+        lc <- log2(counts)
+        keep <- rowSums(counts > 0) == ncol(lc)
+        lc <- lc[keep, ]
+        target <- 2^rowMeans(lc)
+        sizeFactor <- colMedians(sweep(2^lc, 1, target, FUN = "/"), na.rm = TRUE)
+    }
+    dfcd <- data.frame(sizeFactor, groups)
+    rownames(dfcd) <- samples
     
     # Create loops object
     dlo <- loops()
     slot(dlo, "anchors", check = TRUE) <- anchors
-    slot(dlo, "interactions", check = TRUE) <- as.matrix(interactions)
+    slot(dlo, "interactions", check = TRUE) <- interactions
     slot(dlo, "counts", check = TRUE) <- counts
     slot(dlo, "colData", check = TRUE) <- dfcd
     slot(dlo, "rowData", check = TRUE) <- rowData
@@ -177,7 +186,6 @@ setMethod(f = "loopsMake", def = function(beddir, samples, mergegap = 0,
 #' @param samples A character vector. Optional list of samples to read in
 #' @param mergegap An integer value of the radius to merge anchors; default 500
 #' @param ext Specificies 'all' or 'fdr' file format; default 'fdr'
-#' @param FDR FDR minimum threshold for loops to be added; default 1
 #'
 #' @return A loops object where 'chr' is removed from the anchors.
 #'
@@ -193,10 +201,10 @@ setMethod(f = "loopsMake", def = function(beddir, samples, mergegap = 0,
 
 #' @export
 setGeneric(name = "loopsMake.mango", def = function(beddir, samples = NA, 
-    mergegap = 500, ext = "fdr", FDR = 1) standardGeneric("loopsMake.mango"))
+    mergegap = 500, ext = "fdr") standardGeneric("loopsMake.mango"))
 
 #' @import GenomicRanges
-.loopsMake.mango <- function(beddir, samples, mergegap, ext, FDR) {
+.loopsMake.mango <- function(beddir, samples, mergegap, ext) {
     
     ct <- list(col_character(), col_integer(), col_integer(), 
         col_character(), col_integer(), col_integer(), col_integer(), 
@@ -206,7 +214,6 @@ setGeneric(name = "loopsMake.mango", def = function(beddir, samples = NA,
     anchorsraw <- foreach(sample = samples) %do% {
         fullfile <- file.path(beddir, paste(sample, "interactions", ext, "mango", sep = "."))
         bt <- read_delim(fullfile, "\t", col_types = ct, col_names = FALSE)
-        bt <- bt[bt$X8 <= FDR,]
         plyr::rbind.fill(bt[, 1:3], setNames(bt[, 4:6], names(bt[, 1:3])))
     }
     
@@ -236,7 +243,6 @@ setGeneric(name = "loopsMake.mango", def = function(beddir, samples = NA,
     petlist <- foreach(sample = samples) %do% {
         fullfile <- file.path(beddir, paste(sample, "interactions", ext, "mango", sep = "."))
         bt <- read_delim(fullfile, "\t", col_types = ct, col_names = FALSE)
-        bt <- bt[bt$X8 <= FDR,]
         getpets(makeGRangesFromDataFrame(bt[, 1:3], ignore.strand = TRUE, 
             seqnames.field = "X1", start.field = "X2", end.field = "X3"), 
             makeGRangesFromDataFrame(bt[, 4:6], ignore.strand = TRUE, 
@@ -261,30 +267,41 @@ setGeneric(name = "loopsMake.mango", def = function(beddir, samples = NA,
     colnames(interactions) <- c("left", "right")
     counts <- as.matrix(pets[, -c(1:2)])[order(iraw[, 1], iraw[, 2]), ]
     counts[is.na(counts)] <- 0
-    
-    # Initialize colData slot
-    sizeFactor <- rep(1, length(samples))
-    groups <- rep("group1", length(samples))
-    dfcd <- data.frame(sizeFactor, groups)
-    rownames(dfcd) <- samples
+    counts <- as.matrix(counts, ncol = length(samples))
+    colnames(counts) <- samples
     
     # Initialize rowData slot (with loop widths)
-    w <- start(anchors[interactions[, 2]]) - end(anchors[interactions[, 1]]) + 1
+    w <- (start(anchors[interactions[, 2]]) + end(anchors[interactions[, 2]]))/2 -
+         (start(anchors[interactions[, 1]]) + end(anchors[interactions[, 1]]))/2
     w[w < 0] <- 0
-    rowData <- as.data.frame(w)
+    rowData <- as.data.frame(as.integer(w))
     colnames(rowData) <- c("loopWidth")
     
     # Remove 'chr' from anchors
     seqlevels(anchors) <- gsub("^chr(.*)$", "\\1", seqlevels(anchors))
     
-    #Remove rownames from matrices
+    # Remove rownames from matrices
     row.names(interactions) <- NULL
     row.names(counts) <- NULL
+    
+    # Initialize colData slot
+    groups <- rep("group1", length(samples))
+    if(length(samples) == 1){
+        sizeFactor <- 1
+    } else {
+        lc <- log2(counts)
+        keep <- rowSums(counts > 0) == ncol(lc)
+        lc <- lc[keep, ]
+        target <- 2^rowMeans(lc)
+        sizeFactor <- colMedians(sweep(2^lc, 1, target, FUN = "/"), na.rm = TRUE)
+    }
+    dfcd <- data.frame(sizeFactor, groups)
+    rownames(dfcd) <- samples
     
     # Create loops object
     dlo <- loops()
     slot(dlo, "anchors", check = TRUE) <- anchors
-    slot(dlo, "interactions", check = TRUE) <- as.matrix(interactions)
+    slot(dlo, "interactions", check = TRUE) <- interactions
     slot(dlo, "counts", check = TRUE) <- counts
     slot(dlo, "colData", check = TRUE) <- dfcd
     slot(dlo, "rowData", check = TRUE) <- rowData
@@ -293,12 +310,12 @@ setGeneric(name = "loopsMake.mango", def = function(beddir, samples = NA,
 }
 
 #' @rdname loopsMake.mango
-setMethod(f = "loopsMake.mango", def = function(beddir, samples=NA, mergegap = 500, ext = "fdr", FDR = 1) {
+setMethod(f = "loopsMake.mango", def = function(beddir, samples=NA, mergegap = 500, ext = "fdr") {
     if (sum(is.na(samples)) > 0) {
         file.path(beddir, paste("", ext, "mango", sep = "."))
         samples <- dir(beddir, pattern = paste("", ext, "mango", sep = "."))
         samples <- sub(paste(".interactions", ext, "mango", sep = "."), "", samples)
     }
-    .loopsMake.mango(beddir, samples, mergegap, ext, FDR)
+    .loopsMake.mango(beddir, samples, mergegap, ext)
 })
 

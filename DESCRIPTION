@@ -34,7 +34,7 @@ Imports:
     stats,
     utils,
     Biobase,
-    readr, 
+    readr,
     data.table,
     rtracklayer
 License: MIT + file LICENSE
@@ -58,6 +58,7 @@ Collate:
     'annotation.R'
     'assoc.R'
     'colData.R'
+    'mangoFunctions.R'
     'plotting.R'
 biocViews: Preprocessing, QualityControl, Visualization, DataImport,
     DataRepresentation, GO
