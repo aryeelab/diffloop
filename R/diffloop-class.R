@@ -17,11 +17,3 @@ loops <- setClass("loops", slots = c(anchors = "GRanges",
     interactions = "nim", counts = "nim",
     colData = "data.frame", rowData = "data.frame"))
 
-#' A class to represent ChIA-PET interaction data and an edgeR fit. 
-#'
-#' @slot loops A loops object with anchors, interactions, counts, colData, and rowData
-#' @slot fit An edgeR fit from running the loopFit function
-#' @import edgeR
-#' @export
-loopfit <- setClass("loopfit", slots = c(loops = "loops", 
-    fit = "DGEGLM"))

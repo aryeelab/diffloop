@@ -25,12 +25,8 @@ This function returns the output of fitting an \code{voom} model using
 the groups defined in \code{colData} for the specific loops
 object. The factor normalization is based on the \code{voom} model.
 For quick association, the number of groups is restricted to two. If
-a more complex group structure exists, consider using the \code{loopFit}
-and \code{loopTest} functions.
-
-If sizeFactors are present in the \code{loops} object, then those will
-be used for normalization. If they are all 1s, new ones will be estimated
-using the voom framework.
+a more complex group structure exists, consider using the \code{loopAssoc}
+function.
 }
 \examples{
 # Differential loop calling between naive and primed

@@ -1,145 +1,74 @@
 #' @include sugar.R
 NULL
 
-#' Fit model for association testing
+#' Generalized differential Loop Calling
 #'
-#' \code{loopFit} takes a \code{loops} object and prepares it for the
-#' \code{loopTest} function. 
+#' \code{loopAssoc} takes a \code{loops} object and prepares it for the
+#' returns another \code{loops} object with summary statistics
+#' per-loop in the \code{rowData} 
 #'
-#' This function returns a \code{loopfit} object, which combines
-#' the \code{loops} object in the input with a \code{DGEGLM} object
-#' that is the normal output of an \code{edgeR glmQLFit}. To set up a 
-#' different design matrix, pass that parameter through the function. 
-#' Otherwise, the default is to generate a new matrix from
-#' \code{loops@colData$groups}. Currently, 'QLF' is the only supported
-#' method, but new association tests may be added in later developments.
-#' If sizeFactors are present in the \code{loops} object, then those will
-#' be used for normalization. If they are all 1s, new ones will be estimated
-#' using the edgeR framework. 
+#' By the default, we generate is to generate a design matrix from
+#' \code{loops@colData$groups}. Currently, 'edgeR' and 'Voom' are the
+#' two supported association  
+#' methods, but new association tests may be added in later developments.
 #'
 #' @param y A loops object for association
-#' @param design A design matrix (optional)
-#' @param method Specifies association; currently only 'QLF' is supported
+#' @param method Specifies association; either "Voom" or "edgeR"
+#' @param design A design matrix of the samples; required for "Voom"
+#' @param coef A vector for the coefficient of GLM. See edgeR manual
+#' @param contrast A vector for the contrast. See edgeR manual
 #'
-#' @return A loopfit object
+#' @return A loops object
 #'
 #' @examples
 #' # Differential loop fit
 #' rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
 #' load(rda)
-#' jpn_loopfit <- loopFit(loops.small)
-#' # Differential loop calling between naive and jurkat
-#' assoc_jn <- loopTest(jpn_loopfit, coef = 2)
+#' assoc <- loopAssoc(loops.small, coef = 2)
 
 #' @import edgeR
 #' @import locfit
 #' @import statmod
+#' @import limma
 #' @export
-setGeneric(name = "loopFit", def = function(y, design, method = "QLF") standardGeneric("loopFit"))
+setGeneric(name = "loopAssoc", def = function(y, method = "edgeR", design = NULL, coef = NULL, contrast = NULL)
+    standardGeneric("loopAssoc"))
 
-#' @rdname loopFit
-setMethod(f = "loopFit", signature = c("loops", "missing", "missing"), 
-    definition = function(y, design, method) {
-        groups <- y@colData$groups
-        z <- DGEList(counts = y@counts, group = groups)
+#' @rdname loopAssoc
+setMethod(f = "loopAssoc", signature = c("loops", "ANY", "ANY", "ANY", "ANY"), 
+    definition = function(y, method = "edgeR", design = NULL,  coef = NULL, contrast = NULL) {
+        stopifnot(method == "edgeR" | method == "Voom")
+        if(is.null(coef) & is.null(contrast) & method == "edgeR"){
+            stop("specify either the coefficient or the contrast when using the edgeR method")
+        }
         
-        # If the size factors are different than 1 and in the loops
-        # object use those; otherwise, normalize with edgeR
-        if( all(y@colData$sizeFactor == 1) ){
-            z <- calcNormFactors(z)
-        } else { z@.Data[[2]]$norm.factors <- y@colData$sizeFactor }
-            
-        design <- model.matrix(~groups)
-        cat("The coefficients of the fitted GLM object are:\n")
-        cat(colnames(model.matrix(~groups)))
-        yy <- estimateDisp(z, design)
-        fit <- glmQLFit(yy, design, robust = TRUE)
-        return(loopfit(loops = y, fit = fit))
-    })
-
-#' @rdname loopFit
-setMethod(f = "loopFit", signature = c("loops", "matrix", "missing"), 
-    definition = function(y, design, method) {
         groups <- y@colData$groups
         z <- DGEList(counts = y@counts, group = groups)
         z <- calcNormFactors(z)
-        yy <- estimateDisp(z, design)
-        fit <- glmQLFit(yy, design, robust = TRUE)
-        return(loopfit(loops = y, fit = fit))
+        if(is.null(design)) design <- model.matrix(~groups)
+        cat("The coefficients of the fitted GLM object are:\n")
+        cat(colnames(model.matrix(~groups)))
+        
+        if(method == "edgeR"){
+            yy <- estimateDisp(z, design)
+            fit <- glmQLFit(yy, design, robust = TRUE)
+            if(!is.null(coef)){
+                qlf <- glmQLFTest(fit, coef = coef)
+            } else {
+                qlf <- glmQLFTest(y@fit, contrast = contrast)
+            }
+            results <- as.data.frame(topTags(qlf, n = nrow(y@counts), sort.by = "none"))
+        } else {
+            v <- voom(z,design,plot=FALSE)
+            fit <- lmFit(v, design)
+            fit <- eBayes(fit, robust = TRUE)
+            results <- as.data.frame(topTable(fit, number = nrow(y@counts), sort.by = "none"))
+        }
+        newRowData <- as.data.frame(cbind(y@rowData, results))
+        row.names(newRowData) <- NULL
+        y@rowData <- newRowData
+        return(y)
     })
-
-#' Differential Loop Calling
-#'
-#' \code{loopTest} takes a \code{loopfit} object from the 
-#' \code{loopFit} function and creates a \code{loops} object with additional
-#' columns in the \code{rowData}
-#'
-#' This function returns a \code{loops} object, which contains the results
-#' from an association in the rowData slot. The default association is
-#' using coefficient 2 from the model matrix (e.g. good for pair
-#' comparisons) but the user may specify a different coefficient. Currently, 
-#' 'QLF' is the only supported method, but new features may be added in
-#' later developments. Users may also specify the contrast between the columns
-#' in the design matrix as used in \code{edgeR}.
-#'
-#' @param y A loopfit object for association
-#' @param coef Specifies coefficient of design matrix
-#' @param contrast Specifies comparison of groups from design matrix
-#' @param method Specifies association method; only QLF is currently supported
-#'
-#' @return A loops object with additional columns in rowData
-#'
-#' @examples
-#' # Differential loop fit
-#' rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
-#' load(rda)
-#' jpn_loopfit <- loopFit(loops.small)
-#' # Differential loop calling between naive and jurkat
-#' assoc_jn <- loopTest(jpn_loopfit, coef = 2)
-
-#' @import edgeR
-#' @export 
-setGeneric(name = "loopTest", function(y, coef = 2, contrast, 
-    method = "QLF") standardGeneric("loopTest"))
-
-#' @rdname loopTest
-setMethod(f = "loopTest", signature = c("loopfit", "missing", 
-    "missing", "missing"), definition = function(y, coef, contrast, 
-    method) {
-    qlf <- glmQLFTest(y@fit, coef = 2)
-    results <- as.data.frame(topTags(qlf, n = nrow(y@loops@counts), 
-        sort.by = "none"))
-    newRowData <- as.data.frame(cbind(y@loops@rowData, results))
-    row.names(newRowData) <- NULL
-    y@loops@rowData <- newRowData
-    return(y@loops)
-})
-
-#' @rdname loopTest
-setMethod(f = "loopTest", signature = c("loopfit", "numeric", 
-    "missing", "missing"), definition = function(y, coef, contrast, 
-    method) {
-    qlf <- glmQLFTest(y@fit, coef)
-    results <- as.data.frame(topTags(qlf, n = nrow(y@loops@counts), 
-        sort.by = "none"))
-    newRowData <- as.data.frame(cbind(y@loops@rowData, results))
-    row.names(newRowData) <- NULL
-    y@loops@rowData <- newRowData
-    return(y@loops)
-})
-
-#' @rdname loopTest
-setMethod(f = "loopTest", signature = c("loopfit", "missing", 
-    "numeric", "missing"), definition = function(y, coef, contrast, 
-    method) {
-    qlf <- glmQLFTest(y@fit, contrast = contrast)
-    results <- as.data.frame(topTags(qlf, n = nrow(y@loops@counts), 
-        sort.by = "none"))
-    newRowData <- as.data.frame(cbind(y@loops@rowData, results))
-    row.names(newRowData) <- NULL
-    y@loops@rowData <- newRowData
-    return(y@loops)
-})
 
 #' Combined association test for all loops in a defined region 
 #'
@@ -165,9 +94,7 @@ setMethod(f = "loopTest", signature = c("loopfit", "missing",
 #' # Sliding window test 100kb at a time between naive and jurkat
 #' rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
 #' load(rda)
-#' jpn_loopfit <- loopFit(loops.small)
-#' # Differential loop calling between naive and jurkat
-#' assoc_jn <- loopTest(jpn_loopfit, coef = 2)
+#' assoc_jn <- loopAssoc(loops.small, coef = 2)
 #' sw_jn <- slidingWindowTest(assoc_jn, 100000, 100000)
 #' 
 #' @import GenomicRanges
@@ -277,11 +204,9 @@ setMethod(f = "slidingWindowTest", signature = c("loops", "numeric",
 #' # Human genes chromosome 1 regional association
 #' rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
 #' load(rda)
-#' jpn_loopfit <- loopFit(loops.small)
-#' # Differential loop calling between naive and jurkat
-#' assoc_jn <- loopTest(jpn_loopfit, coef = 2)
+#' assoc <- loopAssoc(loops.small, coef = 2)
 #' # Gene based association
-#' sw_jn <- featureTest(assoc_jn, getHumanGenes(c('1')))
+#' sw_jn <- featureTest(assoc, getHumanGenes(c('1')))
 
 #' @import GenomicRanges
 #' @importFrom stats complete.cases model.matrix p.adjust prcomp setNames
@@ -354,13 +279,9 @@ setMethod(f = "featureTest", signature = c("loops", "GRanges"),
 #' the groups defined in \code{colData} for the specific loops
 #' object. The factor normalization is based on the \code{edgeR} model.
 #' For quick association, the number of groups is restricted to two. If
-#' a more complex group structure exists, consider using the \code{loopFit}
-#' and \code{loopTest} functions. 
+#' a more complex group structure exists, consider using the \code{loopAssoc}
+#' function. 
 #' 
-#' If sizeFactors are present in the \code{loops} object, then those will
-#' be used for normalization. If they are all 1s, new ones will be estimated
-#' using the edgeR framework. 
-#'
 #' @param y A loops object for association
 #'
 #' @return A loops object
@@ -380,18 +301,13 @@ setGeneric(name = "quickAssoc", def = function(y) standardGeneric("quickAssoc"))
 setMethod(f = "quickAssoc", signature = c("loops"), definition = function(y) {
     # Check that there's only two groups, if not, escape
     if (length(unique(y@colData$groups)) != 2) {
-        stop("Must be two groups for quickAssoc; use loopFit instead!")
+        stop("Must be two groups for quickAssoc; use loopAssoc instead!")
     }
     groups <- y@colData$groups
     
     z <- DGEList(counts = y@counts, group = groups)
     design <- model.matrix(~groups)
-    
-    # If the size factors are different than 1 and in the loops
-    # object use those; otherwise, normalize with edgeR
-    if( all(y@colData$sizeFactor == 1) ){
-        z <- calcNormFactors(z)
-    } else { z@.Data[[2]]$norm.factors <- y@colData$sizeFactor }
+     z <- calcNormFactors(z)
     yy <- estimateDisp(z, design)
     fit <- glmQLFit(yy, design, robust = TRUE)
     qlf <- glmQLFTest(fit, coef = 2)
@@ -412,12 +328,8 @@ setMethod(f = "quickAssoc", signature = c("loops"), definition = function(y) {
 #' the groups defined in \code{colData} for the specific loops
 #' object. The factor normalization is based on the \code{voom} model.
 #' For quick association, the number of groups is restricted to two. If
-#' a more complex group structure exists, consider using the \code{loopFit}
-#' and \code{loopTest} functions. 
-#' 
-#' If sizeFactors are present in the \code{loops} object, then those will
-#' be used for normalization. If they are all 1s, new ones will be estimated
-#' using the voom framework. 
+#' a more complex group structure exists, consider using the \code{loopAssoc}
+#' function. 
 #'
 #' @param y A loops object for association
 #'
@@ -438,21 +350,17 @@ setGeneric(name = "quickAssocVoom", def = function(y) standardGeneric("quickAsso
 setMethod(f = "quickAssocVoom", signature = c("loops"), definition = function(y) {
     # Check that there's only two groups, if not, escape
     if (length(unique(y@colData$groups)) != 2) {
-        stop("Must be two groups for quickAssoc; use loopFit instead!")
+        stop("Must be two groups for quickAssoc; use loopAssoc instead!")
     }
     groups <- y@colData$groups
     
     z <- DGEList(counts = y@counts, group = groups)
     design <- model.matrix(~groups)
-    
-    # If the size factors are different than 1 and in the loops
-    # object use those; otherwise, normalize with edgeR
-    if( all(y@colData$sizeFactor == 1) ){
-        z <- calcNormFactors(z)
-    } else { z@.Data[[2]]$norm.factors <- y@colData$sizeFactor }
-    v <- voom(z,design,plot=TRUE)
+
+    z <- calcNormFactors(z)
+    v <- voom(z,design,plot=FALSE)
     fit <- lmFit(v,design)
-    fit <- eBayes(fit)
+    fit <- eBayes(fit, robust = TRUE)
     results <- as.data.frame(topTable(fit, number = nrow(y@counts), 
         sort.by = "none"))
     newRowData <- as.data.frame(cbind(y@rowData, results))
@@ -469,7 +377,7 @@ setMethod(f = "quickAssocVoom", signature = c("loops"), definition = function(y)
 #'
 #' This function returns a subsetted \code{loops} object where all
 #' loops meet the significance threshold specificed by the parameters
-#' in the function call
+#' in the function call.
 #'
 #' @param dlo A loops object 
 #' @param FDR Maximum threshold for False Discovery Rate; default = 1
@@ -544,6 +452,4 @@ setMethod(f = "filterSpanningLoops", signature = c("loops", "GRanges"), definiti
     co <- findOverlaps(gf, span, type = "within")
     return(subsetLoops(dlo, subjectHits(co)))
 })
-
-
 

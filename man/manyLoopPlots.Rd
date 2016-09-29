@@ -45,9 +45,8 @@ Each plot will show one region sequentially that is supplied in the GRanges obje
 rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
 load(rda)
 jpn.u <- removeSelfLoops(loops.small)
-jpn_loopfit <- loopFit(jpn.u)
-assoc_jn <- loopTest(jpn_loopfit, coef = 2)
-#manyLoopPlots(assoc_jn, regs) #define regs as multiple GRanges
+assoc <- loopAssoc(jpn.u, coef = 2)
+#manyLoopPlots(assoc, regs) #define regs as multiple GRanges
 
 }
 

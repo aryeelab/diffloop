@@ -229,7 +229,7 @@ setMethod(f = "getHumanGenes", signature = c("missing", "ANY"),
             "10", "11", "12", "13", "14", "15", "16", "17", "18", 
             "19", "20", "21", "22", "X", "Y")
         if (cache) {
-            human.genes = NULL
+            human.genes <- NULL
             rda <- paste(system.file("rda", package = "diffloop"), 
                 "human.genes.rda", sep = "/")
             load(rda)

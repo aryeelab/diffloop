@@ -314,9 +314,8 @@ setMethod(f = "pcaPlot", signature = c("loops"), definition = function(dlo) {
 #' rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
 #' load(rda)
 #' jpn.u <- removeSelfLoops(loops.small)
-#' jpn_loopfit <- loopFit(jpn.u)
-#' assoc_jn <- loopTest(jpn_loopfit, coef = 2)
-#' plotTopLoops(assoc_jn, n=2)
+#' assoc <- loopAssoc(jpn.u,coef = 2)
+#' plotTopLoops(assoc, n=2)
 #' 
 #' @import plyr
 #' @import GenomicRanges
@@ -384,9 +383,8 @@ setMethod(f = "plotTopLoops", signature = c("loops", "ANY", "ANY",
 #' rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
 #' load(rda)
 #' jpn.u <- removeSelfLoops(loops.small)
-#' jpn_loopfit <- loopFit(jpn.u)
-#' assoc_jn <- loopTest(jpn_loopfit, coef = 2)
-#' #manyLoopPlots(assoc_jn, regs) #define regs as multiple GRanges
+#' assoc <- loopAssoc(jpn.u, coef = 2)
+#' #manyLoopPlots(assoc, regs) #define regs as multiple GRanges
 #' 
 #' @import GenomicRanges
 #' 
@@ -411,4 +409,52 @@ setMethod("manyLoopPlots", signature(x = "loops", y = "GRanges", organism = "ANY
     }
     dev.off()
     close(pb)
+})
+
+
+#' Visualize proportion of loops at distances
+#'
+#' \code{loopDistancePlot} takes a loops object plots the individual samples
+#' based on the proportion of PET counts at various distances
+#'
+#' Distances for the loops are taken from the \code{rowData} slot.
+#'
+#' @param dlo A loops object 
+#'
+#' @return A ggplot2 plot
+#'
+#' @examples
+#' rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
+#' load(rda)
+#' p1 <- loopDistancePlot(loops.small)
+#' @import ggplot2
+#' @import reshape2
+#' 
+#' @export
+setGeneric(name = "loopDistancePlot", def = function(dlo) standardGeneric("loopDistancePlot"))
+
+#' @rdname loopDistancePlot
+setMethod(f = "loopDistancePlot", signature = c("loops"), definition = function(dlo) {
+    d <- dlo@rowData$loopWidth
+    cs <- colSums(dlo@counts)
+    intvals <- 1:ceiling(1000000/100000)
+    props <- sapply(intvals, function(i){
+        colSums(dlo@counts[(d <= i * 100000) & (d > (i-1) * 100000),-8])/cs
+    })
+    v <- as.character(c(0,100*intvals)); lv <- length(v)
+    colnm <- paste0(c(paste0(v[-1*lv], "-",v[-1])[-lv]), "kb")
+    colnames(props) <- colnm
+    propdf <- melt(props)
+    
+    # Dummy calls to remove note
+    Sample <- ""
+    Bin <- ""
+    Value <- ""
+    
+    names(propdf) <- c("Sample", "Bin", "Value")
+    p1 <- ggplot(propdf, aes(x=Bin, y=Value, group=Sample, color=Sample)) + geom_line() +
+        theme(axis.text.x = element_text(vjust = 0.5,  angle = 45), panel.background = element_rect(fill = NA)) +
+        labs(title = "Proportional PET counts per distance",
+             x = "Binned Loop Distance", y = "Proportional Pet Counts") +
+        scale_y_log10(breaks = c(0.001, 0.01, 0.1, 0.5))
 })

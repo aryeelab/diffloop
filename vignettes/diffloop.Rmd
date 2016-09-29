@@ -1,213 +1,489 @@
 ---
-title: "diffloop: Identifying differential DNA loops from ChIA-PET data"
+title: "diffloop: Identifying differential DNA loops from chromatin topology data"
 author: "Caleb Lareau & Martin Aryee"
 date: "`r Sys.Date()`"
 output:
   rmarkdown::html_vignette:
     fig_caption: yes
 vignette: >
-  %\VignetteIndexEntry{diffloop: Identifying differential DNA loops from ChIA-PET data}
+  %\VignetteIndexEntry{diffloop: Identifying differential DNA loops from chromatin topology data.}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
-
-```{r, echo=FALSE, message=FALSE, warning=FALSE}
+```{r, echo=TRUE, message=FALSE, warning=FALSE}
 library(diffloop)
 library(diffloopdata)
 library(ggplot2)
 library(GenomicRanges)
+library(ggrepel)
+library(DESeq2)
 ```
 
+## About
+We designed `diffloop` to have analogous functionality to workflows like
+`DESeq` and `edgeR`. While these tools are used to uncovered genes that are
+differentially expressed, `diffloop` is designed to identify features from
+chormatin topology that are differential between cell conditions. Our package
+does not process data from raw sequencing reads and thus is reliant on other
+tools to process FASTQ files. This vignette walks through the various steps
+involved in an analysis that identifies differential loops and annotates them
+with biological information after accessing the samples for quality control.  
+
 ## Preprocessing
-The raw FASTQ read files were preprocessed with the `dnaloop`
-(https://github.com/aryeelab/dnaloop) package, a `PyPi` package that relies 
-on `samtools`, `bedtools`, `cutadapt`, and `MACS2` to align reads,
-call anchor peaks, and summarize PETs per sample in the ChIA-PET experiment.
+The raw FASTQ read files for the POL2 data were preprocessed with the [mango]
+(https://github.com/dphansti/mango) package, an `R` package that relies 
+on `bowtie`, `bedtools`, and `MACS2` to align reads, call anchor peaks, and
+summarize PETs per sample in the ChIA-PET experiment.
 <br> <br>
+`head -3 *.interactions.all.mango`
+```
+chr1	32705184	32708527	chr1	32712484	32715408	4	1
+chr1	32705184	32708527	chr1	32755920	32759477	3	1
+chr1	32705184	32708527	chr1	32799616	32803060	6	1
+```
+<br>
+To read in these files into diffloop, use the `loopsMake.mango` function
+which specifies the `.mango` extension of these files. 
+<br><br>
+Another possible format reads `.bedpe` files, which are very similar
+to the output files produced by mango. 
 To use the `loopsMake` function from a different preprocessing step,
 have files `X.loop_counts.bedpe`,`Y.loop_counts.bedpe`, 
 `Z.loop_counts.bedpe` in `bed_dir` for `samples = (X,Y,Z)` where the 
 first lines should resemble: <br> <br>
-1 10002272 10004045 10 120968807 120969483 . 1 <br>
-1 10002272 10004045 10 99551498 99552470 . 1 <br>
-1 10002272 10004045 1 10002272 10004045 . 17 <br>
-<br> <br>
+`head -3 *.loop_counts.bedpe`
+```
+1 10002272 10004045 10 120968807 120969483 . 1
+1 10002272 10004045 10 99551498 99552470 . 1
+1 10002272 10004045 1 10002272 10004045 . 17
+```
+<br> 
 where the first three columns specify the position (chr:start:stop) of
 the first anchor, the second three columns specify the position
 (chr:start:stop) of the secnd anchor, the 7th column is "." and the 8th
 column is the number of paired-end reads support that particular PET.
 
 ## Loading data
-We read in data from the preprocessing pipeline using the `loopsMake`
+Here, we show two functions of loading data into `diffloop` from two 
+different sources of ChIA-PET data. 
+
+### SMC1 ChIA-PET
+We read in data from the a different pipeline using the `loopsMake`
 function. The example below uses sample data included in the `diffloopdata`
 package. It contains interactions involving chromosome 1 from a set of six
-Cohesin ChIA-PET samples.$^{1,2}$ You would normally set `bed_dir` to your 
-real data directory.
+Cohesin ChIA-PET samples.$^{1,2}$ Users would normally set `bed_dir` to the 
+real data directory. Since these samples were processed with a tool other
+than `mango`, we use the generic `loopsMake` function that reads `.bedpe`
+files. We load only two samples for a faster i/o.
 
-``` {r load_data} 
+```{r SMC1}
 bed_dir <- system.file("extdata", "esc_jurkat", package="diffloopdata")
 bed_dir
-samples <- c("naive_esc_1", "naive_esc_2", "primed_esc_1", "primed_esc_2",
-            "jurkat_1", "jurkat_2")
-```
-Here, we use 1500 bp as a value to merge nearby anchors into
-a single peak. In the `loopsMake` function, the default is zero and should
-be parameterized based on the resolution of the ChIA-PET Experiment.
-```{r read_data}
-full <- loopsMake(bed_dir, samples, 1500)
-celltypes <- c("naive", "naive", "primed", "primed", "jurkat", "jurkat")
+samples <- c("naive_esc_1", "jurkat_1")
+full <- loopsMake(bed_dir, samples)
+celltypes <- c("naive", "jurkat")
 full <- updateLDGroups(full, celltypes)
-head(full, 3)
+head(full, 4)
 ```
+This constitutes a standard workflow to read in data, annotate sample groups, 
+etc. 
+
+### POL2 ChIA-PET
+Similarly, we read in POL2 ChIA-PET data from the ENCODE project
+process using the `loopsMake.mango` function as these samples
+were processed using the `mango`$^{3}$ preprocessing pipeline.
+
+```{r POL2}
+bed_dir <- system.file("extdata", "pol2", package="diffloopdata")
+bed_dir
+full <- loopsMake.mango(bed_dir)
+celltypes <- c("hct116", "k562", "k562", "k562", "mcf7", "mcf7", "mcf7")
+full <- updateLDGroups(full, celltypes)
+dim(full)
+head(full, 4)
+```
+
+By default, we use 500 bp as a value to merge nearby anchors into
+a single peak from the `loopsMake.mango` function. This is due to each sample
+having been processed individually. 
+<br><br>
+In the `loopsMake` function, the default is zero and should
+be parameterized based on the resolution of the ChIA-PET Experiment and whether
+or not a common set of peaks was used when calling interactions between samples. 
+
 Alternatively, one could run `full <- loopsMake(bed_dir)` and the `samples`
-would be inferred from the directory contents. The default call to `loopsMake` 
+would be inferred from the directory contents (as we did in the `loopsMake.mango`
+call). The default call to `loopsMake` 
 does not merge nearby anchors but instead keeps them distinct. If we want to 
 group nearby anchors after the initial data read, one can run the `mergeAnchors`
 command with the appropriate gap value. <br><br>
-We'll now look at a PCA plot of the raw data:
-```{r pca_prenorm, fig.width=7, fig.height=4, fig.cap ="PCA plot of**un-normalized** ChIA-PET loop data"}
-pcaPlot(full) + geom_text(aes(label=samples)) 
-```
-From this initial PCA plot, it's not clear how the samples separate based on
-their topologies, suggesting some quality control may be warranted.
+From here on, we will focus on just the POL2 ChIA-PET data. 
+<br>
 
-## QC
-First, we normalize the `loops` object, which updates the
-`sizeFactor` of each sample by the number of reads identical to the
-normalization technique employed in `DESeq2`. We recommend computing
-the size factors on the original `loops` object to generate the best
-normalization factors. 
+## Quality Control
+While `mango` removes self-ligated loops before the final output step, our 
+import function can create new self-ligations through the process of merging
+loop anchors. We first remove those self-ligated loops before reading
+in the regions of altered copy number variation from `diffloopdata`. The
+`removeRegion()` function can be called to filter loops that have one or
+more anchors in a particular region that may be blacklisted. While CNVs
+likely have some interesting effect on topology that should be explored
+in the future, we simply remove these regions to avoid a confounded signal
+where we mis-attribute an apparent difference in topology to a difference
+better explained by altered CNV. 
 
-```{r sizeFactors}
-full <- calcLDSizeFactors(full)
-head(full,3)
-```
+```{r cnvfilt, message=FALSE, warning=FALSE}
+# remove and loops that merged together from import
+full <- subsetLoops(full, full@rowData$loopWidth >= 5000) 
 
-Looking at the full dataset, we can see that a majority of the counts
-were within self-loops:
-```{r qc}
-loopMetrics(full)
-```
-We define "valid" looping in a combined experiment as those supported
-by at least 3 replicates in 2 or more samples. We can generate valid 
-loops by using the `filterLoops` command 
-```{r qc2}
-full_5kb <- filterLoops(full, width=5000, nreplicates=3, nsamples = 1)
-dim(full_5kb)
-valid_full <- filterLoops(full, width=5000, nreplicates=3, nsamples = 2)
-dim(valid_full)
-```
-We can also see the proportion
-of loops that occur within the same chromosome (intrachromosomal) or 
-have loops that bridge chromosomes (interchromosomal). 
-```{r qc3}
-dim(intrachromosomal(valid_full))
-dim(interchromosomal(valid_full))
-```
-Finally, we can determine the number of anchors supported by each sample 
-as well as the loops with different thresholds of counts.
-```{r qc4}
-numLoops(valid_full,1:5)
-numAnchors(valid_full)
+# Remove regions of CNV
+CNVdir <- system.file("extdata", "cnv", package="diffloopdata")
+k562.cnv <- makeGRangesFromDataFrame(setNames(read.table(paste0(CNVdir, "/K562-CNV.bedLogR"))[,1:4],
+                                              c("chr", "start", "end", "type")),
+                                              keep.extra.columns = TRUE)
+mcf7.cnv <- makeGRangesFromDataFrame(setNames(read.table(paste0(CNVdir, "/MCF7-CNV.bedLogR"))[,1:4],
+                                              c("chr", "start", "end", "type")),
+                                              keep.extra.columns = TRUE)
+
+cnv.regions <- union(mcf7.cnv[mcols(mcf7.cnv)$type != "normal"], k562.cnv[mcols(k562.cnv)$type != "normal"])
+noCNV <- removeRegion(full, rmchr(cnv.regions))
+dim(noCNV)
 ```
 
-## Post-Normalization
+After removing these regions with CNV alteration, we then will filter loops that are 
+deemed biased from the `mango` Step 5 function. The `diffloop` implementation aggregates
+counts across all samples when apply the mango correction model. Here, we filter all
+loops with an FDR > 0.01 as implemented in the original `mango` software. 
 
-```{r pca_postnorm, fig.width=7, fig.height=4, fig.cap = "PCA plot of normalized ChIA-PET loop data"}
-pcaPlot(valid_full) + geom_text(aes(label=samples)) +
-    expand_limits(x = c(-20, 34))
-```
-Here, the PC plot is much better as the first principal component separates
-the stem cells and the jurkat samples while the second PC separates the two
-stem cell samples.
-
-## Differential Looping
-Here, we describe the most general association method first fitting the model
-then doing pairwise comparisons by our choice of parameterizing the loopTest
-function.
-```{r geneAssoc}
-# Fit edgeR Models Pairwise between cell types
-fit <- loopFit(valid_full)
-jn_res <- loopTest(fit,coef=2)
-jp_res <- loopTest(fit,coef=3)
-np_res <- loopTest(fit,contrast=c(0,-1,1))
-
-head(np_res)
+```{r MANGO, message=FALSE, warning=FALSE}
+noCNV_corrected <- mangoCorrection(noCNV, FDR = 0.01)
+dim(noCNV_corrected)
 ```
 
-We could also have computed pairwise associations by subsetting the data and
-using quickAssoc, which only allows loops objects with two group classes.
+For a final quality-control stop, we filter loops that are present strongly
+(>= 5 PETs) in one replicate but absent (== 0 PETs) in the other replicate. 
+There appears to be some artifact of ChIA-PET that has some extreme inconsistency
+between replicates. We filter these out during the QC step. Presently, it is not
+clear what these non-replicated loops can be attributed to, but we are actively
+investigating it. We use the `subsetLoops` function with a boolean parameter
+to filter these loops with severe discordance between samples. 
 
-```{r quickAssoc}
-np <- valid_full[,1:4]
-summary(np[1:3,])
-np_res2 <- quickAssoc(np)
-```
-
-Instead of determining the loops that distinguish these conditions from each
-other pairwise, this framework allows us to determine the loops that are
-significantly different between all of these conditions:
-
-```{r assocResults}
-jnp_res <- loopTest(fit,coef=2:3)
-head(jnp_res)
+```{r discordant, message=FALSE, warning=FALSE}
+cm <- noCNV_corrected@counts
+k_dis <- ((cm[,3]>=5 &cm[,4]==0)|(cm[,4]>=5&cm[,3]==0))
+m_dis <- ((cm[,6]>=5 &cm[,7]==0)|(cm[,7]>=5&cm[,6]==0))
+qc_filt <- subsetLoops(noCNV_corrected, !(k_dis | m_dis))
+dim(qc_filt)
 ```
 
-## Quantifying Associations
-How many differential loops are present pairwise between these conditions?
-```{r pairwiseSum, message=FALSE, warning=FALSE}
-jp_sig_res <- topLoops(jp_res, FDR = 0.2)
-dim(jp_sig_res)
-dim(topLoops(jn_res, FDR = 0.2))
-dim(topLoops(np_res, FDR = 0.2))
-head(summary(jp_sig_res),3)
-```
-At FDR < 0.2, only no loops are significantly different from the naive and
-primed stem cells whereas the jurkat differs between the primed stem cells
-by 52 significant loops and the naive by 108 significant loops on chromosome 1.
-These results are in line with the underlying biology of these cell types. 
+Now that the quality control filtering steps are complete, we can begin to look
+at the quality of our samples. Below is the distribution of PETs per sample
+as a function of the distance separating the anchors. 
 
-##Annotating Loops
-A key feature of diffloop is the ability to annotate the various loops either
-from the full data or from the significantly different loops. The `annotateLoops`
-function takes a `GRanges` coordinates for CTCF regions, Enhancer regions, and
-Promoter regions and returns the `loops` object with each loop annotated either
-as `ctcf`, `e-p`, or `none` under v1.0.0
-```{r annotateLoops}
-ctcf_j <- system.file('extdata','Jurkat_CTCF_chr1.narrowPeak',package='diffloop')
-ctcf <- rmchr(padGRanges(bedToGRanges(ctcf_j), pad = 1000))
-h3k27ac_j <- system.file('extdata','Jurkat_H3K27ac_chr1.narrowPeak',package='diffloop')
-h3k27ac <- rmchr(padGRanges(bedToGRanges(h3k27ac_j), pad = 1000))
-promoter <- padGRanges(getHumanTSS(c('1')), pad = 1000)
-annotated_jn <- annotateLoops(jn_res, ctcf = ctcf, enhancer = h3k27ac, promoter = promoter)
-head(annotated_jn, 3)
-```
-Optionally, one can subset the loops to those with enhancer-promoter activity
-and retain the gene of the promoter region using the function below:
-```{r epLoops}
-ep_jn <- keepEPloops(jn_res, enhancer = h3k27ac, promoter = promoter)
-head(ep_jn, 3)
-```
-## Loop Plots
-We can easily visualize the looping structure of a region specfied by a 
-`GRanges` object in each sample. We also afford the annotation of the region
-with the genes for a particular organism. Currently, mouse and human (default)
-are supported.
-```{r dloplots2,fig.width=7, fig.height=10}
-regA <- GRanges(c("1"),ranges=IRanges(c(36000000),c(36300000)))
-full.plot <- loopPlot(jn_res, regA)
+```{r loopdist, fig.width=7, fig.height=7, fig.cap = "Loop distance proportions"}
+p1 <- loopDistancePlot(qc_filt)
+p1
 ```
 
-When loop annotation information is available, these can be identified in
-the plot by indicating `colorLoops = TRUE`, which makes ctcf loops blue,
-enhancer-promoter loops red, and loopswith no special annotation black.
-```{r colorplots,fig.width=7, fig.height=10}
-regB <- GRanges(c("1"),ranges=IRanges(c(36000000),c(36500000)))
-color.plot <- loopPlot(annotated_jn, regB, colorLoops = TRUE)
+While the MCF-7 and K562 samples are very consistent, the HCT116 sample has a slightly
+different behavior. This can be attributed to the low sequencing counts (and hence low
+number of unique loops) that are present in this sample, which we can discern from the
+`loopMetrics` function. If self-ligation loops or intrachromosomal loops are also
+present in the `loops` object, then those statistics are also listed using this function. 
+
+```{r lmetric}
+loopMetrics(qc_filt)
 ```
+
+When the data is imported using either the `loopsMake` or the `loopsMake.mango` function, 
+the size factors are automatically computed 
+
+```{r pcp1, fig.width=7, fig.height=5, fig.cap = "PC Plot 1"}
+pcp1dat <- qc_filt
+pcp1dat@colData$sizeFactor <- 1
+samples <- c("HCT116", "K562_comb", "K562_r1", "K562_r2", "MCF7_comb", "MCF7_r1", "MCF_r2")
+pcp1 <- pcaPlot(pcp1dat) + geom_text_repel(aes(label=samples)) +
+    scale_x_continuous(limits = c(-140, 230)) + ggtitle("PC Plot with no Size Factor Correction") +
+    theme(legend.position="none")
+pcp1
+```
+
+The second principal component scales roughly with the total sequencing depth
+when size factors are not introduced, and the samples are very diffuse. Hence,
+we adjust be sweeping the size factor of each sample across the counts matrix
+and run the PC decomposition once again. Note: this is the default behavior, and
+we only generated the poor PC plot as a proof-of-concept for the use of the size
+factors in our analyses. 
+
+```{r pcp2, fig.width=7, fig.height=5, fig.cap = "PC Plot 2"}
+samples <- c("HCT116", "K562_comb", "K562_r1", "K562_r2", "MCF7_comb", "MCF7_r1", "MCF_r2")
+pcp2 <-pcaPlot(qc_filt) + geom_text_repel(aes(label=samples)) +
+    scale_x_continuous(limits = c(-120, 120)) + ggtitle("PC Plot with Size Factor Correction") +
+    theme(legend.position="none")
+pcp2
+```
+
+With the utilization of the size factor, we observe much clearner clusters of our samples
+and break the correlation between the PCs and the total sequencing depth. 
+
+## Differential Loop Calling
+The addition of the combined K562 and MCF7 repilcates as well as the HCT116 sample
+was used primarily to provide more data points on the PC plot. However, these
+samples shouldn't be used (combined; singleton) when performing a differential
+analysis. Thus, we will only use the two replicates of K562 and MCF7 to do
+further differential analyses, annotation, and visualization. This can
+be achieved using the `[` command. When applied to a `loops` S4 object,
+the columns are the samples and the rows are the loops. Thus, we
+can isolate the four samples of interest for a 2x2 analysis 
+
+```{r filter4}
+km_filt <- qc_filt[,c(3,4,6,7)]
+dim(km_filt)
+```
+
+Currently in `diffloop`, we support two models of accessing differential features. 
+The first is based on an over-dispersed Poisson regression, which was initially 
+made popular in the `edgeR` package.$^4$ The `quickAssoc` function implements
+this association measure with automatic correction for size factors and compares
+two groups annotated in the `colData` slot. 
+
+```{r edgeRassoc}
+km_res <- quickAssoc(km_filt)
+head(km_res@rowData)
+```
+
+The second model uses a mean-variance relationship of the log-counts of the loops, which
+generates a precision weight for each loop and enters uses these values in the limma-voom
+empirical Bayes analysis pipeline.$^5$ The `quickAssocVoom` function has a similar 
+feel as the previous function call and again requires two groups as inputs in the 
+`colData` slot. For each of these association tests, we flag the `robust` parameters 
+in the  model workflows as `TRUE` to represent the best fits for the low counts
+data associated with the loops data presently analyzed.  
+
+```{r voomAssoc, message=FALSE, warning=FALSE}
+km_res2 <- quickAssocVoom(km_res)
+```
+
+For specifying models more complicated than comparing two groups, see the
+documentation of the `loopAssoc` function. <br><br>
+We can compare the significance metrics per-loop of each of these two tests
+and can see that they give very similar results overall. 
+
+```{r comparisonAssoc, fig.width=7, fig.height=7, fig.cap = "Comparison of Association Methods"}
+fdrmat <- -log10(km_res2@rowData[,c(8,13)])
+fdrmatdf <- setNames(data.frame(fdrmat), c("edgeR", "Voom"))
+qplot(fdrmatdf$Voom, fdrmatdf$edgeR)+labs(title = "diffloop: edgeR versus Voom", 
+    x = "-log10(FDR) Voom", y = "-log10(FDR) edgeR") + scale_y_continuous(limits = c(0, 25)) +        
+    scale_x_continuous(limits = c(0, 25)) + theme_bw()
+cor(fdrmatdf$Voom, fdrmatdf$edgeR)
+cor(fdrmatdf$Voom, fdrmatdf$edgeR, method = "spearman")
+```
+
+While there are some subtle differences between the two methods for calling 
+differential loops, they overall are in strong agreement with few, if any, outliers.
+For the remainder of the vignette, we will use the results from the `edgeR`
+assocation when refering to a `differential loop`. 
+
+## Epigenetic Annotation
+Critical functionality in downstream `diffloop` analyses requires the annotation 
+of loops. In particular, we annotate loops based on their assumed transcriptional
+activity by annotating the `loops` object with regions of promoters and enhancers. 
+Here, we import enhancers defined by H3K27ac peaks in either cancer sample and use
+the RefSeq hg19 annotation transcription start sites padded by 1kb as the promoter
+regions. 
+
+```{r epigenetic_annotation}
+h3dir <- system.file("extdata", "annotation", package="diffloopdata")
+kh3 <- paste0(h3dir, "/", "K562_H3K27ac.bed")
+mh3 <- paste0(h3dir, "/", "MCF7_H3K27ac.bed")
+
+h3k27ac.k <- rmchr(padGRanges(bedToGRanges(kh3), pad = 1000))
+h3k27ac.m <- rmchr(padGRanges(bedToGRanges(mh3), pad = 1000))
+enhancer <- union(h3k27ac.m, h3k27ac.k)
+promoter <- padGRanges(getHumanTSS(), pad = 1000)
+km_anno <- annotateLoops(km_res, enhancer = enhancer, promoter = promoter)
+```
+
+Thus, out of the `r as.numeric(dim(km_anno)[2])` loops, we annotate
+`r sum(km_anno@rowData$loop.type == "e-p")` of them to be enhancer-promoter loops. 
+These numbers may change with variable methods of calling enhancers, promoters, or
+the protein that was ChIP-ed against. 
+
+## Epigenetic Correlations
+Next, we create a correlation of the logFC of loops (computed in the 
+`quickAssoc` step) with the maximum change in methylation at either
+loop anchor between the two condtions. Admittedly, this is a fairly 
+specialized analysis and the code only uses a handful of native functions
+in `diffloop`, but we demonstrate this example nonetheless to provide
+an example of how one may correlate epigenetic features with changing
+loops. Note the use of `annotateAnchors.bed` and one may use the
+`annotateAnchors.bigwig` function to similarly compute average epigenetic
+values over the anchor locii in a particular `loops` object. 
+
+```{r methylInt, fig.width=7, fig.height=7, message = FALSE, warning = FALSE}
+methyl_dir <- system.file("extdata", "450k-methyl", package="diffloopdata")
+k_450k <- paste0(methyl_dir, "/", "K562-450k.bedgraph")
+m_450k <- paste0(methyl_dir, "/", "MCF7-450k.bedgraph")
+
+km_res <- annotateAnchors.bed(km_res, k_450k)
+km_res <- annotateAnchors.bed(km_res, m_450k)
+
+# Annotate anchors; link anchors together and take the max
+mcf7methyl <- mcols(km_res@anchors)$MCF7.450k
+k562methyl <- mcols(km_res@anchors)$K562.450k
+log2FC.methyl <- log2(mcf7methyl/k562methyl)
+change.methyl <- mcf7methyl - k562methyl
+
+mcols(km_res@anchors) <- as.data.frame(cbind(mcols(km_res@anchors),
+                        data.frame(cbind(log2FC.methyl, change.methyl))))
+big.meth.summary <- summary(km_res)
+
+# Keep with largest absolute value
+idx <- as.logical(abs(big.meth.summary$log2FC.methyl_1) < abs(big.meth.summary$log2FC.methyl_2))
+idx[is.na(idx) | is.nan(idx)] <- FALSE
+diff.methyl.max <- as.matrix((sapply(1:length(idx), function(i) {
+    if (idx[i]) { big.meth.summary[i, ]$change.methyl_2
+    } else {
+        big.meth.summary[i, ]$change.methyl_1}
+})))
+big.meth.summary$diff.methyl.max <- as.numeric(diff.methyl.max)
+methyl.df <- big.meth.summary[, c("logFC", "diff.methyl.max", "FDR")]
+methyl.df <- methyl.df[complete.cases(methyl.df) & !is.infinite(methyl.df$diff.methyl.max), ]
+methyl.df$diff.methyl.max.bin <- cut(methyl.df$diff.methyl.max, seq(-1, 1, 0.25))
+```
+
+After processing that data and creating the integrated data frame, we can visualize 
+a violin plot of the binned methylation values against the logFC of the loops. 
+```{r methylPlot, fig.width=7, fig.height=5, message = FALSE, warning = FALSE}
+ggplot(methyl.df[complete.cases(methyl.df), ], aes(diff.methyl.max.bin, logFC)) +
+    geom_violin(aes(diff.methyl.max.bin, logFC), fill = "firebrick", trim = TRUE, scale = "width") + 
+    geom_hline(yintercept = 0) + theme_bw() +
+    ggtitle("Differential loops stratified by differential methylation") + 
+    xlab("Max change in anchor methylation") + ylab("log FC Loops")
+```
+
+## RNA-Seq Integration
+Here, we employ the `DESeq2` pipeline to process our RNA-Seq data and create a summary table.
+This summary table can then be linked to our loops object in the subsequent steps.
+
+```{r DEseq2analysis, warning = FALSE, message = FALSE}
+# Just turning the crank on the DESeq2 pipeline
+rna_dir <- system.file("extdata", "rna_seq", package="diffloopdata")
+files <- grep("counts", list.files(rna_dir), value = TRUE)
+condition <- c("k562", "k562", "k562", "mcf7", "mcf7", "mcf7")
+names <- c("k1", "k2", "k3", "m1", "m2", "m3")
+sampleTable <- data.frame(sampleName = names, fileName = files, condition = condition)
+dds <- DESeqDataSetFromHTSeqCount(sampleTable = sampleTable, directory = rna_dir, design = ~condition)
+
+dds <- dds[rowSums(counts(dds)) > 1, ]  #remove zero counts
+dds$condition <- factor(dds$condition, levels = c("k562", "mcf7"))
+dds <- DESeq(dds)
+res <- results(dds)
+res <- res[complete.cases(res), ]
+resDESeq2 <- res[order(res$pvalue), ]
+```
+With the `DESeq2` data in a table, we can annotate enhancer-promoter loops
+with their corresponding gene expression values. To achieve this, sequential
+execution of the `keepEPloops` and `annotateLoops.dge` functions are required. 
+This will add data in the `rowData` slot that has the transcriptional information
+associated with the particular loop when `multiple = FALSE`, as we show below. 
+
+```{r moreProcess, warning = FALSE, message = FALSE}
+km_res.ep <- keepEPloops(km_anno, enhancer, promoter)
+km.linked <- annotateLoops.dge(km_res.ep, resDESeq2, multiple = FALSE)
+```
+If `multiple = TRUE`, then loops that bridge multiple promoters will
+be annotated with transcription values. To achieve this, the returning
+functional value cannot be a `loops` object since we have to duplicate
+the loop to accommodate the multiple promoters. <br> <br>
+In this code chunk, we also set up a data frame for plotting global 
+trends, including the methylation values at distal regions and promoter
+regions. 
+
+```{r setUpDF}
+df <- summary(km.linked)
+df$logFC_bin <- cut(df$logFC, seq(-12, 12, 3))
+df$log2FoldChange_bin <- cut(df$log2FoldChange, seq(-20, 20, 5))
+```
+We use our large data frame to visualize the relationship between increasing
+strength of enhancer-promoter loops and the increasing relative expression of transcripts
+that are linked to the loops. 
+
+```{r loopViolin, message = FALSE, warning = FALSE, fig.width=7, fig.height=5}
+loopViolin <- ggplot(df[complete.cases(df) & df$padj < 0.1, ], aes(logFC_bin, log2FoldChange)) + 
+    geom_violin(aes(logFC_bin, log2FoldChange), fill = "dodgerblue", trim = TRUE, scale = "width") + 
+    geom_hline(yintercept = 0) +  theme_bw() + 
+    labs(title = "Differential expression stratified by E-P Loops", x = "log FC Loops", 
+    y = "log FC Gene Expression")
+loopViolin
+```
+<br>
+The plot clearly shows a trend where increasing the logFC of the loops results in
+a corresponding logFC increase in the corresponding transcript that is the target
+of the enhancer-promoter loop. 
+
+
+## Visualization
+We can visualize regions of differential topology using the `loopPlot` 
+function. Below are two examples of significantly altered topology
+between the K562 and MCF7 samples.
+
+```{r visLoop1, fig.height = 10, fig.width = 6}
+chr1reg <- GRanges(seqnames=c("1"),ranges=IRanges(start=c(11840000),end=c(11980000)))
+p1 <- loopPlot(km_anno, chr1reg)
+```
+<br>
+This plot highlights the MTHFR gene, which is significantly up-regulated in the 
+K562 cancer cell line. We can see much stronger (line width is linearly proportional
+to the number of PETs supporting the interaction) E-P loops leading to the promoter
+of MTHFR as well as multiple enhancer-enhancer loops further localizing enhancer regions
+in three-dimensional proximity to the MTHFR promoter locus. <br> <br>
+We note the color scheme where red loops bridge enhancers and promoters, purple loops
+bridge two enhancers, orange loops bridge two promoters, blue loops bridge regions of
+CTCF occupancy, and black have no special color annotation based on the data present. 
+
+```{r visLoop2, fig.height = 10, fig.width = 6}
+chr14reg <- GRanges(seqnames=c("14"),ranges=IRanges(start=c(35800000),end=c(35890000)))
+p14 <- loopPlot(km_anno, chr14reg)
+```
+<br>
+The second plot highlights the NFKBIA gene, which is upregulated in breast cancers like
+MCF7. This loop plot shows several strong enhancer-promoter loops localizing downstream
+enhancers to the NFKBIA promoter. This change in topology helps explain the upregulation 
+of this gene in MCF7 relative to K562.
+
+## Summary
+This vignette was written to demonstrate a common workflow that performs significant
+quality control measures on a set of loops and ultimately integrates extensive
+epigenetic and transcriptional data to identify and annotate regions of differential
+topology. The visualizations provide both large-scale trends (e.g. correlations between
+logFC of loops and the transcription FC) and anecdotal regions of variable topology, as 
+shown in the plots above. While `diffloop` provides an environment to visualize these
+loop plots statically, we note our shiny app, [DNAlandscapeR](dnalandscaper.aryeelab.org)
+that provides an interactive framework for visualizing topology samples alongside other
+genomic and epigenomic data. 
+
+## Notes on Data
+All data used in these analyses were processed from GEO and are contained
+in the `diffloopdata` package. Please feel free to contact Caleb (the maintainer)
+with any questions concerning the data or this workflow. 
+
+## Session info
+
+```{r sessInfo}
+sessionInfo()
+```
+
+## Citations
 
 $^1$Hnisz, Denes, et al. "Activation of proto-oncogenes by disruption of
-chromosome neighborhoods." Science (2016): aad9024. <br><br>
+chromosome neighborhoods." Science (2016). <br><br>
 $^2$Ji, Xiong, et al. "3D Chromosome Regulatory Landscape of Human Pluripotent
 Cells." Cell stem cell (2015).
+$^3$Phanstiel, D, et al. "Mango: A bias correcting ChIA-PET analysis pipeline."
+Bioinformatics (2015).
+$^4$Robinson, M, et al. "edgeR: a Bioconductor package for differential expression
+analysis of digital gene expression data." Bioinformatics (2010). 
+$^5$Law, C, et al. "Voom: precision weights unlock linear model analysis tools
+for RNA-seq read counts." Genome Biology (2014). 

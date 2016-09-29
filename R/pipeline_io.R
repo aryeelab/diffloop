@@ -64,8 +64,7 @@ setGeneric(name = "loopsMake", def = function(beddir, samples = NA,
         fullfile <- file.path(beddir, paste(sample, "loop_counts.bedpe", sep = "."))
         bt <- read_delim(fullfile, " ", col_types = ct, col_names = FALSE)
         bt <- restrictPets(bt)
-        plyr::rbind.fill(bt[, 1:3], setNames(bt[, 4:6], names(bt[, 
-            1:3])))
+        plyr::rbind.fill(bt[, 1:3], setNames(bt[, 4:6], names(bt[, 1:3])))
     }
     
     anchors <- reduce(makeGRangesFromDataFrame(do.call(rbind, 

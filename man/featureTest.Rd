@@ -35,10 +35,8 @@ interest.
 # Human genes chromosome 1 regional association
 rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
 load(rda)
-jpn_loopfit <- loopFit(loops.small)
-# Differential loop calling between naive and jurkat
-assoc_jn <- loopTest(jpn_loopfit, coef = 2)
+assoc <- loopAssoc(loops.small, coef = 2)
 # Gene based association
-sw_jn <- featureTest(assoc_jn, getHumanGenes(c('1')))
+sw_jn <- featureTest(assoc, getHumanGenes(c('1')))
 }
 

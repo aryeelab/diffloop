@@ -45,9 +45,8 @@ before any association testing was called.)
 rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
 load(rda)
 jpn.u <- removeSelfLoops(loops.small)
-jpn_loopfit <- loopFit(jpn.u)
-assoc_jn <- loopTest(jpn_loopfit, coef = 2)
-plotTopLoops(assoc_jn, n=2)
+assoc <- loopAssoc(jpn.u,coef = 2)
+plotTopLoops(assoc, n=2)
 
 }
 

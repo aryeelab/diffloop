@@ -33,7 +33,7 @@ for \code{FDR} or \code{PValue}
 \details{
 This function returns a subsetted \code{loops} object where all
 loops meet the significance threshold specificed by the parameters
-in the function call
+in the function call.
 }
 \examples{
 # Differential loop calling between naive and primed
