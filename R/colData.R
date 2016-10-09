@@ -21,7 +21,7 @@ NULL
 #' load(rda)
 #' loops.small <- calcLDSizeFactors(loops.small)
 
-#' @importMethodsFrom matrixStats colMedians
+#' @importFrom matrixStats colMedians
 #' @export
 setGeneric(name = "calcLDSizeFactors", def = function(dlo) standardGeneric("calcLDSizeFactors"))
 
