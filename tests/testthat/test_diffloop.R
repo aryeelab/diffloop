@@ -11,12 +11,12 @@ test_that("BED file is imported to GRanges correctly", {
     expect_equal(gr$id[100], "Jurkat_CTCF_peak_100")
 })
 
-test_that("RDA looks good and CCDs work as expected", {
-    rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
-    load(rda)
-    lo <- subsetLoops(loops.small, c(1,2,5,6,7,8,9,27,69))
-    ccd <- callCCDs(lo, petWeights = TRUE, lowCoveragePercentile = 0.5)
-    expect_equal(length(ccd), 3)
-    ccd <- callCCDs(lo, petWeights = FALSE, lowCoveragePercentile = 0.5)
-    expect_equal(length(ccd), 2)
-})
+#test_that("RDA looks good and CCDs work as expected", {
+#    rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
+#    load(rda)
+#    lo <- subsetLoops(loops.small, c(1,2,5,6,7,8,9,27,69))
+#    ccd <- callCCDs(lo, petWeights = TRUE, lowCoveragePercentile = 0.5)
+#    expect_equal(length(ccd), 3)
+#    ccd <- callCCDs(lo, petWeights = FALSE, lowCoveragePercentile = 0.5)
+#    expect_equal(length(ccd), 2)
+#})
