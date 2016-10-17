@@ -20,8 +20,8 @@ NULL
 #' @examples
 #' rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
 #' load(rda)
-#' lo <- subsetLoops(loops.small, c(1,2,5,6,7,8,9,27,69))
-#' ccd <- callCCDs(lo, petWeights = TRUE, lowCoveragePercentile = 0.5)
+#' #lo <- subsetLoops(loops.small, c(1,2,5,6,7,8,9,27,69))
+#' #ccd <- callCCDs(lo, petWeights = TRUE, lowCoveragePercentile = 0.5)
 #' 
 #' @importFrom stats quantile
 #' 
@@ -103,7 +103,7 @@ setMethod(f = "subsetRegionAB", signature = c("loops", "GRanges", "GRanges"),
 #' # Return the width for loops 
 #' rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
 #' load(rda)
-#' BS <- computeBoundaryScores(loops.small, samples = 0, windowSize = 500000)
+#' # BS <- computeBoundaryScores(loops.small, samples = 0, windowSize = 500000)
 #'
 #' @importFrom pbapply pbsapply
 #' @export

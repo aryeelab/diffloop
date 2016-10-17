@@ -34,8 +34,8 @@ of PMID:26686651. Make sure there are only loops within a chromosome before call
 \examples{
 rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
 load(rda)
-lo <- subsetLoops(loops.small, c(1,2,5,6,7,8,9,27,69))
-ccd <- callCCDs(lo, petWeights = TRUE, lowCoveragePercentile = 0.5)
+#lo <- subsetLoops(loops.small, c(1,2,5,6,7,8,9,27,69))
+#ccd <- callCCDs(lo, petWeights = TRUE, lowCoveragePercentile = 0.5)
 
 }
 

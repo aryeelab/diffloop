@@ -39,7 +39,7 @@ an anticipated runntime.
 # Return the width for loops 
 rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
 load(rda)
-BS <- computeBoundaryScores(loops.small, samples = 0, windowSize = 500000)
+# BS <- computeBoundaryScores(loops.small, samples = 0, windowSize = 500000)
 
 }
 
