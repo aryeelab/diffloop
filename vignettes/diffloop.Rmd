@@ -1,0 +1,51 @@
+---
+title: "diffloop: Identifying differential DNA loops from chromatin topology data"
+author: "Caleb Lareau & Martin Aryee"
+date: "`r Sys.Date()`"
+output:
+  rmarkdown::html_vignette:
+    fig_caption: yes
+vignette: >
+  %\VignetteIndexEntry{diffloop: Identifying differential DNA loops from chromatin topology data.}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, echo=TRUE, message=FALSE, warning=FALSE}
+library(diffloop)
+library(diffloopdata)
+library(ggplot2)
+library(GenomicRanges)
+library(ggrepel)
+library(DESeq2)
+```
+
+## About
+Due to the maintainer's inability to figure out data package 
+resubmission to Bioc, a compiled vignette is hosted [here](http://rpubs.com/caleblareau/diffloop_vignette). 
+
+## Notes on Data
+All data used in these analyses were processed from GEO and are contained
+in the `diffloopdata` package. Please feel free to contact
+[Caleb](caleblareau@g.harvard.edu) (the maintainer)
+with any questions concerning the data or this workflow. The
+diffloopdata package is available [here](https://github.com/aryeelab/diffloopdata)
+
+## Session info
+
+```{r sessInfo}
+sessionInfo()
+```
+
+## Citations
+
+$^1$Hnisz, Denes, et al. "Activation of proto-oncogenes by disruption of
+chromosome neighborhoods." Science (2016). <br><br>
+$^2$Ji, Xiong, et al. "3D Chromosome Regulatory Landscape of Human Pluripotent
+Cells." Cell stem cell (2015).<br><br>
+$^3$Phanstiel, D, et al. "Mango: A bias correcting ChIA-PET analysis pipeline."
+Bioinformatics (2015). <br><br>
+$^4$Robinson, M, et al. "edgeR: a Bioconductor package for differential expression
+analysis of digital gene expression data." Bioinformatics (2010). <br><br>
+$^5$Law, C, et al. "Voom: precision weights unlock linear model analysis tools
+for RNA-seq read counts." Genome Biology (2014). 

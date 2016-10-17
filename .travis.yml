@@ -1,0 +1,10 @@
+language: r
+sudo: false
+cache: packages
+
+r: bioc-devel
+
+r_github_packages:
+ - aryeelab/diffloopdata
+
+bioc_required: true
