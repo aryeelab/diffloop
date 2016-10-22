@@ -38,8 +38,8 @@ overlaps with the region. Requires PValue column in the rowData slot.
 # Sliding window test 100kb at a time between naive and jurkat
 rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
 load(rda)
-assoc_jn <- loopAssoc(loops.small, coef = 2)
-sw_jn <- slidingWindowTest(assoc_jn, 100000, 100000)
+# assoc_jn <- loopAssoc(loops.small, coef = 2)
+# sw_jn <- slidingWindowTest(assoc_jn, 100000, 100000)
 
 }
 

@@ -35,8 +35,8 @@ interest.
 # Human genes chromosome 1 regional association
 rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
 load(rda)
-assoc <- loopAssoc(loops.small, coef = 2)
+# assoc <- loopAssoc(loops.small, coef = 2)
 # Gene based association
-sw_jn <- featureTest(assoc, getHumanGenes(c('1')))
+# sw_jn <- featureTest(assoc, getHumanGenes(c('1')))
 }
 

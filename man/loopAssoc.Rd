@@ -41,6 +41,6 @@ methods, but new association tests may be added in later developments.
 # Differential loop fit
 rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
 load(rda)
-assoc <- loopAssoc(loops.small, coef = 2)
+# assoc <- loopAssoc(loops.small, coef = 2)
 }
 

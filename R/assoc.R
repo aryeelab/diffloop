@@ -24,7 +24,7 @@ NULL
 #' # Differential loop fit
 #' rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
 #' load(rda)
-#' assoc <- loopAssoc(loops.small, coef = 2)
+#' # assoc <- loopAssoc(loops.small, coef = 2)
 
 #' @import edgeR
 #' @import locfit
@@ -94,8 +94,8 @@ setMethod(f = "loopAssoc", signature = c("loops", "ANY", "ANY", "ANY", "ANY"),
 #' # Sliding window test 100kb at a time between naive and jurkat
 #' rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
 #' load(rda)
-#' assoc_jn <- loopAssoc(loops.small, coef = 2)
-#' sw_jn <- slidingWindowTest(assoc_jn, 100000, 100000)
+#' # assoc_jn <- loopAssoc(loops.small, coef = 2)
+#' # sw_jn <- slidingWindowTest(assoc_jn, 100000, 100000)
 #' 
 #' @import GenomicRanges
 #' @importFrom stats complete.cases model.matrix p.adjust prcomp setNames
@@ -204,9 +204,9 @@ setMethod(f = "slidingWindowTest", signature = c("loops", "numeric",
 #' # Human genes chromosome 1 regional association
 #' rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
 #' load(rda)
-#' assoc <- loopAssoc(loops.small, coef = 2)
+#' # assoc <- loopAssoc(loops.small, coef = 2)
 #' # Gene based association
-#' sw_jn <- featureTest(assoc, getHumanGenes(c('1')))
+#' # sw_jn <- featureTest(assoc, getHumanGenes(c('1')))
 
 #' @import GenomicRanges
 #' @importFrom stats complete.cases model.matrix p.adjust prcomp setNames
