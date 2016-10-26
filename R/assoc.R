@@ -37,37 +37,37 @@ setGeneric(name = "loopAssoc", def = function(y, method = "edgeR", design = NULL
 #' @rdname loopAssoc
 setMethod(f = "loopAssoc", signature = c("loops", "ANY", "ANY", "ANY", "ANY"), 
     definition = function(y, method = "edgeR", design = NULL,  coef = NULL, contrast = NULL) {
-        stopifnot(method == "edgeR" | method == "Voom")
-        if(is.null(coef) & is.null(contrast) & method == "edgeR"){
-            stop("specify either the coefficient or the contrast when using the edgeR method")
-        }
-        
-        groups <- y@colData$groups
-        z <- DGEList(counts = y@counts, group = groups)
-        z <- calcNormFactors(z)
-        if(is.null(design)) design <- model.matrix(~groups)
-        cat("The coefficients of the fitted GLM object are:\n")
-        cat(colnames(model.matrix(~groups)))
-        
-        if(method == "edgeR"){
-            yy <- estimateDisp(z, design)
-            fit <- glmQLFit(yy, design, robust = TRUE)
-            if(!is.null(coef)){
-                qlf <- glmQLFTest(fit, coef = coef)
-            } else {
-                qlf <- glmQLFTest(y@fit, contrast = contrast)
-            }
-            results <- as.data.frame(topTags(qlf, n = nrow(y@counts), sort.by = "none"))
+      stopifnot(method == "edgeR" | method == "Voom")
+      if(is.null(coef) & is.null(contrast) & method == "edgeR"){
+        stop("specify either the coefficient or the contrast when using the edgeR method")
+      }
+      
+      groups <- y@colData$groups
+      z <- DGEList(counts = y@counts, group = groups)
+      z <- calcNormFactors(z)
+      design <- model.matrix(~groups)
+      cat("The coefficients of the fitted GLM object are:\n")
+      cat(colnames(model.matrix(~groups)))
+
+      if(method == "edgeR"){
+        yy <- estimateGLMCommonDisp(z, design)
+        fit <- glmQLFit(yy, design, robust = TRUE)
+        if(!is.null(coef)){
+          qlf <- glmLRT(fit, coef = coef)
         } else {
-            v <- voom(z,design,plot=FALSE)
-            fit <- lmFit(v, design)
-            fit <- eBayes(fit, robust = TRUE)
-            results <- as.data.frame(topTable(fit, number = nrow(y@counts), sort.by = "none"))
+          qlf <- glmLRT(fit, contrast = contrast)
         }
-        newRowData <- as.data.frame(cbind(y@rowData, results))
-        row.names(newRowData) <- NULL
-        y@rowData <- newRowData
-        return(y)
+        results <- as.data.frame(topTags(qlf, n = nrow(y@counts), sort.by = "none"))
+      } else {
+        v <- voom(z,design,plot=FALSE)
+        fit <- lmFit(v, design)
+        fit <- eBayes(fit, robust = TRUE)
+        results <- as.data.frame(topTable(fit, number = nrow(y@counts), sort.by = "none"))
+      }
+      newRowData <- as.data.frame(cbind(y@rowData, results))
+      row.names(newRowData) <- NULL
+      y@rowData <- newRowData
+      return(y)
     })
 
 #' Combined association test for all loops in a defined region 
@@ -303,20 +303,20 @@ setMethod(f = "quickAssoc", signature = c("loops"), definition = function(y) {
     if (length(unique(y@colData$groups)) != 2) {
         stop("Must be two groups for quickAssoc; use loopAssoc instead!")
     }
-    groups <- y@colData$groups
-    
-    z <- DGEList(counts = y@counts, group = groups)
-    design <- model.matrix(~groups)
-     z <- calcNormFactors(z)
-    yy <- estimateDisp(z, design)
-    fit <- glmQLFit(yy, design, robust = TRUE)
-    qlf <- glmQLFTest(fit, coef = 2)
-    results <- as.data.frame(topTags(qlf, n = nrow(y@counts), 
-        sort.by = "none"))
-    newRowData <- as.data.frame(cbind(y@rowData, results))
-    row.names(newRowData) <- NULL
-    y@rowData <- newRowData
-    return(y)
+  groups <- y@colData$groups
+  
+  z <- DGEList(counts = y@counts, group = groups)
+  design <- model.matrix(~groups)
+  z <- calcNormFactors(z)
+  yy <- estimateGLMCommonDisp(z, design)
+  fit <- glmQLFit(yy, design, robust = TRUE)
+  qlf <- glmLRT(fit, coef = 2)
+  results <- as.data.frame(topTags(qlf, n = nrow(y@counts), 
+                                   sort.by = "none"))
+  newRowData <- as.data.frame(cbind(y@rowData, results))
+  row.names(newRowData) <- NULL
+  y@rowData <- newRowData
+  return(y)
 })
 
 #' Perform quick differential loop calling
@@ -352,21 +352,21 @@ setMethod(f = "quickAssocVoom", signature = c("loops"), definition = function(y)
     if (length(unique(y@colData$groups)) != 2) {
         stop("Must be two groups for quickAssoc; use loopAssoc instead!")
     }
-    groups <- y@colData$groups
-    
-    z <- DGEList(counts = y@counts, group = groups)
-    design <- model.matrix(~groups)
-
-    z <- calcNormFactors(z)
-    v <- voom(z,design,plot=FALSE)
-    fit <- lmFit(v,design)
-    fit <- eBayes(fit, robust = TRUE)
-    results <- as.data.frame(topTable(fit, number = nrow(y@counts), 
-        sort.by = "none"))
-    newRowData <- as.data.frame(cbind(y@rowData, results))
-    row.names(newRowData) <- NULL
-    y@rowData <- newRowData
-    return(y)
+  groups <- y@colData$groups
+  
+  z <- DGEList(counts = y@counts, group = groups)
+  design <- model.matrix(~groups)
+  
+  z <- calcNormFactors(z)
+  v <- voom(z,design,plot=FALSE)
+  fit <- lmFit(v,design)
+  fit <- eBayes(fit, robust = TRUE)
+  results <- as.data.frame(topTable(fit, number = nrow(y@counts), 
+                                    sort.by = "none"))
+  newRowData <- as.data.frame(cbind(y@rowData, results))
+  row.names(newRowData) <- NULL
+  y@rowData <- newRowData
+  return(y)
 })
 
 
