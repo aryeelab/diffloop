@@ -48,7 +48,7 @@ ctcf <- rmchr(padGRanges(bedToGRanges(ctcf_j), pad = 1000))
 h3k27ac_j <- system.file('extdata','Jurkat_H3K27ac_chr1.narrowPeak',package='diffloop')
 h3k27ac <- rmchr(padGRanges(bedToGRanges(h3k27ac_j), pad = 1000))
 promoter <- padGRanges(getHumanTSS(c('1')), pad = 1000)
-annotated_small <- annotateLoops(loops.small, ctcf, h3k27ac, promoter)
+# annotated_small <- annotateLoops(loops.small, ctcf, h3k27ac, promoter)
 
 }
 

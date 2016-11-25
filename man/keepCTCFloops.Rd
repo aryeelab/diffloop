@@ -38,7 +38,7 @@ rda<-paste(system.file('rda',package='diffloop'),'loops.small.rda',sep='/')
 load(rda)
 ctcf_j <- system.file('extdata','Jurkat_CTCF_chr1.narrowPeak',package='diffloop')
 ctcf <- rmchr(padGRanges(bedToGRanges(ctcf_j), pad = 1000))
-small.ctcf <- keepCTCFloops(loops.small, ctcf)
+# small.ctcf <- keepCTCFloops(loops.small, ctcf)
 
 }
 

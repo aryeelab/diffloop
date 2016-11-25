@@ -30,7 +30,7 @@ NULL
 #' loops.small <- annotateAnchors(loops.small,gb,'inGeneBody',0)
 #'
 #' @import GenomicRanges
-#' 
+#' @export loops.small
 #' @export
 setGeneric(name = "annotateAnchors", def = function(dlo, features, 
     featureName, maxgap) standardGeneric("annotateAnchors"))
@@ -446,7 +446,7 @@ setMethod(f = "getMouseGenes", signature = c("character"),
 #' h3k27ac_j <- system.file('extdata','Jurkat_H3K27ac_chr1.narrowPeak',package='diffloop')
 #' h3k27ac <- rmchr(padGRanges(bedToGRanges(h3k27ac_j), pad = 1000))
 #' promoter <- padGRanges(getHumanTSS(c('1')), pad = 1000)
-#' annotated_small <- annotateLoops(loops.small, ctcf, h3k27ac, promoter)
+#' # annotated_small <- annotateLoops(loops.small, ctcf, h3k27ac, promoter)
 #' 
 #' @import GenomicRanges
 #' @export
@@ -600,7 +600,7 @@ setMethod(f = "annotateLoops", signature = c("loops", "missing",
 #' h3k27ac_j <- system.file('extdata','Jurkat_H3K27ac_chr1.narrowPeak',package='diffloop')
 #' h3k27ac <- rmchr(padGRanges(bedToGRanges(h3k27ac_j), pad = 1000))
 #' promoter <- padGRanges(getHumanTSS(c('1')), pad = 1000)
-#' small.ep <- keepEPloops(loops.small, h3k27ac, promoter)
+#' # small.ep <- keepEPloops(loops.small, h3k27ac, promoter)
 #' 
 #' @import GenomicRanges
 #' @importFrom stats aggregate
@@ -695,7 +695,7 @@ setMethod(f = "keepEPloops", signature = c("loops",
 #' load(rda)
 #' ctcf_j <- system.file('extdata','Jurkat_CTCF_chr1.narrowPeak',package='diffloop')
 #' ctcf <- rmchr(padGRanges(bedToGRanges(ctcf_j), pad = 1000))
-#' small.ctcf <- keepCTCFloops(loops.small, ctcf)
+#' # small.ctcf <- keepCTCFloops(loops.small, ctcf)
 #' 
 #' @import GenomicRanges
 #' @importFrom stats aggregate
