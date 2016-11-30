@@ -30,7 +30,6 @@ NULL
 #' loops.small <- annotateAnchors(loops.small,gb,'inGeneBody',0)
 #'
 #' @import GenomicRanges
-#' @export loops.small
 #' @export
 setGeneric(name = "annotateAnchors", def = function(dlo, features, 
     featureName, maxgap) standardGeneric("annotateAnchors"))
