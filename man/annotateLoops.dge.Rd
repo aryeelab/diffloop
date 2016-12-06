@@ -42,7 +42,7 @@ load(rda)
 h3k27ac_j <- system.file('extdata','Jurkat_H3K27ac_chr1.narrowPeak',package='diffloop')
 h3k27ac <- rmchr(padGRanges(bedToGRanges(h3k27ac_j), pad = 1000))
 promoter <- padGRanges(getHumanTSS(c('1')), pad = 1000)
-small.ep <- keepEPloops(loops.small, h3k27ac, promoter)
+#small.ep <- keepEPloops(loops.small, h3k27ac, promoter)
 #ADD SOMETHING HERE.
 
 }
